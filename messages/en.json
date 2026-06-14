@@ -1,0 +1,199 @@
+{
+  "Nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "certificates": "Certificates",
+    "skills": "Skills",
+    "ctf": "CTF",
+    "experience": "Experience",
+    "contact": "Contact",
+    "language": "Language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "themeLight": "Switch to light theme",
+    "themeDark": "Switch to dark theme"
+  },
+  "Social": {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "githubAria": "Visit GitHub profile (opens in a new tab)",
+    "linkedinAria": "Visit LinkedIn profile (opens in a new tab)",
+    "mobileHeading": "Social"
+  },
+  "Hero": {
+    "greeting": "Hi, I'm",
+    "name": "Arda Ege Tunç",
+    "rolePrefix": "I build modern products at the intersection of",
+    "ctaProjects": "View Projects",
+    "ctaContact": "Contact Me",
+    "badges": {
+      "ai": "Generative AI",
+      "fullstack": "Full Stack",
+      "security": "Cybersecurity"
+    },
+    "typing": {
+      "1": "AI Engineer",
+      "2": "Full Stack Developer",
+      "3": "Computer Engineer",
+      "4": "Cybersecurity Enthusiast"
+    },
+    "profileTagline": "AI Engineering · Full Stack · Cybersecurity"
+  },
+  "About": {
+    "title": "About Me",
+    "locationLabel": "Location",
+    "location": "Ankara, Turkey",
+    "educationTitle": "Education",
+    "edu1": "Ankara Science University — B.Sc. in Computer Engineering (English)",
+    "edu2": "Istanbul University — Economics",
+    "summary": "A fresh Computer Engineering graduate specializing in Generative AI systems, full-stack web development, and cybersecurity.",
+    "experienced": "Experienced with",
+    "highlights": [
+      "RAG architectures",
+      "LangChain",
+      "LangGraph",
+      "React.js",
+      "Next.js",
+      "AI-assisted development",
+      "Prompt Engineering",
+      "Penetration Testing",
+      "Linux / Bash"
+    ],
+    "stats": {
+      "focus": "Primary focus",
+      "focusValue": "GenAI & secure systems",
+      "stack": "Core stack",
+      "stackValue": "React / Next / Python",
+      "mindset": "Engineering mindset",
+      "mindsetValue": "Ship clean, measurable outcomes"
+    }
+  },
+  "Skills": {
+    "title": "Skills",
+    "subtitle": "Depth across AI systems, product engineering, and defensive security.",
+    "categories": {
+      "ai": "AI & Machine Learning",
+      "frontend": "Frontend Development",
+      "backend": "Backend Development",
+      "security": "Cybersecurity",
+      "languages": "Languages & Tools"
+    },
+    "tiers": {
+      "expertise": "Expertise",
+      "comfortable": "Comfortable",
+      "learning": "Learning"
+    }
+  },
+  "CTF": {
+    "title": "CTF",
+    "subtitle": "Capture The Flag — solved machines & challenges",
+    "intro": "Offensive security practice across platforms — enumeration, exploitation, and privilege escalation.",
+    "toolsLabel": "Tools & tech",
+    "writeupAvailable": "Write-up",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "insane": "Insane"
+    }
+  },
+  "Experience": {
+    "title": "Experience",
+    "subtitle": "Internships and academic roles that shaped my engineering practice.",
+    "emptyBody": "No experience entries yet. Add roles in Content Hub under Experience.",
+    "items": [
+      {
+        "company": "RE/MAX Wise",
+        "role": "Full Stack Developer Intern",
+        "period": "08/2025 – 10/2025",
+        "detail": "Built internal tooling and web experiences with a focus on reliability and maintainability."
+      },
+      {
+        "company": "TRT",
+        "role": "Full Stack Developer Intern",
+        "period": "03/2025 – 05/2025",
+        "detail": "Collaborated on full-stack features with emphasis on performance and clean architecture."
+      },
+      {
+        "company": "Ankara Science University",
+        "role": "Computer Laboratory Assistant",
+        "period": "10/2023 – 01/2025",
+        "detail": "Supported coursework labs, troubleshooting, and mentoring peers on systems and tooling."
+      }
+    ]
+  },
+  "Projects": {
+    "title": "Projects",
+    "subtitle": "Digital Craftsmanship: Featured Projects",
+    "atmosTitle": "AtmosMind Weather Forecast",
+    "atmosDesc": "AtmosMind is an AI-powered intelligent weather dashboard that delivers real-time forecasts, hourly and 7-day predictions, enhanced with a Google Gemini AI assistant for natural conversational weather insights.",
+    "exqubitTitle": "Exqubit",
+    "exqubitDesc": "Exqubit is an AI-powered assessment platform that instantly generates high-quality, professional multiple-choice quizzes from PDFs and text documents using Google Gemini.",
+    "searchPlaceholder": "Search by technology or keyword…",
+    "filterAll": "All",
+    "filterAi": "AI",
+    "filterFullstack": "Full Stack",
+    "filterSecurity": "Security",
+    "filterTooling": "Tooling",
+    "emptyTitle": "Ready for your flagship builds",
+    "emptyBody": "No public projects are listed yet. Add yours to the data layer when you're ready — cards, filters, and search are already connected.",
+    "slotTitle": "Reserved slot",
+    "slotDescription": "Attach a repository, demo link, and thumbnail when you publish this project.",
+    "slotTech": "Technologies",
+    "slotTechHint": "Define stack when publishing",
+    "github": "GitHub",
+    "demo": "Live",
+    "preview": "Preview"
+  },
+  "Certificates": {
+    "title": "Certificates",
+    "subtitle": "Education, specialization, and event participation — organized for quick reference.",
+    "intro": "Choose a category to open the list in a modal. Each line follows: certificate name — issuer (date).",
+    "cardEducationKicker": "Education & credentials",
+    "cardEducationTitle": "Education & Specialization",
+    "cardEducationBody": "Courses, lab assistantships, internships, and professional trainings from universities, BTK Akademi, industry partners, and summits.",
+    "cardParticipationKicker": "Events & volunteering",
+    "cardParticipationTitle": "Participation & Events",
+    "cardParticipationBody": "Summits, career forums, workshops, science communication, and mentorship programs.",
+    "cardCta": "View list",
+    "countLabel": "{count} entries",
+    "modalEducationTitle": "Education & Specialization",
+    "modalParticipationTitle": "Participation & Events",
+    "modalClose": "Close"
+  },
+  "Contact": {
+    "title": "Contact",
+    "subtitle": "Get in touch",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send message",
+    "sending": "Sending…",
+    "success": "Thanks — your message is on its way.",
+    "error": "Something went wrong. Please try again or email directly.",
+    "validation": {
+      "required": "This field is required.",
+      "email": "Enter a valid email address.",
+      "maxLength": "This field is too long."
+    },
+    "social": {
+      "profiles": "Profiles",
+      "emailLabel": "Email",
+      "locationLabel": "Location"
+    },
+    "emailValue": "contact@example.com",
+    "locationValue": "Ankara, Turkey"
+  },
+  "Footer": {
+    "rights": "All rights reserved.",
+    "quick": "Navigate",
+    "builtWith": "Crafted with Next.js, Tailwind CSS, and Framer Motion.",
+    "connect": "Connect"
+  },
+  "SEO": {
+    "homeTitle": "Home",
+    "homeDescription": "Portfolio of Arda Ege Tunç — AI engineering, full-stack development, and cybersecurity."
+  }
+}

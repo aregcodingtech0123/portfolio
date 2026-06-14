@@ -1,0 +1,199 @@
+{
+  "Nav": {
+    "home": "Ana Sayfa",
+    "about": "Hakkımda",
+    "projects": "Projeler",
+    "certificates": "Sertifikalar",
+    "skills": "Yetenekler",
+    "ctf": "CTF",
+    "experience": "Deneyim",
+    "contact": "İletişim",
+    "language": "Dil",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "themeLight": "Açık temaya geç",
+    "themeDark": "Koyu temaya geç"
+  },
+  "Social": {
+    "github": "GitHub",
+    "linkedin": "LinkedIn",
+    "githubAria": "GitHub profilini ziyaret et (yeni sekmede açılır)",
+    "linkedinAria": "LinkedIn profilini ziyaret et (yeni sekmede açılır)",
+    "mobileHeading": "Sosyal"
+  },
+  "Hero": {
+    "greeting": "Merhaba, ben",
+    "name": "Arda Ege Tunç",
+    "rolePrefix": "Modern ürünleri şu kesişimde inşa ediyorum:",
+    "ctaProjects": "Projeleri Gör",
+    "ctaContact": "İletişim",
+    "badges": {
+      "ai": "Üretken Yapay Zeka",
+      "fullstack": "Full Stack",
+      "security": "Siber güvenlik"
+    },
+    "typing": {
+      "1": "Yapay Zeka Mühendisi",
+      "2": "Full Stack Geliştirici",
+      "3": "Bilgisayar Mühendisi",
+      "4": "Siber Güvenlik Meraklısı"
+    },
+    "profileTagline": "Yapay Zeka Mühendisliği · Full Stack · Siber güvenlik"
+  },
+  "About": {
+    "title": "Hakkımda",
+    "locationLabel": "Konum",
+    "location": "Ankara, Türkiye",
+    "educationTitle": "Eğitim",
+    "edu1": "Ankara Bilim Üniversitesi — Bilgisayar Mühendisliği Lisans (İngilizce)",
+    "edu2": "İstanbul Üniversitesi — İktisat",
+    "summary": "Üretken yapay zeka sistemleri, full-stack web geliştirme ve siber güvenlik alanlarında uzmanlaşan yeni mezun Bilgisayar Mühendisi.",
+    "experienced": "Deneyim alanları",
+    "highlights": [
+      "RAG mimarileri",
+      "LangChain",
+      "LangGraph",
+      "React.js",
+      "Next.js",
+      "Yapay zeka destekli geliştirme",
+      "İstem mühendisliği",
+      "Sızma testi",
+      "Linux / Bash"
+    ],
+    "stats": {
+      "focus": "Odak",
+      "focusValue": "Üretken yapay zeka ve güvenli sistemler",
+      "stack": "Temel yığın",
+      "stackValue": "React / Next / Python",
+      "mindset": "Yaklaşım",
+      "mindsetValue": "Temiz, ölçülebilir sonuçlar üretmek"
+    }
+  },
+  "Skills": {
+    "title": "Yetenekler",
+    "subtitle": "Yapay zeka sistemleri, ürün mühendisliği ve savunma güvenliği boyunca derinlik.",
+    "categories": {
+      "ai": "Yapay Zeka ve Makine Öğrenmesi",
+      "frontend": "Ön Uç Geliştirme",
+      "backend": "Arka Uç Geliştirme",
+      "security": "Siber Güvenlik",
+      "languages": "Diller ve Araçlar"
+    },
+    "tiers": {
+      "expertise": "Uzmanlık",
+      "comfortable": "İyi düzey",
+      "learning": "Öğreniyorum"
+    }
+  },
+  "CTF": {
+    "title": "CTF",
+    "subtitle": "Capture The Flag — çözülen makineler ve zorluklar",
+    "intro": "Farklı platformlarda ofansif güvenlik pratiği — keşif, istismar ve yetki yükseltme.",
+    "toolsLabel": "Araçlar ve teknolojiler",
+    "writeupAvailable": "Write-up",
+    "difficulty": {
+      "easy": "Kolay",
+      "medium": "Orta",
+      "hard": "Zor",
+      "insane": "İnsane"
+    }
+  },
+  "Experience": {
+    "title": "Deneyim",
+    "subtitle": "Mühendislik pratiğimi şekillendiren stajlar ve akademik roller.",
+    "emptyBody": "Henüz deneyim kaydı yok. Content Hub'dan Deneyim bölümüne ekleyin.",
+    "items": [
+      {
+        "company": "RE/MAX Wise",
+        "role": "Full Stack Developer Stajyeri",
+        "period": "08/2025 – 10/2025",
+        "detail": "Güvenilirlik ve sürdürülebilirlik odaklı iç araçlar ve web deneyimleri geliştirdim."
+      },
+      {
+        "company": "TRT",
+        "role": "Full Stack Developer Stajyeri",
+        "period": "03/2025 – 05/2025",
+        "detail": "Performans ve temiz mimariye vurguyla full-stack özellikler üzerinde iş birliği yaptım."
+      },
+      {
+        "company": "Ankara Bilim Üniversitesi",
+        "role": "Bilgisayar Laboratuvarı Asistanı",
+        "period": "10/2023 – 01/2025",
+        "detail": "Ders laboratuvarlarında destek, sorun giderme ve sistemler konusunda eşlere mentorluk."
+      }
+    ]
+  },
+  "Projects": {
+    "title": "Projeler",
+    "subtitle": "Dijital Çözümler: Seçkin Projeler",
+    "atmosTitle": "AtmosMind Weather Forecast",
+    "atmosDesc": "AtmosMind, gerçek zamanlı hava durumu tahminleri, saatlik ve 7 günlük öngörüler sunan ve Google Gemini AI asistanı ile doğal sohbet deneyimi sağlayan yapay zeka destekli akıllı bir hava durumu platformudur.",
+    "exqubitTitle": "Exqubit",
+    "exqubitDesc": "Exqubit, PDF ve metin belgelerinden Google Gemini kullanarak profesyonel kalitede çoktan seçmeli quiz ve değerlendirmeleri anında oluşturan yapay zeka destekli bir eğitim platformudur.",
+    "searchPlaceholder": "Teknoloji veya anahtar kelime ara…",
+    "filterAll": "Tümü",
+    "filterAi": "Yapay Zeka",
+    "filterFullstack": "Full Stack",
+    "filterSecurity": "Güvenlik",
+    "filterTooling": "Araçlar",
+    "emptyTitle": "Öne çıkan çalışmalarınıza hazır",
+    "emptyBody": "Henüz genel bir proje listelenmedi. Yayınlamaya hazır olduğunuzda veri katmanına ekleyin — kartlar, filtreler ve arama bağlı.",
+    "slotTitle": "Ayrılmış alan",
+    "slotDescription": "Bu projeyi yayınladığınızda depo, demo bağlantısı ve küçük görsel ekleyin.",
+    "slotTech": "Teknolojiler",
+    "slotTechHint": "Yayınlarken yığını tanımlayın",
+    "github": "GitHub",
+    "demo": "Canlı",
+    "preview": "Önizleme"
+  },
+  "Certificates": {
+    "title": "Sertifikalar",
+    "subtitle": "Eğitim, uzmanlaşma ve etkinlik katılımları — hızlı referans için düzenlendi.",
+    "intro": "Listeyi görmek için bir kategori seçin. Her satır: sertifika adı — veren kurum (tarih) biçimindedir.",
+    "cardEducationKicker": "Eğitim ve yeterlilikler",
+    "cardEducationTitle": "Eğitim ve Uzmanlaşma",
+    "cardEducationBody": "Üniversite, BTK Akademi, sektör ortakları ve zirvelerden kurslar, laboratuvar görevleri, stajlar ve profesyonel eğitimler.",
+    "cardParticipationKicker": "Etkinlik ve gönüllülük",
+    "cardParticipationTitle": "Katılım ve Etkinlikler",
+    "cardParticipationBody": "Zirveler, kariyer forumları, atölyeler, bilim iletişimi ve mentorluk programları.",
+    "cardCta": "Listeyi aç",
+    "countLabel": "{count} kayıt",
+    "modalEducationTitle": "Eğitim ve Uzmanlaşma",
+    "modalParticipationTitle": "Katılım ve Etkinlikler",
+    "modalClose": "Kapat"
+  },
+  "Contact": {
+    "title": "İletişim",
+    "subtitle": "İletişime geçin",
+    "name": "Ad Soyad",
+    "email": "E-posta",
+    "subject": "Konu",
+    "message": "Mesaj",
+    "send": "Mesaj gönder",
+    "sending": "Gönderiliyor…",
+    "success": "Teşekkürler — mesajınız iletildi.",
+    "error": "Bir sorun oluştu. Lütfen tekrar deneyin veya doğrudan e-posta gönderin.",
+    "validation": {
+      "required": "Bu alan zorunlu.",
+      "email": "Geçerli bir e-posta girin.",
+      "maxLength": "Bu alan çok uzun."
+    },
+    "social": {
+      "profiles": "Profiller",
+      "emailLabel": "E-posta",
+      "locationLabel": "Konum"
+    },
+    "emailValue": "contact@example.com",
+    "locationValue": "Ankara, Türkiye"
+  },
+  "Footer": {
+    "rights": "Tüm hakları saklıdır.",
+    "quick": "Gezinme",
+    "builtWith": "Next.js, Tailwind CSS ve Framer Motion ile hazırlandı.",
+    "connect": "Bağlan"
+  },
+  "SEO": {
+    "homeTitle": "Ana Sayfa",
+    "homeDescription": "Arda Ege Tunç'un portföyü — yapay zeka mühendisliği, full-stack geliştirme ve siber güvenlik."
+  }
+}
