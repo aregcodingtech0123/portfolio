@@ -23,6 +23,30 @@ export const project = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "code",
+      title: "Project code",
+      type: "string",
+      group: "content",
+      description: "Short internal code shown as a label, e.g. PRJ-001.",
+      validation: (rule) =>
+        rule.required().regex(/^PRJ-\d{3}$/, "PRJ-001 format"),
+    }),
+    defineField({
+      name: "status",
+      title: "Status",
+      type: "string",
+      group: "content",
+      options: {
+        list: [
+          { title: "Live", value: "live" },
+          { title: "Work in progress", value: "wip" },
+          { title: "Archived", value: "archived" },
+        ],
+        layout: "radio",
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
@@ -36,6 +60,34 @@ export const project = defineType({
       type: "localeText",
       group: "content",
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "problem",
+      title: "Problem",
+      type: "localeText",
+      group: "content",
+      description: "What problem did this project try to solve? First person, two sentences max. Leave as [TODO] until you write it.",
+    }),
+    defineField({
+      name: "approach",
+      title: "Approach",
+      type: "localeText",
+      group: "content",
+      description: "How did you build it? First person, two sentences max. Leave as [TODO] until you write it.",
+    }),
+    defineField({
+      name: "challenge",
+      title: "Hardest challenge",
+      type: "localeText",
+      group: "content",
+      description: "What was the hardest part, and what did you do about it? Two sentences max. Leave as [TODO] until you write it.",
+    }),
+    defineField({
+      name: "learned",
+      title: "What I learned",
+      type: "localeText",
+      group: "content",
+      description: "What would you do differently or carry into the next project? Two sentences max. Leave as [TODO] until you write it.",
     }),
     defineField({
       name: "image",
@@ -120,14 +172,14 @@ export const project = defineType({
   preview: {
     select: {
       title: "title.en",
-      subtitle: "category",
+      code: "code",
+      status: "status",
       media: "image",
-      order: "order",
     },
-    prepare({ title, subtitle, media, order }) {
+    prepare({ title, code, status, media }) {
       return {
         title: title || "Untitled project",
-        subtitle: `#${order ?? "—"} · ${subtitle ?? "Uncategorized"}`,
+        subtitle: [code, status, "case study"].filter(Boolean).join(" · "),
         media,
       };
     },

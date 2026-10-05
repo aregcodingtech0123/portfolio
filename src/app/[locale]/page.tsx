@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { SocialSidebar } from "@/components/layout/SocialSidebar";
@@ -10,7 +11,8 @@ import { Ctf } from "@/components/sections/Ctf";
 import { Experience } from "@/components/sections/Experience";
 import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
-import { getPortfolioContent } from "@/sanity/fetch";
+import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
+import { type SectionId, visibleSections } from "@/config/sections";
 
 export async function generateMetadata({
   params,
@@ -35,6 +37,32 @@ export async function generateMetadata({
   };
 }
 
+function renderSection(id: SectionId, content: PortfolioContent): ReactNode {
+  switch (id) {
+    case "home":
+      return <Hero />;
+    case "certificates":
+      return (
+        <Certificates
+          educationCertificates={content.educationCertificates}
+          participationCertificates={content.participationCertificates}
+        />
+      );
+    case "about":
+      return <About />;
+    case "projects":
+      return <Projects projects={content.projects} />;
+    case "skills":
+      return <Skills categories={content.skillCategories} />;
+    case "ctf":
+      return <Ctf ctfs={content.ctfs} />;
+    case "experience":
+      return <Experience items={content.experience} />;
+    case "contact":
+      return <Contact />;
+  }
+}
+
 export default async function HomePage({
   params,
 }: {
@@ -48,17 +76,9 @@ export default async function HomePage({
       <Navbar />
       <SocialSidebar />
       <main className="relative isolate min-w-0 overflow-x-clip">
-        <Hero />
-        <Certificates
-          educationCertificates={content.educationCertificates}
-          participationCertificates={content.participationCertificates}
-        />
-        <About />
-        <Projects projects={content.projects} />
-        <Skills categories={content.skillCategories} />
-        <Ctf ctfs={content.ctfs} />
-        <Experience items={content.experience} />
-        <Contact />
+        {visibleSections(content).map((section) => (
+          <Fragment key={section.id}>{renderSection(section.id, content)}</Fragment>
+        ))}
       </main>
       <Footer />
     </SiteContentProvider>

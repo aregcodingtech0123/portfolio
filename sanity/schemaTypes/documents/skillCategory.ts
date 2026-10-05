@@ -32,10 +32,11 @@ export const skillCategory = defineType({
     }),
     defineField({
       name: "groups",
-      title: "Skill tiers",
+      title: "Legacy skill tiers",
       type: "array",
+      description:
+        "Deprecated. Used only when no Skill documents exist. Add skills as Skill documents instead.",
       of: [defineArrayMember({ type: "skillTierGroup" })],
-      validation: (rule) => rule.required().min(1),
     }),
     defineField({
       name: "order",
@@ -61,7 +62,7 @@ export const skillCategory = defineType({
     prepare({ title, categoryId, order }) {
       return {
         title: title || categoryId || "Skill category",
-        subtitle: `#${order ?? "—"} · ${categoryId ?? "unknown"}`,
+        subtitle: `#${order ?? "-"} · ${categoryId ?? "unknown"}`,
         media: SparklesIcon,
       };
     },

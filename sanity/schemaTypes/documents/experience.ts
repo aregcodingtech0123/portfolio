@@ -33,7 +33,7 @@ export const experience = defineType({
       title: "Period",
       type: "localeString",
       group: "role",
-      description: 'e.g. "2024 — Present" / "2024 — Günümüz"',
+      description: 'e.g. "2024 - Present" / "2024 - Günümüz"',
       validation: (rule) => rule.required(),
     }),
     defineField({

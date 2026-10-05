@@ -3,15 +3,11 @@
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Section } from "@/components/ui/Section";
-import {
-  skillCategories as defaultSkillCategories,
-  type SkillCategoryId,
-  type SkillTierId,
-} from "@/data/skills";
 import type { SkillCategoryDisplay } from "@/sanity/fetch";
+import type { SkillCategoryId, SkillTierId } from "@/sanity/types";
 
 type SkillsProps = {
-  categories?: SkillCategoryDisplay[];
+  categories: SkillCategoryDisplay[];
 };
 
 function IconFor({ id }: { id: SkillCategoryId }) {
@@ -82,11 +78,7 @@ const tierStyles: Record<
 
 export function Skills({ categories }: SkillsProps) {
   const t = useTranslations("Skills");
-  const skillCategories = categories ?? defaultSkillCategories.map((cat) => ({
-    id: cat.id,
-    label: "",
-    groups: cat.groups,
-  }));
+  const skillCategories = categories;
 
   return (
     <Section id="skills" className="py-16 sm:py-24">
@@ -124,10 +116,11 @@ export function Skills({ categories }: SkillsProps) {
                   {cat.groups.flatMap((group) =>
                     group.skills.map((skill) => (
                       <span
-                        key={`${group.tier}-${skill}`}
+                        key={`${group.tier}-${skill.name}`}
+                        title={skill.evidenceTitle ? `Evidence: ${skill.evidenceTitle}` : undefined}
                         className={`max-w-full rounded-md border px-3 py-1.5 text-xs font-semibold break-words transition ${tierStyles[group.tier].badge}`}
                       >
-                        {skill}
+                        {skill.name}
                       </span>
                     )),
                   )}

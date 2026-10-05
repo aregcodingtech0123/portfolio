@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@/i18n/navigation";
+import { useSiteContent } from "@/components/providers/SiteContentProvider";
+import { sections as sectionConfig } from "@/config/sections";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 import {
@@ -12,16 +14,6 @@ import {
   socialIconLinkClassNav,
 } from "@/components/ui/SocialIcons";
 
-const sections = [
-  { id: "home", key: "home" as const },
-  { id: "about", key: "about" as const },
-  { id: "projects", key: "projects" as const },
-  { id: "certificates", key: "certificates" as const },
-  { id: "skills", key: "skills" as const },
-  { id: "ctf", key: "ctf" as const },
-  { id: "experience", key: "experience" as const },
-  { id: "contact", key: "contact" as const },
-];
 
 export function Navbar() {
   const t = useTranslations("Nav");
@@ -29,6 +21,10 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("home");
+  const content = useSiteContent();
+  const navSections = sectionConfig
+    .filter((s) => s.inNav && s.isVisible(content))
+    .map(({ id, navKey }) => ({ id, key: navKey }));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -48,7 +44,7 @@ export function Navbar() {
       },
       { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
     );
-    sections.forEach(({ id }) => {
+    sectionConfig.forEach(({ id }) => {
       const el = document.getElementById(id);
       if (el) obs.observe(el);
     });
@@ -76,7 +72,7 @@ export function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
-          {sections.map(({ id, key }) => (
+          {navSections.map(({ id, key }) => (
             <Link
               key={id}
               href={`/#${id}`}
@@ -164,7 +160,7 @@ export function Navbar() {
             className="border-b border-border/80 bg-surface/95    lg:hidden"
           >
             <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4">
-              {sections.map(({ id, key }) => (
+              {navSections.map(({ id, key }) => (
                 <Link
                   key={id}
                   href={`/#${id}`}

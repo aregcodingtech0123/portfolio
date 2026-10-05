@@ -32,6 +32,9 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("skillCategory")
         .title("Skill categories")
         .icon(SparklesIcon),
+      S.documentTypeListItem("skill")
+        .title("Skills")
+        .icon(SparklesIcon),
       S.documentTypeListItem("ctf")
         .title("CTF challenges")
         .icon(LockIcon),

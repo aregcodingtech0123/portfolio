@@ -31,6 +31,25 @@ export const siteSettings = defineType({
       group: "hero",
       fields: [
         defineField({ name: "greeting", type: "localeString", title: "Greeting" }),
+        defineField({
+          name: "eyebrow",
+          type: "localeString",
+          title: "Eyebrow line",
+          description: 'Short label above the name, e.g. "$ whoami".',
+        }),
+        defineField({
+          name: "headline",
+          type: "localeString",
+          title: "Headline",
+          description: "One sentence under the name. First person.",
+          validation: (rule) => rule.max(160),
+        }),
+        defineField({
+          name: "subline",
+          type: "localeText",
+          title: "Subline",
+          description: "Two sentences max. First person.",
+        }),
         defineField({ name: "name", type: "localeString", title: "Name" }),
         defineField({ name: "rolePrefix", type: "localeString", title: "Role prefix" }),
         defineField({ name: "ctaProjects", type: "localeString", title: "Projects CTA" }),
@@ -62,6 +81,14 @@ export const siteSettings = defineType({
       group: "about",
       fields: [
         defineField({ name: "summary", type: "localeText", title: "Summary" }),
+        defineField({
+          name: "paragraphs",
+          title: "About paragraphs",
+          type: "array",
+          of: [{ type: "localeText" }],
+          description: "Up to three short paragraphs. Two sentences each, first person.",
+          validation: (rule) => rule.max(3),
+        }),
         defineField({ name: "edu1", type: "localeString", title: "Education line 1" }),
         defineField({ name: "edu2", type: "localeString", title: "Education line 2" }),
         defineField({ name: "experienced", type: "localeString", title: "Highlights heading" }),

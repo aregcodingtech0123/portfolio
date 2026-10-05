@@ -66,6 +66,41 @@ export const ctf = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "eventName",
+      title: "Event or competition",
+      type: "string",
+      group: "overview",
+      description: "Only if the challenge belonged to an event, e.g. a university CTF.",
+      validation: (rule) => rule.max(160),
+    }),
+    defineField({
+      name: "category",
+      title: "Challenge category",
+      type: "string",
+      group: "overview",
+      options: {
+        list: [
+          { title: "Web", value: "web" },
+          { title: "Pwn / binary", value: "pwn" },
+          { title: "Crypto", value: "crypto" },
+          { title: "Forensics", value: "forensics" },
+          { title: "Reverse engineering", value: "reverse" },
+          { title: "OSINT", value: "osint" },
+          { title: "Machine (boot2root)", value: "boot2root" },
+          { title: "Misc", value: "misc" },
+        ],
+        layout: "dropdown",
+      },
+    }),
+    defineField({
+      name: "placement",
+      title: "Placement",
+      type: "string",
+      group: "overview",
+      description: 'Only if you placed in an event, e.g. "3rd of 120 teams".',
+      validation: (rule) => rule.max(80),
+    }),
+    defineField({
       name: "dateSolved",
       title: "Date solved",
       type: "date",
@@ -151,6 +186,15 @@ export const ctf = defineType({
       ],
     }),
     defineField({
+      name: "writeupUrl",
+      title: "External write-up URL",
+      type: "url",
+      group: "writeup",
+      description: "Optional link to a write-up hosted elsewhere (https only).",
+      validation: (rule) =>
+        rule.uri({ scheme: ["https"], allowRelative: false }),
+    }),
+    defineField({
       name: "published",
       title: "Published on site",
       type: "boolean",
@@ -176,9 +220,10 @@ export const ctf = defineType({
       platform: "platform",
       difficulty: "difficulty",
       dateSolved: "dateSolved",
+      eventName: "eventName",
       media: "coverImage",
     },
-    prepare({ title, platform, difficulty, dateSolved, media }) {
+    prepare({ title, platform, difficulty, dateSolved, eventName, media }) {
       const dateLabel = dateSolved
         ? new Date(dateSolved).toLocaleDateString("en-GB", {
             year: "numeric",
@@ -188,7 +233,7 @@ export const ctf = defineType({
         : "No date";
       return {
         title: title || "Untitled CTF",
-        subtitle: [platform, difficulty, dateLabel].filter(Boolean).join(" · "),
+        subtitle: [platform, difficulty, eventName, dateLabel].filter(Boolean).join(" · "),
         media,
       };
     },

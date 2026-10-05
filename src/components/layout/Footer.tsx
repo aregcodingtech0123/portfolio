@@ -8,20 +8,18 @@ import {
   socialIconLinkClassNav,
 } from "@/components/ui/SocialIcons";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
+import { visibleSections } from "@/config/sections";
 
-const links = [
-  { id: "home", key: "home" as const },
-  { id: "about", key: "about" as const },
-  { id: "projects", key: "projects" as const },
-  { id: "skills", key: "skills" as const },
-  { id: "contact", key: "contact" as const },
-];
 
 export function Footer() {
   const t = useTranslations("Footer");
   const s = useTranslations("Social");
   const n = useTranslations("Nav");
-  const { siteName } = useSiteContent();
+  const content = useSiteContent();
+  const { siteName } = content;
+  const links = visibleSections(content)
+    .filter((s) => s.inFooter)
+    .map((s) => ({ id: s.id, key: s.navKey }));
   const year = new Date().getFullYear();
 
   return (

@@ -1,20 +1,67 @@
 import { groq } from "next-sanity";
 
+const projectFields = groq`
+  _id,
+  "slug": slug.current,
+  code,
+  status,
+  title,
+  description,
+  problem,
+  approach,
+  challenge,
+  learned,
+  technologies,
+  category,
+  githubUrl,
+  liveUrl,
+  order,
+  image {
+    ...,
+    asset->
+  }
+`;
+
+const ctfFields = groq`
+  _id,
+  title,
+  "slug": slug.current,
+  platform,
+  difficulty,
+  dateSolved,
+  eventName,
+  category,
+  placement,
+  writeupUrl,
+  tools,
+  writeup,
+  coverImage {
+    ...,
+    asset->
+  }
+`;
+
+const skillFields = groq`
+  _id,
+  name,
+  categoryId,
+  tier,
+  level,
+  order,
+  "evidence": evidence->{
+    _type,
+    title,
+    "slug": slug.current
+  }
+`;
+
+/**
+ * Everything the home page needs, in one request.
+ * `legacyName` keeps certificates that predate the bilingual `title` field readable.
+ */
 export const portfolioContentQuery = groq`{
   "projects": *[_type == "project" && featured != false] | order(order asc, title.en asc) {
-    _id,
-    "slug": slug.current,
-    title,
-    description,
-    technologies,
-    category,
-    githubUrl,
-    liveUrl,
-    order,
-    image {
-      ...,
-      asset->
-    }
+    ${projectFields}
   },
   "experience": *[_type == "experience"] | order(order asc, company.en asc) {
     _id,
@@ -24,14 +71,18 @@ export const portfolioContentQuery = groq`{
     detail,
     order
   },
-  "certificates": *[_type == "certificate"] | order(order asc, name asc) {
+  "certificates": *[_type == "certificate"] | order(order asc, title.en asc) {
     _id,
-    name,
+    title,
+    "legacyName": name,
     issuer,
     date,
     category,
     order,
     credentialUrl
+  },
+  "skills": *[_type == "skill"] | order(order asc, name asc) {
+    ${skillFields}
   },
   "skillCategories": *[_type == "skillCategory"] | order(order asc, categoryId asc) {
     _id,
@@ -52,99 +103,6 @@ export const portfolioContentQuery = groq`{
     seo
   },
   "ctfs": *[_type == "ctf" && published != false] | order(dateSolved desc) {
-    _id,
-    title,
-    "slug": slug.current,
-    platform,
-    difficulty,
-    dateSolved,
-    tools,
-    writeup,
-    coverImage {
-      ...,
-      asset->
-    }
+    ${ctfFields}
   }
 }`;
-
-export const projectsQuery = groq`
-  *[_type == "project" && featured != false] | order(order asc, title.en asc) {
-    _id,
-    "slug": slug.current,
-    title,
-    description,
-    technologies,
-    category,
-    githubUrl,
-    liveUrl,
-    order,
-    image {
-      ...,
-      asset->
-    }
-  }
-`;
-
-export const experienceQuery = groq`
-  *[_type == "experience"] | order(order asc, company.en asc) {
-    _id,
-    company,
-    role,
-    period,
-    detail,
-    order
-  }
-`;
-
-export const certificatesQuery = groq`
-  *[_type == "certificate"] | order(order asc, name asc) {
-    _id,
-    name,
-    issuer,
-    date,
-    category,
-    order,
-    credentialUrl
-  }
-`;
-
-export const skillCategoriesQuery = groq`
-  *[_type == "skillCategory"] | order(order asc, categoryId asc) {
-    _id,
-    categoryId,
-    label,
-    groups,
-    order
-  }
-`;
-
-export const siteSettingsQuery = groq`
-  *[_type == "siteSettings" && _id == "siteSettings"][0] {
-    siteName,
-    githubUrl,
-    linkedinUrl,
-    email,
-    location,
-    hero,
-    about,
-    aboutHighlights,
-    seo
-  }
-`;
-
-export const ctfsQuery = groq`
-  *[_type == "ctf" && published != false] | order(dateSolved desc) {
-    _id,
-    title,
-    "slug": slug.current,
-    platform,
-    difficulty,
-    dateSolved,
-    tools,
-    writeup,
-    coverImage {
-      ...,
-      asset->
-    }
-  }
-`;

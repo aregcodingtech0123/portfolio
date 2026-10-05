@@ -4,14 +4,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { useEffect, useId, useRef, useState } from "react";
-import type { CertificateItem } from "@/data/certificates";
-import { formatCertificateLine } from "@/data/certificates";
+import type { CertificateDisplay } from "@/sanity/fetch";
+
+function formatCertificateLine(item: CertificateDisplay): string {
+  const base = `${item.title} - ${item.issuer}`;
+  return item.date ? `${base} (${item.date})` : base;
+}
 
 type CertificateCategoryModalProps = {
   open: boolean;
   title: string;
   closeLabel: string;
-  items: CertificateItem[];
+  items: CertificateDisplay[];
   onClose: () => void;
 };
 
@@ -24,7 +28,7 @@ export function CertificateCategoryModal({
 }: CertificateCategoryModalProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const cacheRef = useRef<{ title: string; items: CertificateItem[] }>({
+  const cacheRef = useRef<{ title: string; items: CertificateDisplay[] }>({
     title: "",
     items: [],
   });
@@ -117,7 +121,7 @@ export function CertificateCategoryModal({
               <ul className="space-y-0 divide-y divide-border/80 ">
                 {displayItems.map((item, index) => (
                   <li
-                    key={`${item.name}-${item.issuer}-${index}`}
+                    key={`${item.title}-${item.issuer}-${index}`}
                     className="py-3 text-sm leading-relaxed text-foreground first:pt-0 last:pb-0  sm:text-[15px]"
                   >
                     <span className="block break-words">

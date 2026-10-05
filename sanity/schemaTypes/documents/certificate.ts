@@ -14,25 +14,27 @@ export const certificate = defineType({
   groups,
   fields: [
     defineField({
-      name: "name",
+      name: "title",
       title: "Certificate name",
-      type: "string",
+      type: "localeString",
       group: "content",
-      validation: (rule) => rule.required().max(300),
+      description: "Use the official title. Turkish: use the official Turkish title if one exists, otherwise the English title.",
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "issuer",
       title: "Issuer",
-      type: "string",
+      type: "localeString",
       group: "content",
-      validation: (rule) => rule.required().max(200),
+      description: "Organization that issued the certificate.",
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "date",
       title: "Date",
       type: "string",
       group: "content",
-      description: 'Optional — e.g. "March 2026" or "2024"',
+      description: 'Optional. e.g. "March 2026" or "2024"',
       validation: (rule) => rule.max(80),
     }),
     defineField({
@@ -75,8 +77,8 @@ export const certificate = defineType({
   ],
   preview: {
     select: {
-      title: "name",
-      issuer: "issuer",
+      title: "title.en",
+      issuer: "issuer.en",
       date: "date",
       category: "category",
     },

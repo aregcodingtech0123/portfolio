@@ -8,7 +8,7 @@ import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import type { ProjectDisplay } from "@/sanity/fetch";
-import type { ProjectCategory } from "@/data/projects";
+import type { ProjectCategory } from "@/sanity/types";
 
 type FilterKey = "all" | ProjectCategory;
 

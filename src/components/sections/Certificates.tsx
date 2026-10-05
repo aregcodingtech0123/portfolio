@@ -6,22 +6,18 @@ import { motion } from "framer-motion";
 import { GraduationCap, ScrollText, ChevronRight } from "lucide-react";
 import { Section } from "@/components/ui/Section";
 import { CertificateCategoryModal } from "@/components/certificates/CertificateCategoryModal";
-import {
-  educationCertificates as defaultEducation,
-  participationCertificates as defaultParticipation,
-  type CertificateItem,
-} from "@/data/certificates";
+import type { CertificateDisplay } from "@/sanity/fetch";
 
 type OpenCategory = "education" | "participation" | null;
 
 type CertificatesProps = {
-  educationCertificates?: CertificateItem[];
-  participationCertificates?: CertificateItem[];
+  educationCertificates: CertificateDisplay[];
+  participationCertificates: CertificateDisplay[];
 };
 
 export function Certificates({
-  educationCertificates = defaultEducation,
-  participationCertificates = defaultParticipation,
+  educationCertificates,
+  participationCertificates,
 }: CertificatesProps) {
   const t = useTranslations("Certificates");
   const [open, setOpen] = useState<OpenCategory>(null);
