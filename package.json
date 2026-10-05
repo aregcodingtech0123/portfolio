@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "sanity:types": "sanity schema extract && sanity typegen generate",
-    "seed:sanity": "tsx scripts/seed-sanity.ts"
+    "seed:sanity": "tsx scripts/seed-sanity.ts",
+    "check:copy": "node scripts/check-copy.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

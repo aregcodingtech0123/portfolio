@@ -35,8 +35,6 @@ export const metadata: Metadata = {
     default: "Arda Ege Tunç",
     template: "%s",
   },
-  description:
-    "Computer Engineer specializing in Generative AI, full-stack development, and cybersecurity. Based in Ankara, Turkey.",
   openGraph: {
     type: "website",
     locale: "en_US",

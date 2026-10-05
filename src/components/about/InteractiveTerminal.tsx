@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { socialLinks } from "@/components/ui/SocialIcons";
+import { useSiteContent } from "@/components/providers/SiteContentProvider";
 
 type TerminalEntry = {
   id: string;
@@ -10,8 +12,6 @@ type TerminalEntry = {
   fullText: string;
   renderedText: string;
 };
-
-const HELP_TEXT = "Available commands: whoami, projects, skills, clear, contact";
 
 const MAX_COMMAND_LEN = 512;
 const MAX_OUTPUT_LINE_LEN = 8000;
@@ -23,18 +23,20 @@ function clampLine(text: string): string {
 }
 
 export function InteractiveTerminal() {
+  const t = useTranslations("Terminal");
+  const content = useSiteContent();
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
       id: "welcome-1",
       kind: "output",
-      fullText: "Interactive portfolio terminal initialized.",
-      renderedText: "Interactive portfolio terminal initialized.",
+      fullText: t("welcome1"),
+      renderedText: t("welcome1"),
     },
     {
       id: "welcome-2",
       kind: "output",
-      fullText: "Type 'help' to list available commands.",
-      renderedText: "Type 'help' to list available commands.",
+      fullText: t("welcome2"),
+      renderedText: t("welcome2"),
     },
   ]);
   const [command, setCommand] = useState("");
@@ -95,7 +97,7 @@ export function InteractiveTerminal() {
       setCommand("");
       addTypedOutput(
         "error",
-        `Command too long (max ${MAX_COMMAND_LEN} characters).`,
+        t("tooLong", { max: MAX_COMMAND_LEN }),
         0,
       );
       return;
@@ -119,22 +121,15 @@ export function InteractiveTerminal() {
     }
 
     const outputLines: Record<string, string[]> = {
-      help: [HELP_TEXT],
-      whoami:
-        [
-          "Arda Ege Tunç. Computer Engineering graduate from Ankara Science University. Junior Software Engineer & Full-stack Developer. Passionate about Generative AI, RAG architectures, and building intelligent web systems.",
-        ],
-      projects: [
-        "AeRoute - Intelligent route planning with context-aware optimization.",
-        "Exqubit - Experimental AI tooling for rapid product validation.",
-        "AtmosMind - Data-driven assistant concepts for adaptive user experiences.",
-      ],
-      skills: [
-        "Core strengths: Generative AI systems, RAG pipelines, Next.js/React product engineering, and cybersecurity-first development.",
-      ],
+      help: [t("help")],
+      whoami: [t("whoami")],
+      projects: content.projects.length
+        ? content.projects.map((p) => p.title)
+        : [t("noProjects")],
+      skills: [t("skills")],
       contact: [
-        `LinkedIn: ${socialLinks.linkedin}`,
-        `GitHub: ${socialLinks.github}`,
+        t("linkedin", { url: socialLinks.linkedin }),
+        t("github", { url: socialLinks.github }),
       ],
     };
 
@@ -150,7 +145,7 @@ export function InteractiveTerminal() {
     } else {
       addTypedOutput(
         "error",
-        "Command not found. Type 'help' to see what I can do.",
+        t("notFound"),
         80,
       );
     }
@@ -205,9 +200,9 @@ export function InteractiveTerminal() {
             autoComplete="off"
             spellCheck={false}
             enterKeyHint="send"
-            aria-label="Terminal command input"
+            aria-label={t("inputLabel")}
             className="min-w-0 flex-1 touch-manipulation bg-transparent text-foreground outline-none placeholder:text-muted"
-            placeholder="type a command..."
+            placeholder={t("inputPlaceholder")}
           />
           <span className="inline-block h-4 w-2 animate-pulse bg-accent/90" />
         </form>

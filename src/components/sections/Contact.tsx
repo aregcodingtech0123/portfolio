@@ -1,25 +1,25 @@
 "use client";
 
 import emailjs, { EmailJSResponseStatus } from "@emailjs/browser";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
 import { SocialExternalLinks } from "@/components/ui/SocialIcons";
 import { isValidMailbox } from "@/lib/mailto";
+import {
+  emailjsConfig,
+  emailjsConfigured,
+  emailjsMissing,
+  reportEmailjsMissing,
+} from "@/lib/emailjs";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 
 type FieldErrors = Partial<
   Record<"name" | "email" | "subject" | "message", string>
 >;
 
-const EMAILJS_SERVICE_ID =
-  process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? "BURAYA_SERVICE_ID_GELECEK";
-const EMAILJS_TEMPLATE_ID =
-  process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? "BURAYA_TEMPLATE_ID_GELECEK";
-const EMAILJS_PUBLIC_KEY =
-  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ?? "BURAYA_PUBLIC_KEY_GELECEK";
 
 type SubmitStatus = "idle" | "loading" | "success" | "error";
 
@@ -54,8 +54,13 @@ export function Contact() {
     return Object.keys(next).length === 0;
   }
 
+  useEffect(() => {
+    reportEmailjsMissing();
+  }, []);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!emailjsConfigured) return;
     if (!validate()) return;
 
     const form = formRef.current;
@@ -67,10 +72,10 @@ export function Contact() {
     setStatus("loading");
     try {
       await emailjs.sendForm(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
+        emailjsConfig.serviceId,
+        emailjsConfig.templateId,
         form,
-        { publicKey: EMAILJS_PUBLIC_KEY },
+        { publicKey: emailjsConfig.publicKey },
       );
       setStatus("success");
       setName("");
@@ -101,6 +106,7 @@ export function Contact() {
               {t("subtitle")}
             </p>
             <dl className="mt-10 space-y-6 text-sm">
+              {contact.email && (
               <div>
                 <dt className="font-semibold uppercase tracking-wider text-muted">
                   {t("social.emailLabel")}
@@ -120,6 +126,7 @@ export function Contact() {
                   )}
                 </dd>
               </div>
+              )}
               <div>
                 <dt className="font-semibold uppercase tracking-wider text-muted">
                   {t("social.locationLabel")}
@@ -234,10 +241,15 @@ export function Contact() {
               )}
             </label>
 
+            {!emailjsConfigured && process.env.NODE_ENV !== "production" && (
+              <p className="mt-6 font-mono text-xs text-warning">
+                [DEV] Contact form disabled. Set {emailjsMissing.join(", ")} in .env.local.
+              </p>
+            )}
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <button
                 type="submit"
-                disabled={status === "loading"}
+                disabled={status === "loading" || !emailjsConfigured}
                 className={buttonClasses("primary", "min-w-[160px] px-8")}
               >
                 {status === "loading" ? t("sending") : t("send")}

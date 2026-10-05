@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
@@ -50,18 +49,17 @@ function HeroRoleTyping({ roles }: { roles: string[] }) {
     setRoleIndex((p) => (p + 1) % roles.length);
   }, [roles.length]);
 
-  return (
-    <TypingLine
-      key={roleIndex}
-      text={roles[roleIndex]}
-      onComplete={advance}
-    />
-  );
+  // Clamp in case the role list changed length (e.g. on a locale switch).
+  const index = roles.length ? roleIndex % roles.length : 0;
+  const text = roles[index] ?? "";
+
+  // Keying by text remounts the typing line whenever the text changes, so a locale
+  // switch can never show the previous language's text while the new one types.
+  return <TypingLine key={text} text={text} onComplete={advance} />;
 }
 
 export function Hero() {
   const { hero } = useSiteContent();
-  const locale = useLocale();
   const roles = hero.typingRoles;
 
   return (
@@ -76,7 +74,7 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             className="font-mono text-sm tracking-widest text-accent uppercase"
           >
-            {hero.greeting}
+            {hero.eyebrow}
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 18 }}
@@ -90,12 +88,25 @@ export function Hero() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mt-4 max-w-xl text-base leading-relaxed break-words text-muted sm:text-lg"
+            className="mt-4 max-w-xl text-base leading-relaxed break-words text-foreground sm:text-lg"
           >
-            <span className="text-foreground">{hero.rolePrefix}</span>{" "}
-            <span className="inline-block min-w-0 max-w-full font-mono font-semibold break-words text-accent">
-              <HeroRoleTyping key={locale} roles={roles} />
-            </span>
+            {hero.headline}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.14 }}
+            className="mt-3 min-w-0 max-w-full font-mono text-base font-semibold break-words text-accent sm:text-lg"
+          >
+            <HeroRoleTyping roles={roles} />
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.16 }}
+            className="mt-4 max-w-xl text-sm leading-relaxed break-words text-muted"
+          >
+            {hero.subline}
           </motion.p>
 
           <motion.div
