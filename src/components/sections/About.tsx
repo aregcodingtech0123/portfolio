@@ -14,37 +14,36 @@ export function About() {
     <Section id="about" className="py-16 sm:py-20">
       <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-sky-600 dark:text-sky-400/90">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent ">
             {t("title")}
           </p>
-          <h2 className="mt-4 max-w-4xl text-2xl font-bold leading-snug tracking-tight text-balance text-slate-900 break-words hyphens-auto dark:text-surface sm:text-3xl lg:text-4xl">
+          <h2 className="mt-4 max-w-4xl text-2xl font-bold leading-snug tracking-tight text-balance text-foreground break-words hyphens-auto  sm:text-3xl lg:text-4xl">
             {about.summary}
           </h2>
         </div>
 
         <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:mt-14">
-          <div className="glass-panel min-w-0 rounded-3xl p-6 sm:p-8 md:p-10">
+          <div className="bg-surface border border-border min-w-0 rounded-md p-6 sm:p-8 md:p-10">
             <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
               <div className="relative mx-auto shrink-0 sm:mx-0">
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-sky-500/50 to-cyan-400/40 blur-md" />
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-2xl bg-slate-100 ring-1 ring-slate-300/80 dark:bg-slate-950 dark:ring-slate-700/60">
-                  <span className="text-4xl font-bold text-gradient">AE</span>
+                <div className="relative flex h-40 w-40 items-center justify-center rounded-md bg-surface    ">
+                  <span className="text-4xl font-bold text-foreground">AE</span>
                 </div>
               </div>
               <div className="flex-1 space-y-6">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                     {t("locationLabel")}
                   </p>
-                  <p className="mt-1 text-lg font-medium text-slate-900 dark:text-slate-100">
+                  <p className="mt-1 text-lg font-medium text-foreground ">
                     {about.location}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                     {t("educationTitle")}
                   </p>
-                  <ul className="mt-2 space-y-2 text-slate-600 dark:text-slate-300">
+                  <ul className="mt-2 space-y-2 text-muted ">
                     <li>{about.edu1}</li>
                     <li>{about.edu2}</li>
                   </ul>
@@ -52,8 +51,8 @@ export function About() {
               </div>
             </div>
 
-            <div className="mt-10 border-t border-slate-200/90 pt-8 dark:border-slate-700/50">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-300">
+            <div className="mt-10 border-t border-border/90 pt-8 ">
+              <p className="text-sm font-semibold text-foreground ">
                 {about.experienced}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -64,7 +63,7 @@ export function About() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.04 }}
-                    className="rounded-lg border border-slate-300/80 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-600/40 dark:bg-slate-900/50 dark:text-slate-200"
+                    className="rounded-md border border-border/80 bg-surface/60 px-3 py-1.5 text-xs font-medium text-foreground   "
                   >
                     {text}
                   </motion.span>
@@ -95,12 +94,12 @@ export function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.08 * i }}
-                  className="glass-panel rounded-2xl p-6"
+                  className="bg-surface border border-border rounded-md p-6"
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                     {about.stats[labelKey]}
                   </p>
-                  <p className="mt-3 text-lg font-semibold text-sky-700 dark:text-sky-200">
+                  <p className="mt-3 text-lg font-semibold text-accent ">
                     {about.stats[valueKey]}
                   </p>
                 </motion.div>

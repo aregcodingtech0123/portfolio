@@ -30,13 +30,13 @@ export function Certificates({
     <Section id="certificates" className="py-16 sm:py-24">
       <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-sky-600 dark:text-sky-400/90">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent ">
             {t("title")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-surface sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground  sm:text-4xl">
             {t("subtitle")}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
+          <p className="mt-4 text-base leading-relaxed text-muted ">
             {t("intro")}
           </p>
         </div>
@@ -53,10 +53,10 @@ export function Certificates({
             onClick={() => setOpen("education")}
             aria-haspopup="dialog"
             aria-expanded={open === "education"}
-            className="group min-w-0 touch-manipulation rounded-3xl border border-sky-500/20 bg-gradient-to-br from-white/90 via-sky-50/40 to-white/80 p-6 text-left shadow-[0_12px_40px_rgba(14,165,233,0.12)] outline-none ring-sky-500/0 transition hover:border-sky-400/40 hover:shadow-[0_16px_48px_rgba(14,165,233,0.18)] focus-visible:ring-2 focus-visible:ring-sky-500/40 dark:border-sky-500/15 dark:from-slate-950/90 dark:via-sky-950/25 dark:to-slate-950/80 dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] dark:hover:border-sky-400/30"
+            className="group min-w-0 touch-manipulation rounded-md border border-border bg-surface hover:border-accent     p-6 text-left  outline-none  transition hover:border-accent/40         "
           >
             <div className="flex items-start gap-4">
-              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200">
+              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent  ">
                 <GraduationCap
                   className="h-6 w-6"
                   aria-hidden
@@ -64,16 +64,16 @@ export function Certificates({
                 />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-700 dark:text-sky-300">
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent ">
                   {t("cardEducationKicker")}
                 </p>
-                <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-foreground ">
                   {t("cardEducationTitle")}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-sm leading-relaxed text-muted ">
                   {t("cardEducationBody")}
                 </p>
-                <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-sky-700 dark:text-sky-300">
+                <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent ">
                   {t("cardCta")}
                   <ChevronRight
                     className="h-4 w-4 transition group-hover:translate-x-0.5"
@@ -82,7 +82,7 @@ export function Certificates({
                 </p>
               </div>
             </div>
-            <p className="mt-4 text-xs text-slate-500 dark:text-slate-500">
+            <p className="mt-4 text-xs text-muted ">
               {t("countLabel", { count: educationCertificates.length })}
             </p>
           </motion.button>
@@ -98,10 +98,10 @@ export function Certificates({
             onClick={() => setOpen("participation")}
             aria-haspopup="dialog"
             aria-expanded={open === "participation"}
-            className="group min-w-0 touch-manipulation rounded-3xl border border-cyan-500/20 bg-gradient-to-br from-white/90 via-cyan-50/35 to-white/80 p-6 text-left shadow-[0_12px_40px_rgba(6,182,212,0.12)] outline-none ring-cyan-500/0 transition hover:border-cyan-400/40 hover:shadow-[0_16px_48px_rgba(6,182,212,0.16)] focus-visible:ring-2 focus-visible:ring-cyan-500/35 dark:border-cyan-500/15 dark:from-slate-950/90 dark:via-cyan-950/20 dark:to-slate-950/80 dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] dark:hover:border-cyan-400/28"
+            className="group min-w-0 touch-manipulation rounded-md border border-border bg-surface hover:border-accent     p-6 text-left  outline-none  transition hover:border-accent/40         "
           >
             <div className="flex items-start gap-4">
-              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-800 dark:bg-cyan-500/20 dark:text-cyan-200">
+              <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent  ">
                 <ScrollText
                   className="h-6 w-6"
                   aria-hidden
@@ -109,16 +109,16 @@ export function Certificates({
                 />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-800 dark:text-cyan-300">
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent ">
                   {t("cardParticipationKicker")}
                 </p>
-                <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-foreground ">
                   {t("cardParticipationTitle")}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-sm leading-relaxed text-muted ">
                   {t("cardParticipationBody")}
                 </p>
-                <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-800 dark:text-cyan-300">
+                <p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent ">
                   {t("cardCta")}
                   <ChevronRight
                     className="h-4 w-4 transition group-hover:translate-x-0.5"
@@ -127,7 +127,7 @@ export function Certificates({
                 </p>
               </div>
             </div>
-            <p className="mt-4 text-xs text-slate-500 dark:text-slate-500">
+            <p className="mt-4 text-xs text-muted ">
               {t("countLabel", { count: participationCertificates.length })}
             </p>
           </motion.button>

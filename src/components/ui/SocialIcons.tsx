@@ -11,10 +11,10 @@ export const socialLinks = {
 
 /** Shared styles for icon-only profile links (hover scale + color). */
 export const socialIconLinkClass =
-  "inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-xl border border-slate-300/70 text-slate-600 outline-none ring-sky-500/30 transition duration-200 ease-out hover:scale-110 hover:border-sky-400/60 hover:text-sky-600 focus-visible:ring-2 active:scale-[0.97] dark:border-slate-700/70 dark:text-slate-300 dark:hover:border-sky-500/60 dark:hover:text-sky-300";
+  "inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-md border border-border/70 text-muted outline-none  transition duration-200 ease-out hover:scale-110 hover:border-accent/60 hover:text-accent  active:scale-[0.97]    ";
 
 export const socialIconLinkClassNav =
-  "inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-lg border border-slate-300/70 text-slate-600 outline-none ring-sky-500/30 transition duration-200 ease-out hover:scale-110 hover:border-sky-400/60 hover:text-sky-600 focus-visible:ring-2 active:scale-[0.97] dark:border-slate-600/60 dark:text-slate-300 dark:hover:border-sky-500/55 dark:hover:text-sky-300";
+  "inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-md border border-border/70 text-muted outline-none  transition duration-200 ease-out hover:scale-110 hover:border-accent/60 hover:text-accent  active:scale-[0.97]    ";
 
 export function GitHubIcon({ className = "" }: { className?: string }) {
   return <FaGithub className={className} aria-hidden="true" />;

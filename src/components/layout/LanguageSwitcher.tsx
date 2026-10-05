@@ -34,7 +34,7 @@ export function LanguageSwitcher() {
 
   return (
     <div
-      className="relative flex touch-manipulation items-center gap-0.5 rounded-full border border-slate-300/80 bg-white/55 p-1 backdrop-blur-md dark:border-slate-500/25 dark:bg-slate-950/50"
+      className="relative flex touch-manipulation items-center gap-0.5 rounded-md border border-border/80 bg-surface/55 p-1   "
       role="group"
       aria-label="Language"
     >
@@ -46,16 +46,16 @@ export function LanguageSwitcher() {
             type="button"
             onClick={() => switchTo(code)}
             disabled={pending}
-            className={`relative z-10 min-h-[36px] min-w-[36px] touch-manipulation rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+            className={`relative z-10 min-h-[36px] min-w-[36px] touch-manipulation rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
               active
-                ? "text-white dark:text-slate-50"
-                : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                ? "text-on-accent"
+                : "text-muted hover:text-foreground  "
             }`}
           >
             {active && (
               <motion.span
                 layoutId="lang-pill"
-                className="absolute inset-0 z-[-1] rounded-full bg-gradient-to-r from-sky-500/90 to-cyan-400/80 shadow-[0_0_24px_rgba(56,189,248,0.35)]"
+                className="absolute inset-0 z-[-1] rounded-sm bg-accent    "
                 transition={{ type: "spring", stiffness: 400, damping: 34 }}
               />
             )}

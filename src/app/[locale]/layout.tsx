@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 type Props = {
@@ -24,7 +25,10 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <ThemeProvider>{children}</ThemeProvider>
+      {/* reducedMotion="user" turns off framer-motion transform/layout animation when the OS asks for less motion. */}
+      <MotionConfig reducedMotion="user">
+        <ThemeProvider>{children}</ThemeProvider>
+      </MotionConfig>
     </NextIntlClientProvider>
   );
 }

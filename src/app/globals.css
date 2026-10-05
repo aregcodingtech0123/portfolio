@@ -20,6 +20,7 @@
   --danger: #ff5c57;
   --warning: #e5b567;
   --on-media: #f4f4f0;
+  --scrim: rgba(10, 12, 15, 0.72);
   --tag: #161b22;
   --tag-foreground: #e8ebee;
   --tier-expert: #5bf29b;
@@ -43,6 +44,7 @@
   --danger: #c4352f;
   --warning: #8a5a00;
   --on-media: #f4f4f0;
+  --scrim: rgba(10, 12, 15, 0.72);
   --tag: #edeae0;
   --tag-foreground: #12151a;
   --tier-expert: #0b7a43;
@@ -84,6 +86,7 @@
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-on-media: var(--on-media);
+  --color-scrim: var(--scrim);
   --color-tag: var(--tag);
   --color-tag-foreground: var(--tag-foreground);
   --color-tier-expert: var(--tier-expert);

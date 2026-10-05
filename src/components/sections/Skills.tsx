@@ -16,7 +16,7 @@ type SkillsProps = {
 
 function IconFor({ id }: { id: SkillCategoryId }) {
   const common =
-    "h-6 w-6 text-sky-600 dark:text-sky-300";
+    "h-6 w-6 text-accent ";
   switch (id) {
     case "ai":
       return (
@@ -70,16 +70,13 @@ const tierStyles: Record<
   { badge: string }
 > = {
   expertise: {
-    badge:
-      "border-teal-500/55 bg-teal-500/12 text-teal-900 dark:text-teal-100 shadow-[0_0_20px_rgba(20,184,166,0.12)]",
+    badge: "border-tier-expert text-tier-expert",
   },
   comfortable: {
-    badge:
-      "border-sky-500/50 bg-sky-500/10 text-sky-900 dark:text-sky-100 shadow-[0_0_18px_rgba(56,189,248,0.1)]",
+    badge: "border-tier-comfortable text-tier-comfortable",
   },
   learning: {
-    badge:
-      "border-violet-500/45 bg-violet-500/10 text-violet-900 dark:text-violet-100 shadow-[0_0_18px_rgba(139,92,246,0.1)]",
+    badge: "border-dashed border-tier-learning text-tier-learning",
   },
 };
 
@@ -95,10 +92,10 @@ export function Skills({ categories }: SkillsProps) {
     <Section id="skills" className="py-16 sm:py-24">
       <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-sky-600 dark:text-sky-400/90">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent ">
             {t("title")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-surface sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground  sm:text-4xl">
             {t("subtitle")}
           </h2>
         </div>
@@ -111,13 +108,13 @@ export function Skills({ categories }: SkillsProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: ci * 0.06 }}
-              className="glass-panel group min-w-0 rounded-3xl p-6 sm:p-8 transition hover:border-sky-500/25"
+              className="bg-surface border border-border group min-w-0 rounded-md p-6 sm:p-8 transition hover:border-accent/25"
             >
               <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-500/10 ring-1 ring-sky-500/25 transition group-hover:bg-sky-500/15 dark:bg-sky-500/10">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-accent/10   transition group-hover:bg-accent/15 ">
                   <IconFor id={cat.id} />
                 </div>
-                <h3 className="min-w-0 flex-1 text-lg font-semibold break-words text-slate-900 dark:text-slate-50">
+                <h3 className="min-w-0 flex-1 text-lg font-semibold break-words text-foreground ">
                   {cat.label || t(`categories.${cat.id}`)}
                 </h3>
               </div>
@@ -128,7 +125,7 @@ export function Skills({ categories }: SkillsProps) {
                     group.skills.map((skill) => (
                       <span
                         key={`${group.tier}-${skill}`}
-                        className={`max-w-full rounded-lg border px-3 py-1.5 text-xs font-semibold break-words transition ${tierStyles[group.tier].badge}`}
+                        className={`max-w-full rounded-md border px-3 py-1.5 text-xs font-semibold break-words transition ${tierStyles[group.tier].badge}`}
                       >
                         {skill}
                       </span>

@@ -159,17 +159,17 @@ export function InteractiveTerminal() {
   };
 
   return (
-    <div className="glass-panel max-w-full overflow-hidden rounded-3xl border border-slate-300/40 dark:border-slate-700/50">
-      <div className="flex min-w-0 items-center gap-2 border-b border-slate-300/50 bg-slate-950/70 px-3 py-3 sm:px-4 dark:border-slate-700/50">
-        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-rose-400/90" />
-        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400/90" />
-        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400/90" />
-        <span className="ml-1 min-w-0 truncate text-[11px] font-medium tracking-wide text-slate-400 sm:ml-3">
+    <div className="dark max-w-full overflow-hidden rounded-md border border-border bg-surface">
+      <div className="flex min-w-0 items-center gap-2 border-b border-border/50 bg-surface/70 px-3 py-3 sm:px-4 ">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-danger/90" />
+        <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-warning/90" />
+        <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-accent/90" />
+        <span className="ml-1 min-w-0 truncate text-[11px] font-medium tracking-wide text-muted sm:ml-3">
           terminal://about-me
         </span>
       </div>
 
-      <div className="flex min-h-[18rem] flex-col bg-slate-950/85 font-mono text-sm leading-relaxed text-slate-200 min-[380px]:h-[21rem] sm:h-[23rem]">
+      <div className="flex min-h-[18rem] flex-col bg-background font-mono text-sm leading-relaxed text-foreground min-[380px]:h-[21rem] sm:h-[23rem]">
         <div
           ref={scrollRef}
           className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain p-3 sm:p-4"
@@ -182,10 +182,10 @@ export function InteractiveTerminal() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`max-w-full break-words [overflow-wrap:anywhere] ${
                   entry.kind === "input"
-                    ? "text-cyan-300"
+                    ? "text-accent"
                     : entry.kind === "error"
-                      ? "text-rose-300"
-                      : "text-slate-200"
+                      ? "text-danger"
+                      : "text-foreground"
                 }`}
               >
                 {entry.renderedText}
@@ -196,9 +196,9 @@ export function InteractiveTerminal() {
 
         <form
           onSubmit={onSubmit}
-          className="flex min-w-0 items-center gap-2 border-t border-slate-700/70 bg-slate-950/95 px-3 py-3 sm:px-4"
+          className="flex min-w-0 items-center gap-2 border-t border-border/70 bg-surface/95 px-3 py-3 sm:px-4"
         >
-          <span className="shrink-0 text-sky-300">{prompt}</span>
+          <span className="shrink-0 text-accent">{prompt}</span>
           <input
             value={command}
             onChange={(e) => setCommand(e.target.value)}
@@ -206,10 +206,10 @@ export function InteractiveTerminal() {
             spellCheck={false}
             enterKeyHint="send"
             aria-label="Terminal command input"
-            className="min-w-0 flex-1 touch-manipulation bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
+            className="min-w-0 flex-1 touch-manipulation bg-transparent text-foreground outline-none placeholder:text-muted"
             placeholder="type a command..."
           />
-          <span className="inline-block h-4 w-2 animate-pulse bg-sky-300/90" />
+          <span className="inline-block h-4 w-2 animate-pulse bg-accent/90" />
         </form>
       </div>
     </div>

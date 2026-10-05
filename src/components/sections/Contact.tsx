@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Section } from "@/components/ui/Section";
+import { buttonClasses } from "@/components/ui/Button";
 import { SocialExternalLinks } from "@/components/ui/SocialIcons";
 import { isValidMailbox } from "@/lib/mailto";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
@@ -93,43 +94,43 @@ export function Contact() {
       <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="grid min-w-0 gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
           <div className="min-w-0">
-            <h2 className="text-3xl font-bold tracking-tight break-words text-slate-900 dark:text-surface sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight break-words text-foreground  sm:text-4xl">
               {t("title")}
             </h2>
-            <p className="mt-3 max-w-md text-base leading-relaxed break-words text-slate-600 dark:text-slate-400">
+            <p className="mt-3 max-w-md text-base leading-relaxed break-words text-muted ">
               {t("subtitle")}
             </p>
             <dl className="mt-10 space-y-6 text-sm">
               <div>
-                <dt className="font-semibold uppercase tracking-wider text-slate-500">
+                <dt className="font-semibold uppercase tracking-wider text-muted">
                   {t("social.emailLabel")}
                 </dt>
                 <dd className="mt-1">
                   {isValidMailbox(contact.email) ? (
                     <a
                       href={`mailto:${contact.email.trim()}`}
-                      className="text-sky-600 transition hover:text-sky-500 dark:text-sky-300 dark:hover:text-sky-200"
+                      className="text-accent transition hover:text-accent  "
                     >
                       {contact.email}
                     </a>
                   ) : (
-                    <span className="text-slate-600 dark:text-slate-400">
+                    <span className="text-muted ">
                       {contact.email}
                     </span>
                   )}
                 </dd>
               </div>
               <div>
-                <dt className="font-semibold uppercase tracking-wider text-slate-500">
+                <dt className="font-semibold uppercase tracking-wider text-muted">
                   {t("social.locationLabel")}
                 </dt>
-                <dd className="mt-1 text-slate-700 dark:text-slate-300">
+                <dd className="mt-1 text-foreground ">
                   {contact.location}
                 </dd>
               </div>
             </dl>
             <div className="mt-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
                 {t("social.profiles")}
               </p>
               <SocialExternalLinks
@@ -147,12 +148,12 @@ export function Contact() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             onSubmit={handleSubmit}
-            className="glass-panel min-w-0 rounded-3xl p-8 sm:p-10"
+            className="bg-surface border border-border min-w-0 rounded-md p-8 sm:p-10"
             noValidate
           >
             <div className="grid gap-6 sm:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
+                <span className="font-medium text-foreground ">
                   {t("name")}
                 </span>
                 <input
@@ -164,15 +165,15 @@ export function Contact() {
                   }}
                   autoComplete="name"
                   maxLength={200}
-                  className="rounded-xl border border-slate-300/90 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-500/0 transition placeholder:text-slate-400 focus:border-sky-500/55 focus:ring-2 focus:ring-sky-500/25 dark:border-slate-600/50 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-600"
+                  className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
                   placeholder={t("name")}
                 />
                 {errors.name && (
-                  <span className="text-xs text-red-400">{errors.name}</span>
+                  <span className="text-xs text-danger">{errors.name}</span>
                 )}
               </label>
               <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-slate-700 dark:text-slate-300">
+                <span className="font-medium text-foreground ">
                   {t("email")}
                 </span>
                 <input
@@ -185,16 +186,16 @@ export function Contact() {
                   type="email"
                   autoComplete="email"
                   maxLength={254}
-                  className="rounded-xl border border-slate-300/90 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-500/0 transition placeholder:text-slate-400 focus:border-sky-500/55 focus:ring-2 focus:ring-sky-500/25 dark:border-slate-600/50 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-600"
+                  className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
                   placeholder={t("email")}
                 />
                 {errors.email && (
-                  <span className="text-xs text-red-400">{errors.email}</span>
+                  <span className="text-xs text-danger">{errors.email}</span>
                 )}
               </label>
             </div>
             <label className="mt-6 flex flex-col gap-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-300">
+              <span className="font-medium text-foreground ">
                 {t("subject")}
               </span>
               <input
@@ -205,15 +206,15 @@ export function Contact() {
                   setSubject(e.target.value);
                 }}
                 maxLength={200}
-                className="rounded-xl border border-slate-300/90 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-500/0 transition placeholder:text-slate-400 focus:border-sky-500/55 focus:ring-2 focus:ring-sky-500/25 dark:border-slate-600/50 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-600"
+                className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
                 placeholder={t("subject")}
               />
               {errors.subject && (
-                <span className="text-xs text-red-400">{errors.subject}</span>
+                <span className="text-xs text-danger">{errors.subject}</span>
               )}
             </label>
             <label className="mt-6 flex flex-col gap-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-300">
+              <span className="font-medium text-foreground ">
                 {t("message")}
               </span>
               <textarea
@@ -225,11 +226,11 @@ export function Contact() {
                 }}
                 rows={5}
                 maxLength={4000}
-                className="resize-y rounded-xl border border-slate-300/90 bg-white px-4 py-3 text-slate-900 outline-none ring-sky-500/0 transition placeholder:text-slate-400 focus:border-sky-500/55 focus:ring-2 focus:ring-sky-500/25 dark:border-slate-600/50 dark:bg-slate-950/70 dark:text-slate-100 dark:placeholder:text-slate-600"
+                className="resize-y rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
                 placeholder={t("message")}
               />
               {errors.message && (
-                <span className="text-xs text-red-400">{errors.message}</span>
+                <span className="text-xs text-danger">{errors.message}</span>
               )}
             </label>
 
@@ -237,17 +238,17 @@ export function Contact() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="inline-flex min-h-[48px] min-w-[160px] touch-manipulation items-center justify-center rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 px-8 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_32px_rgba(56,189,248,0.35)] transition hover:shadow-[0_0_44px_rgba(34,211,238,0.45)] disabled:pointer-events-none disabled:opacity-60"
+                className={buttonClasses("primary", "min-w-[160px] px-8")}
               >
                 {status === "loading" ? t("sending") : t("send")}
               </button>
               {status === "success" && (
-                <span className="text-sm text-emerald-500 dark:text-emerald-400">
+                <span className="text-sm text-accent ">
                   {t("success")}
                 </span>
               )}
               {status === "error" && (
-                <span className="text-sm text-red-400">{t("error")}</span>
+                <span className="text-sm text-danger">{t("error")}</span>
               )}
             </div>
           </motion.form>

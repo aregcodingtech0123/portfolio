@@ -17,8 +17,8 @@ export default function ContentHubLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // `dark` pins the Studio to the dark token set regardless of the site theme.
   return (
-    {/* `dark` pins the Studio to the dark token set regardless of the site theme. */}
     <div className="dark fixed inset-0 z-[9999] min-h-svh bg-background">
       {children}
     </div>
