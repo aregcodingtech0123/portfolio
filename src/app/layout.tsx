@@ -1,24 +1,30 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
 export const viewport = {
   width: "device-width" as const,
   initialScale: 1,
-  themeColor: "#0f172a",
+  themeColor: "#0A0C0F",
 };
 
 export const metadata: Metadata = {
@@ -50,7 +56,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       data-scroll-behavior="smooth"
-      className={`${jakarta.variable} ${jetbrains.variable} min-h-dvh antialiased`}
+      className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable} min-h-dvh antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -60,7 +66,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-dvh overflow-x-clip font-sans transition-colors duration-200">
+      <body className="min-h-dvh overflow-x-clip font-body transition-colors duration-200">
         {children}
       </body>
     </html>

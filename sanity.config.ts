@@ -5,7 +5,6 @@ import { schemaTypes } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
 import { studioTheme } from "./sanity/theme";
 import { apiVersion, dataset, projectId } from "./sanity/env";
-import { StudioGlassLayout } from "./sanity/studio/StudioGlassLayout";
 
 export default defineConfig({
   name: "portfolio-content-hub",
@@ -20,10 +19,5 @@ export default defineConfig({
   ],
   schema: {
     types: schemaTypes,
-  },
-  studio: {
-    components: {
-      layout: StudioGlassLayout,
-    },
   },
 });

@@ -1,200 +1,150 @@
 @import "tailwindcss";
 
+/*
+ * Theme mechanism: one set of CSS variables. The inline script in
+ * app/layout.tsx and ThemeProvider toggle the `dark` / `light` class on <html>.
+ * Dark is the default, so :root carries the dark values too.
+ */
 @custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  --primary: #0f172a;
-  --secondary: #111827;
-  --accent-blue: #38bdf8;
-  --accent-cyan: #22d3ee;
-  --neutral: #cbd5e1;
-  --surface: #f8fafc;
-  --glass: rgba(15, 23, 42, 0.72);
-  --glow: rgba(56, 189, 248, 0.35);
+:root,
+.dark {
+  color-scheme: dark;
+  --background: #0a0c0f;
+  --surface: #11151a;
+  --border: #1e252d;
+  --foreground: #e8ebee;
+  --muted: #8a94a0;
+  --accent: #5bf29b;
+  --on-accent: #0a0c0f;
+  --danger: #ff5c57;
+  --warning: #e5b567;
+  --on-media: #f4f4f0;
+  --tag: #161b22;
+  --tag-foreground: #e8ebee;
+  --tier-expert: #5bf29b;
+  --tier-comfortable: #e8ebee;
+  --tier-learning: #8a94a0;
+  --difficulty-easy: #5bf29b;
+  --difficulty-medium: #e5b567;
+  --difficulty-hard: #ff9a5c;
+  --difficulty-insane: #ff5c57;
+}
+
+.light {
+  color-scheme: light;
+  --background: #f4f2ec;
+  --surface: #fbfaf6;
+  --border: #d9d5c9;
+  --foreground: #12151a;
+  --muted: #5c6570;
+  --accent: #0b7a43;
+  --on-accent: #fbfaf6;
+  --danger: #c4352f;
+  --warning: #8a5a00;
+  --on-media: #f4f4f0;
+  --tag: #edeae0;
+  --tag-foreground: #12151a;
+  --tier-expert: #0b7a43;
+  --tier-comfortable: #12151a;
+  --tier-learning: #5c6570;
+  --difficulty-easy: #0b7a43;
+  --difficulty-medium: #8a5a00;
+  --difficulty-hard: #b4501f;
+  --difficulty-insane: #c4352f;
+}
+
+/*
+ * Clear Tailwind's default namespaces so only the tokens below exist.
+ * Palette names, shadows, blur and large radii then cannot be generated.
+ */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+  --backdrop-blur-*: initial;
+  --font-*: initial;
 }
 
 @theme inline {
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --color-accent-blue: var(--accent-blue);
-  --color-accent-cyan: var(--accent-cyan);
-  --color-neutral: var(--neutral);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-background: var(--background);
   --color-surface: var(--surface);
-  --color-surface-muted: #e2e8f0;
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-on-media: var(--on-media);
+  --color-tag: var(--tag);
+  --color-tag-foreground: var(--tag-foreground);
+  --color-tier-expert: var(--tier-expert);
+  --color-tier-comfortable: var(--tier-comfortable);
+  --color-tier-learning: var(--tier-learning);
+  --color-difficulty-easy: var(--difficulty-easy);
+  --color-difficulty-medium: var(--difficulty-medium);
+  --color-difficulty-hard: var(--difficulty-hard);
+  --color-difficulty-insane: var(--difficulty-insane);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  --font-heading: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-body);
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
-html {
-  scroll-behavior: smooth;
-  overflow-x: clip;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
-@media (prefers-reduced-motion: reduce) {
+@layer base {
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
+    overflow-x: clip;
+    min-height: 100dvh;
   }
 
-  .animate-float {
-    animation: none !important;
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    overflow-x: clip;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  .shimmer-bar {
-    animation: none !important;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
   }
-}
 
-@media (max-width: 1023px) {
-  html.light .glass-panel,
-  html.dark .glass-panel {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+  ::selection {
+    background: var(--accent);
+    color: var(--on-accent);
   }
-}
 
-html.light body {
-  background: radial-gradient(
-      ellipse 120% 70% at 50% -15%,
-      rgba(14, 165, 233, 0.09),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 70% 45% at 100% 40%,
-      rgba(34, 211, 238, 0.06),
-      transparent 52%
-    ),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
-  color: #334155;
-}
-
-html.dark body {
-  background: radial-gradient(
-      ellipse 120% 80% at 50% -20%,
-      rgba(56, 189, 248, 0.12),
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse 80% 50% at 100% 50%,
-      rgba(34, 211, 238, 0.06),
-      transparent 50%
-    ),
-    linear-gradient(180deg, #0f172a 0%, #0b1222 40%, #111827 100%);
-  color: var(--neutral);
-}
-
-body {
-  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  overflow-x: clip;
-  min-height: 100vh;
-  min-height: 100dvh;
-  -webkit-tap-highlight-color: transparent;
-}
-
-::selection {
-  background: rgba(56, 189, 248, 0.28);
-  color: var(--surface);
-}
-
-html.light .glass-panel {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(248, 250, 252, 0.85) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
-}
-
-html.dark .glass-panel {
-  background: linear-gradient(
-    135deg,
-    rgba(17, 24, 39, 0.85) 0%,
-    rgba(15, 23, 42, 0.65) 100%
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.text-gradient {
-  background: linear-gradient(
-    125deg,
-    #0f172a 0%,
-    #0891b2 42%,
-    #0284c7 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-html.dark .text-gradient {
-  background: linear-gradient(
-    125deg,
-    var(--surface) 0%,
-    var(--accent-cyan) 45%,
-    var(--accent-blue) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.grid-overlay {
-  background-image: linear-gradient(
-      rgba(51, 65, 85, 0.07) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(51, 65, 85, 0.07) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at center, black 28%, transparent 78%);
-}
-
-html.dark .grid-overlay {
-  background-image: linear-gradient(
-      rgba(148, 163, 184, 0.06) 1px,
-      transparent 1px
-    ),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }
 
-.animate-float {
-  animation: float 5s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
+/* Non-essential motion is disabled globally for reduced-motion users. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.shimmer-bar {
-  background: linear-gradient(
-    90deg,
-    rgba(56, 189, 248, 0.15) 0%,
-    rgba(34, 211, 238, 0.35) 50%,
-    rgba(56, 189, 248, 0.15) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 4s linear infinite;
 }

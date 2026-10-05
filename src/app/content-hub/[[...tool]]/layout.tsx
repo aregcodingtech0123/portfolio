@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#030712",
+  themeColor: "#0a0c0f",
 };
 
 export default function ContentHubLayout({
@@ -18,7 +18,8 @@ export default function ContentHubLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-[9999] min-h-svh bg-[#030712]">
+    {/* `dark` pins the Studio to the dark token set regardless of the site theme. */}
+    <div className="dark fixed inset-0 z-[9999] min-h-svh bg-background">
       {children}
     </div>
   );

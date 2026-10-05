@@ -1,28 +1,28 @@
 import { buildLegacyTheme, type StudioTheme } from "sanity";
 
 /**
- * Premium dark studio theme aligned with the portfolio's sky/cyan glass aesthetic.
+ * Flat dark studio theme built from the portfolio's design tokens (dark mode values).
  */
 export const studioTheme: StudioTheme = buildLegacyTheme({
-  "--black": "#030712",
-  "--white": "#f8fafc",
+  "--black": "#0a0c0f",
+  "--white": "#e8ebee",
 
-  "--gray": "#64748b",
-  "--gray-base": "#64748b",
+  "--gray": "#8a94a0",
+  "--gray-base": "#8a94a0",
 
-  "--component-bg": "#0f172a",
-  "--component-text-color": "#e2e8f0",
+  "--component-bg": "#11151a",
+  "--component-text-color": "#e8ebee",
 
-  "--brand-primary": "#38bdf8",
+  "--brand-primary": "#5bf29b",
 
-  "--default-button-color": "#94a3b8",
-  "--default-button-primary-color": "#0ea5e9",
-  "--default-button-success-color": "#14b8a6",
-  "--default-button-warning-color": "#f59e0b",
-  "--default-button-danger-color": "#f43f5e",
+  "--default-button-color": "#8a94a0",
+  "--default-button-primary-color": "#5bf29b",
+  "--default-button-success-color": "#5bf29b",
+  "--default-button-warning-color": "#e5b567",
+  "--default-button-danger-color": "#ff5c57",
 
-  "--main-navigation-color": "#020617",
-  "--main-navigation-color--inverted": "#f1f5f9",
+  "--main-navigation-color": "#0a0c0f",
+  "--main-navigation-color--inverted": "#e8ebee",
 
-  "--focus-color": "#38bdf8",
+  "--focus-color": "#5bf29b",
 });
