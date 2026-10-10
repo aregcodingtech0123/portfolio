@@ -10,7 +10,7 @@ export function Tag({
 }) {
   return (
     <span
-      className={`inline-flex max-w-full items-center rounded-sm border border-border bg-tag px-2 py-0.5 font-mono text-xs break-words text-tag-foreground ${className}`}
+      className={`inline-flex max-w-full items-center rounded-sm border border-border bg-tag px-2 py-0.5 font-code text-xs break-words text-tag-foreground ${className}`}
     >
       {children}
     </span>

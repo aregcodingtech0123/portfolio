@@ -16,6 +16,7 @@ const projectFields = groq`
   githubUrl,
   liveUrl,
   order,
+  featured,
   image {
     ...,
     asset->
@@ -60,7 +61,7 @@ const skillFields = groq`
  * `legacyName` keeps certificates that predate the bilingual `title` field readable.
  */
 export const portfolioContentQuery = groq`{
-  "projects": *[_type == "project" && featured != false] | order(order asc, title.en asc) {
+  "projects": *[_type == "project"] | order(order asc, title.en asc) {
     ${projectFields}
   },
   "experience": *[_type == "experience"] | order(order asc, company.en asc) {

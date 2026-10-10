@@ -7,12 +7,12 @@ import type { PortfolioContent } from "@/sanity/fetch";
  */
 export type SectionId =
   | "home"
-  | "certificates"
   | "about"
   | "projects"
-  | "skills"
-  | "ctf"
   | "experience"
+  | "skills"
+  | "certificates"
+  | "ctf"
   | "contact";
 
 export type SectionConfig = {
@@ -28,14 +28,6 @@ const always = () => true;
 
 export const sections: readonly SectionConfig[] = [
   { id: "home", navKey: "home", inNav: true, inFooter: true, isVisible: always },
-  {
-    id: "certificates",
-    navKey: "certificates",
-    inNav: true,
-    inFooter: false,
-    isVisible: (c) =>
-      c.educationCertificates.length + c.participationCertificates.length > 0,
-  },
   { id: "about", navKey: "about", inNav: true, inFooter: true, isVisible: always },
   {
     id: "projects",
@@ -45,6 +37,13 @@ export const sections: readonly SectionConfig[] = [
     isVisible: (c) => c.projects.length > 0,
   },
   {
+    id: "experience",
+    navKey: "experience",
+    inNav: true,
+    inFooter: false,
+    isVisible: (c) => c.experience.length > 0,
+  },
+  {
     id: "skills",
     navKey: "skills",
     inNav: true,
@@ -52,18 +51,19 @@ export const sections: readonly SectionConfig[] = [
     isVisible: (c) => c.skillCategories.length > 0,
   },
   {
+    id: "certificates",
+    navKey: "certificates",
+    inNav: true,
+    inFooter: false,
+    isVisible: (c) =>
+      c.educationCertificates.length + c.participationCertificates.length > 0,
+  },
+  {
     id: "ctf",
     navKey: "ctf",
     inNav: true,
     inFooter: false,
-    isVisible: (c) => c.ctfs.length > 0,
-  },
-  {
-    id: "experience",
-    navKey: "experience",
-    inNav: true,
-    inFooter: false,
-    isVisible: (c) => c.experience.length > 0,
+    isVisible: always,
   },
   { id: "contact", navKey: "contact", inNav: true, inFooter: true, isVisible: always },
 ];

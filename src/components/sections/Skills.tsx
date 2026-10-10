@@ -1,133 +1,200 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
+import { Link } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
 import type { SkillCategoryDisplay } from "@/sanity/fetch";
-import type { SkillCategoryId, SkillTierId } from "@/sanity/types";
+import type { SkillCategoryId, SkillDisplay, SkillLevel } from "@/sanity/types";
 
 type SkillsProps = {
   categories: SkillCategoryDisplay[];
 };
 
-function IconFor({ id }: { id: SkillCategoryId }) {
-  const common =
-    "h-6 w-6 text-accent ";
-  switch (id) {
-    case "ai":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            d="M12 3v3m0 12v3M4.5 7.5l2.6 1.5m10 5.8l2.6 1.5M3 12h3m12 0h3M4.5 16.5l2.6-1.5m10-5.8l2.6-1.5"
-          />
-          <circle cx="12" cy="12" r="3.2" strokeWidth="1.6" />
-        </svg>
-      );
-    case "frontend":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeWidth="1.6" d="M4 6h16v12H4z" />
-          <path strokeWidth="1.6" strokeLinecap="round" d="M8 10h8M8 14h5" />
-        </svg>
-      );
-    case "backend":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <ellipse cx="12" cy="5" rx="4" ry="2" strokeWidth="1.6" />
-          <path strokeWidth="1.6" d="M8 5v14m8-14v14" />
-          <ellipse cx="12" cy="19" rx="4" ry="2" strokeWidth="1.6" />
-        </svg>
-      );
-    case "security":
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-            d="M12 3l8 4v6c0 5-3.5 9.2-8 10-4.5-.8-8-5-8-10V7l8-4z"
-          />
-          <path strokeWidth="1.6" strokeLinecap="round" d="M9.5 12.5l2 2 3.5-4" />
-        </svg>
-      );
-    default:
-      return (
-        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeWidth="1.6" strokeLinecap="round" d="M7 8h10M7 12h6M7 16h10" />
-          <rect x="4" y="5" width="16" height="14" rx="2" strokeWidth="1.6" />
-        </svg>
-      );
-  }
+/** CLI path segment for each skill category. */
+const CATEGORY_PATH: Record<SkillCategoryId, string> = {
+  ai: "ai-ml",
+  frontend: "frontend",
+  backend: "backend",
+  security: "security",
+  languages: "languages",
+};
+
+const LEVEL_KEY = {
+  daily: "daily",
+  "used-in-project": "usedInProject",
+  learning: "learning",
+} as const satisfies Record<SkillLevel, string>;
+
+function flattenSkills(cat: SkillCategoryDisplay): SkillDisplay[] {
+  return cat.groups.flatMap((group) => group.skills);
 }
 
-const tierStyles: Record<
-  SkillTierId,
-  { badge: string }
-> = {
-  expertise: {
-    badge: "border-tier-expert text-tier-expert",
-  },
-  comfortable: {
-    badge: "border-tier-comfortable text-tier-comfortable",
-  },
-  learning: {
-    badge: "border-dashed border-tier-learning text-tier-learning",
-  },
-};
+/** Terminal: panel styled as `$ cat skills/<path>.txt` output. */
+function TerminalSkillPanel({
+  categoryId,
+  label,
+  skills,
+}: {
+  categoryId: SkillCategoryId;
+  label: string;
+  skills: SkillDisplay[];
+}) {
+  if (skills.length === 0) return null;
+
+  const path = CATEGORY_PATH[categoryId] ?? categoryId;
+
+  return (
+    <article className="flex min-w-0 flex-col overflow-hidden rounded-md border border-border bg-surface">
+      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2">
+        <span className="h-2 w-2 shrink-0 rounded-sm bg-danger" aria-hidden />
+        <span className="h-2 w-2 shrink-0 rounded-sm bg-warning" aria-hidden />
+        <span className="h-2 w-2 shrink-0 rounded-sm bg-accent" aria-hidden />
+        <span className="ml-2 truncate font-mono text-[10px] tracking-wide text-muted">
+          ~/skills/{path}.txt
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col px-3 py-3 sm:px-4 sm:py-4">
+        <p className="font-mono text-[11px] text-muted">
+          <span className="text-accent">$</span>
+          {" cat skills/"}
+          {path}
+          {".txt"}
+        </p>
+        <p className="mt-2 font-mono text-[10px] tracking-wide text-muted">
+          {"# "}
+          {label}
+        </p>
+
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {skills.map((skill) => (
+            <li key={skill.name}>
+              <span className="inline-flex max-w-full items-center rounded-sm border border-border bg-background px-2 py-1 font-mono text-[11px] break-words text-foreground transition-colors hover:border-accent hover:text-accent">
+                <span className="mr-1.5 text-accent" aria-hidden>
+                  ›
+                </span>
+                {skill.name}
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        <p className="mt-auto pt-4 font-mono text-[10px] text-muted">
+          <span className="text-accent">{skills.length}</span>
+          {" entries listed"}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function EssaySkillList({
+  label,
+  skills,
+  levelLabel,
+  noEvidence,
+}: {
+  label: string;
+  skills: SkillDisplay[];
+  levelLabel: (level?: SkillLevel) => string | null;
+  noEvidence: string;
+}) {
+  if (skills.length === 0) return null;
+
+  return (
+    <div className="min-w-0">
+      <h3 className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
+        {label}
+      </h3>
+      <dl className="mt-4 space-y-3">
+        {skills.map((skill) => {
+          const level = levelLabel(skill.level);
+          const evidence =
+            skill.evidenceHref && skill.evidenceTitle ? (
+              <Link
+                href={`/#${skill.evidenceHref.replace(/^#/, "")}`}
+                className="essay-link text-sm text-foreground"
+              >
+                {skill.evidenceTitle}
+              </Link>
+            ) : skill.evidenceTitle ? (
+              <span className="text-sm text-muted">{skill.evidenceTitle}</span>
+            ) : null;
+
+          return (
+            <div
+              key={skill.name}
+              className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-base"
+            >
+              <dt className="text-foreground">{skill.name}</dt>
+              {level && (
+                <dd className="text-sm italic text-muted">{level}</dd>
+              )}
+              {evidence && <dd>{evidence}</dd>}
+              {!skill.level && !skill.evidenceTitle && (
+                <dd className="sr-only">{noEvidence}</dd>
+              )}
+            </div>
+          );
+        })}
+      </dl>
+    </div>
+  );
+}
 
 export function Skills({ categories }: SkillsProps) {
   const t = useTranslations("Skills");
-  const skillCategories = categories;
+
+  const levelLabel = (level?: SkillLevel) => {
+    if (!level) return null;
+    return t(`levels.${LEVEL_KEY[level]}`);
+  };
 
   return (
-    <Section id="skills" className="py-16 sm:py-24">
-      <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent ">
-            {t("title")}
+    <Section id="skills" className="py-16 sm:py-24 minimal:py-20 minimal:sm:py-28">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+        <div className="max-w-2xl minimal:max-w-none">
+          <p className="decor font-mono text-xs tracking-wide text-accent">
+            {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground  sm:text-4xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
             {t("subtitle")}
           </h2>
         </div>
 
-        <div className="mt-12 grid min-w-0 gap-6 sm:gap-8 lg:grid-cols-2">
-          {skillCategories.map((cat, ci) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: ci * 0.06 }}
-              className="bg-surface border border-border group min-w-0 rounded-md p-6 sm:p-8 transition hover:border-accent/25"
-            >
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-accent/10   transition group-hover:bg-accent/15 ">
-                  <IconFor id={cat.id} />
-                </div>
-                <h3 className="min-w-0 flex-1 text-lg font-semibold break-words text-foreground ">
-                  {cat.label || t(`categories.${cat.id}`)}
-                </h3>
-              </div>
+        {/* Terminal: CLI catalog panels */}
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 minimal:hidden">
+          {categories.map((cat) => {
+            const skills = flattenSkills(cat);
+            const label = cat.label || t(`categories.${cat.id}`);
 
-              <div className="mt-8 space-y-7">
-                <div className="flex flex-wrap gap-2">
-                  {cat.groups.flatMap((group) =>
-                    group.skills.map((skill) => (
-                      <span
-                        key={`${group.tier}-${skill.name}`}
-                        title={skill.evidenceTitle ? `Evidence: ${skill.evidenceTitle}` : undefined}
-                        className={`max-w-full rounded-md border px-3 py-1.5 text-xs font-semibold break-words transition ${tierStyles[group.tier].badge}`}
-                      >
-                        {skill.name}
-                      </span>
-                    )),
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+            return (
+              <TerminalSkillPanel
+                key={cat.id}
+                categoryId={cat.id}
+                label={label}
+                skills={skills}
+              />
+            );
+          })}
+        </div>
+
+        {/* Minimal: quiet definition lists */}
+        <div className="mt-12 hidden space-y-12 minimal:block">
+          {categories.map((cat) => {
+            const skills = flattenSkills(cat);
+            const label = cat.label || t(`categories.${cat.id}`);
+
+            return (
+              <EssaySkillList
+                key={cat.id}
+                label={label}
+                skills={skills}
+                levelLabel={levelLabel}
+                noEvidence={t("noEvidence")}
+              />
+            );
+          })}
         </div>
       </div>
     </Section>

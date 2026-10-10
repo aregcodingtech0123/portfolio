@@ -164,7 +164,7 @@ export function InteractiveTerminal() {
         </span>
       </div>
 
-      <div className="flex min-h-[18rem] flex-col bg-background font-mono text-sm leading-relaxed text-foreground min-[380px]:h-[21rem] sm:h-[23rem]">
+      <div className="flex min-h-[18rem] flex-col bg-background font-code text-sm leading-relaxed text-foreground min-[380px]:h-[21rem] sm:h-[23rem]">
         <div
           ref={scrollRef}
           className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain p-3 sm:p-4"

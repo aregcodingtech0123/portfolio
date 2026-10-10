@@ -26,7 +26,7 @@ export function SocialSidebar() {
   ];
 
   return (
-    <aside className="fixed right-3 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3 md:flex">
+    <aside className="fixed right-3 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-3 md:flex minimal:hidden">
       {items.map(({ id, href, Icon, labelKey, ariaKey }) => (
         <a
           key={id}

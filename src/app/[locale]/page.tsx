@@ -41,6 +41,14 @@ function renderSection(id: SectionId, content: PortfolioContent): ReactNode {
   switch (id) {
     case "home":
       return <Hero />;
+    case "about":
+      return <About />;
+    case "projects":
+      return <Projects projects={content.projects} />;
+    case "experience":
+      return <Experience items={content.experience} />;
+    case "skills":
+      return <Skills categories={content.skillCategories} />;
     case "certificates":
       return (
         <Certificates
@@ -48,16 +56,8 @@ function renderSection(id: SectionId, content: PortfolioContent): ReactNode {
           participationCertificates={content.participationCertificates}
         />
       );
-    case "about":
-      return <About />;
-    case "projects":
-      return <Projects projects={content.projects} />;
-    case "skills":
-      return <Skills categories={content.skillCategories} />;
     case "ctf":
       return <Ctf ctfs={content.ctfs} />;
-    case "experience":
-      return <Experience items={content.experience} />;
     case "contact":
       return <Contact />;
   }

@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
 /*
- * Theme mechanism: one set of CSS variables. The inline script in
- * app/layout.tsx and ThemeProvider toggle the `dark` / `light` class on <html>.
- * Dark is the default, so :root carries the dark values too.
+ * Two-axis theme, resolved in three layers:
+ *   1. base: the terminal skin values, dark on :root (the default).
+ *   2. skin: [data-skin="minimal"] swaps structural tokens and the minimal palette.
+ *   3. mode: .dark / .light on <html>. Minimal has its own mode blocks because its
+ *      palette is not a simple inversion of the terminal one.
+ * The inline script in app/layout.tsx and ThemeProvider set both attributes.
+ * Only tokens that change are written. Each skin×mode combination is complete.
  */
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant terminal (&:where([data-skin="terminal"], [data-skin="terminal"] *));
+@custom-variant minimal (&:where([data-skin="minimal"], [data-skin="minimal"] *));
 
 :root,
 .dark {
@@ -57,6 +63,87 @@
 }
 
 /*
+ * Structural tokens. The terminal values below are the defaults on :root.
+ * --leading is 1.5 because that is what the terminal skin renders today.
+ * --chrome is 1 when borders and cards are drawn, 0 when they are not.
+ */
+:root {
+  --r-sm: 2px;
+  --r-md: 4px;
+  --chrome: 1;
+  --border-w: calc(var(--chrome) * 1px);
+  --content-max: 72rem;
+  --rhythm: 1;
+  --leading: 1.5;
+  --heading-face: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --mono-face: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/*
+ * Minimal: calm personal essay.
+ * Serif headings, narrow reading column, almost no chrome, generous rhythm.
+ */
+[data-skin="minimal"] {
+  --r-sm: 0px;
+  --r-md: 0px;
+  --chrome: 0;
+  --border-w: calc(var(--chrome) * 1px);
+  --content-max: 45rem; /* ~720px reading measure */
+  --rhythm: 1.35;
+  --leading: 1.7;
+  --heading-face: var(--font-source-serif), ui-serif, Georgia, serif;
+  --mono-face: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Minimal palette. Dark is the default for the skin, so it also applies with no mode class. */
+[data-skin="minimal"],
+[data-skin="minimal"].dark {
+  --background: #121211;
+  --surface: #121211;
+  --border: rgba(245, 242, 235, 0.14);
+  --foreground: #f3f0e8;
+  --muted: #9a958a;
+  --accent: #f3f0e8;
+  --on-accent: #121211;
+  --danger: #f3f0e8;
+  --warning: #c4a574;
+  --on-media: #f3f0e8;
+  --scrim: rgba(18, 18, 17, 0.72);
+  --tag: transparent;
+  --tag-foreground: #9a958a;
+  --tier-expert: #f3f0e8;
+  --tier-comfortable: #f3f0e8;
+  --tier-learning: #9a958a;
+  --difficulty-easy: #f3f0e8;
+  --difficulty-medium: #c4a574;
+  --difficulty-hard: #b0aaa0;
+  --difficulty-insane: #f3f0e8;
+}
+
+[data-skin="minimal"].light {
+  --background: #faf8f4;
+  --surface: #faf8f4;
+  --border: rgba(28, 26, 22, 0.12);
+  --foreground: #1c1a16;
+  --muted: #6b665c;
+  --accent: #1c1a16;
+  --on-accent: #faf8f4;
+  --danger: #1c1a16;
+  --warning: #8a5a00;
+  --on-media: #faf8f4;
+  --scrim: rgba(28, 26, 22, 0.45);
+  --tag: transparent;
+  --tag-foreground: #6b665c;
+  --tier-expert: #1c1a16;
+  --tier-comfortable: #1c1a16;
+  --tier-learning: #6b665c;
+  --difficulty-easy: #1c1a16;
+  --difficulty-medium: #8a5a00;
+  --difficulty-hard: #4a463e;
+  --difficulty-insane: #1c1a16;
+}
+
+/*
  * Clear Tailwind's default namespaces so only the tokens below exist.
  * Palette names, shadows, blur and large radii then cannot be generated.
  */
@@ -97,13 +184,16 @@
   --color-difficulty-hard: var(--difficulty-hard);
   --color-difficulty-insane: var(--difficulty-insane);
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
 
-  --font-heading: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --container-content: var(--content-max);
+
+  --font-heading: var(--heading-face);
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-body);
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-mono: var(--mono-face);
+  --font-code: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 @layer base {
@@ -111,6 +201,7 @@
     scroll-behavior: smooth;
     overflow-x: clip;
     min-height: 100dvh;
+    line-height: var(--leading);
   }
 
   body {
@@ -126,7 +217,7 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-heading);
+    font-family: var(--heading-face);
   }
 
   ::selection {
@@ -140,7 +231,101 @@
   }
 }
 
-/* Non-essential motion is disabled globally for reduced-motion users. */
+/*
+ * Minimal zeros chrome via --chrome / --border-w. Opt-in hairlines restore
+ * a single rule where the essay layout needs one (navbar, input underline,
+ * table header).
+ */
+html[data-skin="minimal"] .hairline-b {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: var(--border);
+}
+
+html[data-skin="minimal"] .hairline-t {
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: var(--border);
+}
+
+/*
+ * Essay text links: underlined, quiet hover. Opposite of terminal buttons
+ * and the former Swiss solid-fill hover blocks.
+ */
+@utility essay-link {
+  [data-skin="minimal"] & {
+    color: var(--foreground);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
+    transition: color 180ms ease, text-decoration-color 180ms ease,
+      opacity 180ms ease;
+  }
+
+  [data-skin="minimal"] &:hover,
+  [data-skin="minimal"] &:focus-visible {
+    text-decoration-color: var(--foreground);
+    outline: none;
+  }
+}
+
+/*
+ * Terminal decoration (labels, PRJ codes, status brackets, terminal panels,
+ * the node graph). Hidden in every other skin. This is the one place that
+ * answers "does this skin use terminal decoration?".
+ */
+@utility decor {
+  [data-skin="minimal"] & {
+    display: none;
+  }
+}
+
+/* Profile photo duotone: dark = black→accent, light = ink→paper.
+ * Minimal skin drops the filter so portraits stay quiet and natural. */
+.profile-duotone {
+  background-color: var(--accent);
+  isolation: isolate;
+}
+
+.profile-duotone img {
+  filter: grayscale(1) contrast(1.12);
+  mix-blend-mode: multiply;
+}
+
+.light .profile-duotone {
+  background-color: var(--background);
+}
+
+.light .profile-duotone img {
+  filter: grayscale(1) contrast(1.2);
+  mix-blend-mode: multiply;
+}
+
+.light .profile-duotone::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--foreground);
+  mix-blend-mode: color;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+[data-skin="minimal"] .profile-duotone {
+  background-color: transparent;
+}
+
+[data-skin="minimal"] .profile-duotone img {
+  filter: none;
+  mix-blend-mode: normal;
+}
+
+[data-skin="minimal"] .profile-duotone::after {
+  content: none;
+}
+
+/* Non-essential motion is disabled globally for reduced-motion users, in both skins. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

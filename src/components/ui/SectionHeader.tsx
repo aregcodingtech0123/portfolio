@@ -14,10 +14,10 @@ export function SectionHeader({
 }) {
   return (
     <div className={`max-w-2xl min-w-0 ${className}`}>
-      <p className="font-mono text-xs tracking-widest text-accent uppercase">
+      <p className="decor font-mono text-xs tracking-widest text-accent uppercase">
         {label}
       </p>
-      <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl">
+      <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:tracking-tight minimal:sm:text-3xl">
         {title}
       </h2>
       {intro && (

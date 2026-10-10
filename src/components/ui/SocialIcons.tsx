@@ -14,7 +14,7 @@ export const socialIconLinkClass =
   "inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-md border border-border/70 text-muted outline-none  transition duration-200 ease-out hover:scale-110 hover:border-accent/60 hover:text-accent  active:scale-[0.97]    ";
 
 export const socialIconLinkClassNav =
-  "inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-md border border-border/70 text-muted outline-none  transition duration-200 ease-out hover:scale-110 hover:border-accent/60 hover:text-accent  active:scale-[0.97]    ";
+  "inline-flex h-8 w-8 touch-manipulation items-center justify-center rounded-sm border border-border text-muted outline-none transition-colors hover:border-accent hover:text-accent";
 
 export function GitHubIcon({ className = "" }: { className?: string }) {
   return <FaGithub className={className} aria-hidden="true" />;

@@ -4,7 +4,6 @@ import { useLocale } from "next-intl";
 import { useLayoutEffect, useRef, useTransition } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { motion } from "framer-motion";
 
 export function LanguageSwitcher() {
   const locale = useLocale();
@@ -34,7 +33,7 @@ export function LanguageSwitcher() {
 
   return (
     <div
-      className="relative flex touch-manipulation items-center gap-0.5 rounded-md border border-border/80 bg-surface/55 p-1   "
+      className="flex touch-manipulation items-stretch overflow-hidden rounded-sm border border-border bg-surface minimal:gap-2 minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent"
       role="group"
       aria-label="Language"
     >
@@ -46,20 +45,13 @@ export function LanguageSwitcher() {
             type="button"
             onClick={() => switchTo(code)}
             disabled={pending}
-            className={`relative z-10 min-h-[36px] min-w-[36px] touch-manipulation rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+            className={`min-h-8 min-w-8 touch-manipulation px-2 font-mono text-[10px] font-medium uppercase tracking-wider transition-colors duration-150 minimal:min-h-0 minimal:min-w-0 minimal:px-0 minimal:py-0.5 minimal:font-body minimal:text-xs minimal:font-normal minimal:tracking-normal ${
               active
-                ? "text-on-accent"
-                : "text-muted hover:text-foreground  "
+                ? "bg-accent text-on-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.22em]"
+                : "text-muted hover:text-foreground"
             }`}
           >
-            {active && (
-              <motion.span
-                layoutId="lang-pill"
-                className="absolute inset-0 z-[-1] rounded-sm bg-accent    "
-                transition={{ type: "spring", stiffness: 400, damping: 34 }}
-              />
-            )}
-            <span className="relative">{code}</span>
+            {code}
           </button>
         );
       })}

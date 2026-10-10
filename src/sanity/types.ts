@@ -48,6 +48,7 @@ export type SanityProject = {
   liveUrl?: string;
   image?: SanityImageAsset;
   order: number;
+  featured?: boolean;
 };
 
 export type SanityExperience = {
@@ -175,6 +176,7 @@ export type ProjectDisplay = {
   liveUrl?: string;
   imageUrl?: string;
   imageAlt?: string;
+  featured: boolean;
 };
 
 export type CertificateDisplay = {

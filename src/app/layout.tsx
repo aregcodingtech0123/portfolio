@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
+import {
+  Bricolage_Grotesque,
+  Inter,
+  JetBrains_Mono,
+  Source_Serif_4,
+} from "next/font/google";
 import { getLocale } from "next-intl/server";
+import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -11,6 +17,13 @@ const bricolage = Bricolage_Grotesque({
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+/* Minimal (essay) headings — calm serif display. */
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin", "latin-ext"],
   display: "swap",
 });
@@ -54,13 +67,14 @@ export default async function RootLayout({
     <html
       lang={locale}
       data-scroll-behavior="smooth"
-      className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable} min-h-dvh antialiased`}
+      className={`${bricolage.variable} ${inter.variable} ${sourceSerif.variable} ${jetbrains.variable} min-h-dvh antialiased`}
       suppressHydrationWarning
     >
       <head>
+        {/* Sets data-skin and the dark/light class before first paint. Dev builds also honour ?skin= and ?mode=. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(()=>{try{var d=document.documentElement;var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark')t='dark';d.classList.remove('light','dark');d.classList.add(t);d.style.colorScheme=t;}catch(e){}})();`,
+            __html: themeBootScript(process.env.NODE_ENV === "development"),
           }}
         />
       </head>
