@@ -1,0 +1,2 @@
+This line has no em dash and no TODO placeholder.
+Just ordinary copy, nothing to flag.

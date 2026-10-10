@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Test fixtures are sample input for scripts/*.test.mjs, not app code.
+    "**/__fixtures__/**",
   ]),
 ]);
 

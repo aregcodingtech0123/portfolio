@@ -1,0 +1,9 @@
+{
+  "Greeting": {
+    "hello": "Hello",
+    "bye": "Goodbye"
+  },
+  "Unused": {
+    "orphan": "Nobody calls me"
+  }
+}

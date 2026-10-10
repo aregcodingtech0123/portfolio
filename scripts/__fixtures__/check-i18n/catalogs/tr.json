@@ -1,0 +1,8 @@
+{
+  "Greeting": {
+    "hello": "Merhaba"
+  },
+  "Unused": {
+    "orphan": "Beni kimse cagirmiyor"
+  }
+}
