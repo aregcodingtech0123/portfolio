@@ -25,13 +25,13 @@ export function Ctf({ ctfs }: CtfProps) {
   const locale = useLocale();
 
   return (
-    <Section id="ctf" className="py-16 sm:py-24 minimal:py-20 minimal:sm:py-28">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+    <Section id="ctf" className="py-16 sm:py-24">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
             {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
             {t("subtitle")}
           </h2>
           <p className="mt-4 text-left text-sm leading-relaxed text-muted minimal:text-base">
@@ -40,7 +40,7 @@ export function Ctf({ ctfs }: CtfProps) {
         </div>
 
         {ctfs.length === 0 ? (
-          <p className="mt-10 font-mono text-sm text-muted minimal:font-body minimal:text-base">
+          <p className="mt-12 font-mono text-sm text-muted minimal:font-body minimal:text-base">
             {t("empty")}
           </p>
         ) : (
@@ -133,7 +133,7 @@ export function Ctf({ ctfs }: CtfProps) {
             </div>
 
             {/* Minimal: plain table, hairline under header only */}
-            <div className="mt-10 hidden min-w-0 overflow-x-auto minimal:block">
+            <div className="mt-12 hidden min-w-0 overflow-x-auto minimal:block">
               <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
                 <thead>
                   <tr className="hairline-b border-b border-border text-muted">

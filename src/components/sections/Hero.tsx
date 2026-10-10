@@ -36,7 +36,7 @@ export function Hero() {
   return (
     <div
       id="home"
-      className="relative isolate min-w-0 overflow-x-clip pt-[5.5rem] pb-12 sm:pt-24 sm:pb-14 lg:pb-16 minimal:pt-32 minimal:pb-20 minimal:sm:pt-40 minimal:sm:pb-28"
+      className="relative isolate min-w-0 overflow-x-clip pt-[5.5rem] pb-12 sm:pt-24 sm:pb-14 lg:pb-16 minimal:pt-28 minimal:pb-[var(--rhythm-half)] minimal:sm:pt-32"
     >
       {/* Terminal skin: two-column layout */}
       <div className="relative z-10 mx-auto grid min-w-0 max-w-content gap-10 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:gap-12 lg:px-8 minimal:hidden">
@@ -106,7 +106,7 @@ export function Hero() {
       </div>
 
       {/* Minimal skin: single-column reading layout */}
-      <div className="relative z-10 mx-auto hidden min-w-0 w-full max-w-content px-5 sm:px-6 minimal:block">
+      <div className="relative z-10 mx-auto hidden min-w-0 w-full max-w-content-prose px-5 sm:px-6 minimal:block">
         <motion.div {...essayIn(0.05)} className="mb-10">
           <ProfilePhoto
             className="h-20 w-16 sm:h-24 sm:w-[4.75rem]"

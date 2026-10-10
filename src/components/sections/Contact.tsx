@@ -256,16 +256,13 @@ export function Contact() {
   const hasEmail = Boolean(contact.email);
 
   return (
-    <Section
-      id="contact"
-      className="py-16 sm:py-28 minimal:py-20 minimal:sm:py-28"
-    >
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+    <Section id="contact" className="py-16 sm:py-28">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-prose minimal:px-5 sm:minimal:px-6">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
             {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
             {t("title")}
           </h2>
           <p className="mt-3 max-w-md text-left text-sm leading-relaxed break-words text-muted minimal:mt-5 minimal:max-w-none minimal:text-base">
@@ -274,13 +271,13 @@ export function Contact() {
         </div>
 
         {!hasEmail && (
-          <p className="mt-8 font-mono text-sm text-muted minimal:mt-8 minimal:font-body minimal:text-base">
+          <p className="mt-8 font-mono text-sm text-muted minimal:mt-12 minimal:font-body minimal:text-base">
             {t("noEmailLine")}
           </p>
         )}
 
         {hasEmail && (
-        <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-10 minimal:block">
+        <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-12 minimal:block">
           <div className="min-w-0 overflow-hidden rounded-md border border-border bg-surface minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent">
             <div className="decor flex items-center gap-1.5 border-b border-border px-3 py-2">
               <span className="h-2 w-2 rounded-sm bg-danger" aria-hidden />

@@ -36,7 +36,7 @@ export function Section({ id, children, className = "" }: Props) {
         duration: reduceMotion ? 0.01 : essay ? 0.45 : 0.42,
         ease: essay ? "easeOut" : [0.22, 1, 0.36, 1],
       }}
-      className={`scroll-mt-28 ${className}`}
+      className={`scroll-mt-28 minimal:py-[var(--rhythm-half)] ${className}`}
     >
       {children}
     </motion.section>

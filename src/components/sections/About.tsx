@@ -33,8 +33,8 @@ export function About() {
         };
 
   return (
-    <Section id="about" className="py-16 sm:py-20 minimal:py-20 minimal:sm:py-28">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+    <Section id="about" className="py-16 sm:py-20">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-prose minimal:px-5 sm:minimal:px-6">
         {/* Shared header */}
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent minimal:hidden">
@@ -123,7 +123,7 @@ export function About() {
         {/* Minimal: plain prose */}
         <motion.div
           {...essayIn(0.08)}
-          className="mt-10 hidden space-y-5 text-base leading-relaxed text-foreground sm:text-[1.05rem] minimal:block"
+          className="mt-12 hidden space-y-5 text-base leading-relaxed text-foreground sm:text-lg minimal:block"
         >
           {about.paragraphs.length > 0 ? (
             about.paragraphs.map((paragraph, i) => (

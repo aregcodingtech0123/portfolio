@@ -166,13 +166,13 @@ export function Certificates({
   };
 
   return (
-    <Section id="certificates" className="py-16 sm:py-24 minimal:py-20 minimal:sm:py-28">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+    <Section id="certificates" className="py-16 sm:py-24">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
             {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
             {t("subtitle")}
           </h2>
         </div>

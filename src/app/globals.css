@@ -73,6 +73,8 @@
   --chrome: 1;
   --border-w: calc(var(--chrome) * 1px);
   --content-max: 72rem;
+  --content-prose: var(--content-max);
+  --content-wide: var(--content-max);
   --rhythm: 1;
   --leading: 1.5;
   --heading-face: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
@@ -88,7 +90,10 @@
   --r-md: 0px;
   --chrome: 0;
   --border-w: calc(var(--chrome) * 1px);
-  --content-max: 45rem; /* ~720px reading measure */
+  --content-max: 45rem; /* legacy single measure, superseded by the two below */
+  /* Two reading measures: prose for linear text, wide for scannable grids/tables. */
+  --content-prose: 68ch;
+  --content-wide: 1080px;
   --rhythm: 1.35;
   --leading: 1.7;
   --heading-face: var(--font-source-serif), ui-serif, Georgia, serif;
@@ -188,6 +193,8 @@
   --radius-md: var(--r-md);
 
   --container-content: var(--content-max);
+  --container-content-prose: var(--content-prose);
+  --container-content-wide: var(--content-wide);
 
   --font-heading: var(--heading-face);
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -229,6 +236,47 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+}
+
+/*
+ * Minimal type scale: body copy is re-tuned to 17px/1.7 and serif display
+ * type to 1.15/-0.01em, by retargeting the CSS variables Tailwind's text-*
+ * utilities already read from (see node_modules/tailwindcss/theme.css).
+ * This reaches every text-* usage in the minimal skin without touching
+ * each component, and leaves the terminal skin's scale untouched.
+ */
+[data-skin="minimal"] {
+  --text-base: 17px;
+  --text-xs--line-height: 1.6;
+  --text-sm--line-height: 1.65;
+  --text-base--line-height: 1.7;
+  --text-lg--line-height: 1.7;
+  --text-xl--line-height: 1.4;
+  --text-2xl--line-height: 1.25;
+  --text-3xl--line-height: 1.15;
+  --text-4xl--line-height: 1.15;
+  --text-5xl--line-height: 1.15;
+}
+
+/* Serif headings keep a tight, display-style leading regardless of which
+ * text-* scale step sized them. Unlayered so it beats Tailwind's utility
+ * layer outright instead of relying on a specificity fight. */
+[data-skin="minimal"] h1,
+[data-skin="minimal"] h2,
+[data-skin="minimal"] h3,
+[data-skin="minimal"] h4 {
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/*
+ * Minimal section rhythm: half the target gap on each side, so two adjacent
+ * sections' padding sums to clamp(72px, 9vh, 112px) instead of doubling it.
+ * Section.tsx applies this to every section; Hero (outside Section) applies
+ * the bottom half itself and keeps its own top padding for nav clearance.
+ */
+:root {
+  --rhythm-half: clamp(36px, 4.5vh, 56px);
 }
 
 /*

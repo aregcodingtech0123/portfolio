@@ -1,9 +1,18 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
@@ -12,6 +21,51 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import type { ProjectDisplay } from "@/sanity/fetch";
 import type { ProjectCategory, ProjectStatus } from "@/sanity/types";
+
+const PROJECT_QUERY_KEY = "project";
+
+function projectQueryValue(project: ProjectDisplay): string {
+  return project.code || project.id;
+}
+
+/**
+ * One-way sync from the `?project=` query param to the open modal: loading
+ * (or browser back/forward-ing to) a URL with the param opens the matching
+ * project, and a URL without it closes whatever is open. Writing the param
+ * in the other direction happens directly in openProject/closeProject below,
+ * not here, so the two directions can't race against each other's stale
+ * closure values in the same effect pass.
+ */
+function ProjectDeepLink({
+  projects,
+  activeProject,
+  onOpen,
+  onClose,
+}: {
+  projects: ProjectDisplay[];
+  activeProject: ProjectDisplay | null;
+  onOpen: (project: ProjectDisplay) => void;
+  onClose: () => void;
+}) {
+  const searchParams = useSearchParams();
+  const queryValue = searchParams.get(PROJECT_QUERY_KEY);
+
+  useEffect(() => {
+    if (!queryValue) {
+      // Only close if something is actually open (e.g. browser back/forward
+      // past a deep link) — avoid an unnecessary URL replace on plain loads.
+      if (activeProject) onClose();
+      return;
+    }
+    if (activeProject && projectQueryValue(activeProject) === queryValue) {
+      return;
+    }
+    const match = projects.find((p) => projectQueryValue(p) === queryValue);
+    if (match) onOpen(match);
+  }, [queryValue, projects, activeProject, onOpen, onClose]);
+
+  return null;
+}
 
 type FilterKey = "all" | ProjectCategory;
 
@@ -234,34 +288,14 @@ function EssayFeaturedArticle({ entry }: { entry: ProjectDisplay }) {
   );
 }
 
-function EssayOtherItem({ entry }: { entry: ProjectDisplay }) {
-  const t = useTranslations("Projects");
-
-  return (
-    <li className="min-w-0 py-5">
-      <h3 className="font-heading text-lg font-normal tracking-tight break-words text-foreground sm:text-xl">
-        {entry.title}
-      </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-muted sm:text-base">
-        {entry.description}
-      </p>
-      <div className="mt-3">
-        <ProjectLinks
-          entry={entry}
-          githubLabel={t("github")}
-          liveLabel={t("demo")}
-        />
-      </div>
-    </li>
-  );
-}
-
 type ProjectsProps = {
   projects: ProjectDisplay[];
 };
 
 export function Projects({ projects: projectData }: ProjectsProps) {
   const t = useTranslations("Projects");
+  const pathname = usePathname();
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [activeProject, setActiveProject] = useState<ProjectDisplay | null>(
@@ -299,23 +333,38 @@ export function Projects({ projects: projectData }: ProjectsProps) {
 
   const empty = projectData.length === 0;
 
-  const openProject = useCallback((project: ProjectDisplay) => {
-    setActiveProject(project);
-  }, []);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  const openProject = useCallback(
+    (project: ProjectDisplay) => {
+      triggerRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      setActiveProject(project);
+      router.replace(`${pathname}?${PROJECT_QUERY_KEY}=${projectQueryValue(project)}`, {
+        scroll: false,
+      });
+    },
+    [pathname, router],
+  );
 
   const closeProject = useCallback(() => {
     setActiveProject(null);
-  }, []);
+    triggerRef.current?.focus();
+    triggerRef.current = null;
+    router.replace(pathname, { scroll: false });
+  }, [pathname, router]);
 
   return (
-    <Section id="projects" className="py-20 sm:py-24 minimal:py-20 minimal:sm:py-28">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+    <Section id="projects" className="py-20 sm:py-24">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
         <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-end lg:justify-between minimal:block">
           <div className="min-w-0 max-w-2xl minimal:max-w-none">
             <p className="decor font-mono text-xs tracking-wide text-accent">
               {t("sectionLabel")}
             </p>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
+            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
               {t("subtitle")}
             </h2>
             <p className="mt-3 max-w-xl text-left text-sm leading-relaxed text-muted sm:text-base minimal:mt-4 minimal:max-w-none">
@@ -424,8 +473,9 @@ export function Projects({ projects: projectData }: ProjectsProps) {
               )}
             </div>
 
-            {/* Minimal: essay articles + simple list */}
-            <div className="mt-14 hidden space-y-16 minimal:block">
+            {/* Minimal: essay articles (full case study, no modal needed) +
+               an unpolished card grid for the rest, opening the shared modal. */}
+            <div className="mt-12 hidden space-y-16 minimal:block">
               {featured.length > 0 && (
                 <div className="space-y-16">
                   {featured.map((p) => (
@@ -439,11 +489,11 @@ export function Projects({ projects: projectData }: ProjectsProps) {
                   <p className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
                     {t("otherHeading").replace(/^\/\/\s*/, "")}
                   </p>
-                  <ul className="mt-2 divide-y divide-border/60">
+                  <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {others.map((p) => (
-                      <EssayOtherItem key={p.id} entry={p} />
+                      <ProjectCard key={p.id} entry={p} onOpen={openProject} />
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
@@ -455,13 +505,20 @@ export function Projects({ projects: projectData }: ProjectsProps) {
         )}
       </div>
 
-      <div className="minimal:hidden">
-        <ProjectModal
-          project={activeProject}
-          open={activeProject !== null}
+      <Suspense fallback={null}>
+        <ProjectDeepLink
+          projects={projectData}
+          activeProject={activeProject}
+          onOpen={openProject}
           onClose={closeProject}
         />
-      </div>
+      </Suspense>
+
+      <ProjectModal
+        project={activeProject}
+        open={activeProject !== null}
+        onClose={closeProject}
+      />
     </Section>
   );
 }
