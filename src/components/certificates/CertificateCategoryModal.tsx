@@ -27,19 +27,21 @@ export function CertificateCategoryModal({
 }: CertificateCategoryModalProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const cacheRef = useRef<{ title: string; items: CertificateDisplay[] }>({
-    title: "",
-    items: [],
-  });
   const reduceMotion = useReducedMotion();
-
-  if (open && title && items.length > 0) {
-    cacheRef.current = { title, items };
+  const [mounted, setMounted] = useState(false);
+  // Frozen on the last non-empty title/items (React's "adjusting state
+  // during rendering" pattern) so the exit animation keeps its content
+  // instead of unmounting the instant `open` flips to false.
+  const [display, setDisplay] = useState<{
+    title: string;
+    items: CertificateDisplay[];
+  }>({ title: "", items: [] });
+  if (open && title && items.length > 0 && items !== display.items) {
+    setDisplay({ title, items });
   }
 
-  const displayTitle = cacheRef.current.title;
-  const displayItems = cacheRef.current.items;
-  const [mounted, setMounted] = useState(false);
+  const displayTitle = display.title;
+  const displayItems = display.items;
 
   useEffect(() => {
     setMounted(true);

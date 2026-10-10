@@ -33,7 +33,9 @@ export function TerminalWindow({
   const [visibleCount, setVisibleCount] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const onBlockedRef = useRef(onBlocked);
-  onBlockedRef.current = onBlocked;
+  useEffect(() => {
+    onBlockedRef.current = onBlocked;
+  }, [onBlocked]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");

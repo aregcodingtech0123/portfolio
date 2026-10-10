@@ -25,7 +25,7 @@ export function ProjectCard({ entry, onOpen }: ProjectCardProps) {
   const hasLive = Boolean(entry.liveUrl);
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-md border border-border bg-surface transition-colors duration-300 ease-in-out hover:border-accent focus-within:border-accent">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-md border border-border bg-surface transition-colors duration-300 ease-in-out hover:border-accent focus-within:border-accent minimal:hover:border-foreground minimal:focus-within:border-foreground">
       {/* Full-card hit target for the modal (does not cover the Live CTA). */}
       <button
         type="button"

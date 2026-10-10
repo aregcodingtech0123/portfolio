@@ -17,28 +17,54 @@ type ProjectModalProps = {
 
 type Highlight = { label: string; body: string };
 
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
   const t = useTranslations("Projects");
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const cacheRef = useRef<ProjectDisplay | null>(null);
   const reduceMotion = useReducedMotion();
   const [mounted, setMounted] = useState(false);
-
-  if (open && project) {
-    cacheRef.current = project;
+  // Frozen on the last non-null project (React's "adjusting state during
+  // rendering" pattern) so exit animations keep rendering its content
+  // instead of unmounting the instant `project`/`open` flip to null/false.
+  const [display, setDisplay] = useState<ProjectDisplay | null>(null);
+  if (project && project !== display) {
+    setDisplay(project);
   }
-
-  const display = cacheRef.current;
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Esc closes; Tab/Shift+Tab is trapped to the dialog's own focusable elements.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const current = document.activeElement;
+
+      if (e.shiftKey && current === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && current === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -99,6 +125,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
           />
 
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
@@ -114,7 +141,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
             <header className="hairline-b flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
               <h2
                 id={titleId}
-                className="min-w-0 font-heading text-xl font-semibold tracking-tight break-words text-foreground sm:text-2xl"
+                className="min-w-0 font-heading text-xl font-semibold tracking-tight break-words text-foreground sm:text-2xl minimal:font-normal"
               >
                 {display.title}
               </h2>
@@ -123,7 +150,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
                 type="button"
                 onClick={onClose}
                 aria-label={t("close")}
-                className="inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-sm border border-border text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="inline-flex h-10 w-10 shrink-0 touch-manipulation items-center justify-center rounded-sm border border-border text-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent minimal:hover:border-foreground minimal:hover:text-foreground"
               >
                 <span aria-hidden className="text-lg leading-none">
                   ×
@@ -155,13 +182,13 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
 
                 {highlights.length > 0 && (
                   <div>
-                    <p className="font-mono text-[11px] tracking-wider text-accent uppercase">
+                    <p className="font-mono text-[11px] tracking-wider text-accent uppercase minimal:text-muted">
                       {t("highlights")}
                     </p>
                     <ul className="mt-3 space-y-4">
                       {highlights.map((item) => (
                         <li key={item.label}>
-                          <p className="text-xs font-semibold tracking-wide text-foreground">
+                          <p className="font-mono text-xs font-semibold tracking-wide text-foreground minimal:font-body minimal:font-medium">
                             {item.label}
                           </p>
                           <p className="mt-1 text-sm leading-relaxed break-words text-muted">

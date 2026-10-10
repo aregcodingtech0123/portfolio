@@ -54,7 +54,9 @@ export function Navbar() {
       num: padIndex(index + 1),
     }));
   const navSectionsRef = useRef(navSections);
-  navSectionsRef.current = navSections;
+  useEffect(() => {
+    navSectionsRef.current = navSections;
+  }, [navSections]);
 
   useEffect(() => {
     const atBottom = () =>
