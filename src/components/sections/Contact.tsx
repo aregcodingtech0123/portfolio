@@ -1,12 +1,10 @@
 "use client";
 
 import emailjs, { EmailJSResponseStatus } from "@emailjs/browser";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
-import { SocialExternalLinks } from "@/components/ui/SocialIcons";
 import { isValidMailbox } from "@/lib/mailto";
 import {
   emailjsConfig,
@@ -15,18 +13,98 @@ import {
   reportEmailjsMissing,
 } from "@/lib/emailjs";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
+import { socialLinks } from "@/components/ui/SocialIcons";
 
 type FieldErrors = Partial<
   Record<"name" | "email" | "subject" | "message", string>
 >;
 
-
 type SubmitStatus = "idle" | "loading" | "success" | "error";
+
+type CopyKey = "email" | "github" | "linkedin" | null;
+
+function CopyableLine({
+  label,
+  value,
+  href,
+  copied,
+  copyLabel,
+  copiedLabel,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  href?: string;
+  copied: boolean;
+  copyLabel: string;
+  copiedLabel: string;
+  onCopy: () => void;
+}) {
+  return (
+    <>
+      <div className="flex min-w-0 flex-col gap-1 border-b border-border py-3 last:border-b-0 sm:flex-row sm:items-center sm:gap-4 minimal:hidden">
+        <span className="w-24 shrink-0 font-mono text-[11px] text-accent">
+          {label}
+        </span>
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {href ? (
+            <a
+              href={href}
+              target={href.startsWith("mailto:") ? undefined : "_blank"}
+              rel={
+                href.startsWith("mailto:") ? undefined : "noopener noreferrer"
+              }
+              className="min-w-0 truncate font-mono text-sm text-foreground underline-offset-2 hover:text-accent hover:underline"
+            >
+              {value}
+            </a>
+          ) : (
+            <span className="min-w-0 truncate font-mono text-sm text-foreground">
+              {value}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onCopy}
+            className="ml-auto shrink-0 rounded-sm border border-border px-2 py-1 font-mono text-[10px] tracking-wide text-muted transition-colors hover:border-accent hover:text-accent"
+            aria-label={`${copyLabel}: ${value}`}
+          >
+            {copied ? copiedLabel : copyLabel}
+          </button>
+        </div>
+      </div>
+
+      <div className="hidden items-baseline gap-x-3 gap-y-1 py-1.5 minimal:flex">
+        {href ? (
+          <a
+            href={href}
+            target={href.startsWith("mailto:") ? undefined : "_blank"}
+            rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
+            className="essay-link min-w-0 break-all text-base text-foreground"
+          >
+            {value}
+          </a>
+        ) : (
+          <span className="min-w-0 break-all text-base text-foreground">
+            {value}
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={onCopy}
+          className="shrink-0 text-sm text-muted underline decoration-transparent underline-offset-[0.22em] transition-colors hover:text-foreground hover:decoration-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          aria-label={`${copyLabel}: ${value}`}
+        >
+          {copied ? copiedLabel : copyLabel}
+        </button>
+      </div>
+    </>
+  );
+}
 
 export function Contact() {
   const t = useTranslations("Contact");
-  const s = useTranslations("Social");
-  const { contact } = useSiteContent();
+  const { contact, social } = useSiteContent();
   const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,6 +112,31 @@ export function Contact() {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [copied, setCopied] = useState<CopyKey>(null);
+  const copyTimer = useRef<number | null>(null);
+
+  const github = social.github || socialLinks.github;
+  const linkedin = social.linkedin || socialLinks.linkedin;
+
+  const handleCopy = useCallback(
+    async (key: Exclude<CopyKey, null>, text: string) => {
+      try {
+        await navigator.clipboard.writeText(text);
+        setCopied(key);
+        if (copyTimer.current) window.clearTimeout(copyTimer.current);
+        copyTimer.current = window.setTimeout(() => setCopied(null), 1600);
+      } catch {
+        setCopied(null);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (copyTimer.current) window.clearTimeout(copyTimer.current);
+    };
+  }, []);
 
   function dismissFeedback() {
     setStatus((s) => (s === "error" || s === "success" ? "idle" : s));
@@ -94,73 +197,124 @@ export function Contact() {
     }
   }
 
+  const contactLines = (
+    <>
+      {contact.email && (
+        <CopyableLine
+          label="email"
+          value={contact.email}
+          href={
+            isValidMailbox(contact.email)
+              ? `mailto:${contact.email.trim()}`
+              : undefined
+          }
+          copied={copied === "email"}
+          copyLabel={t("copy")}
+          copiedLabel={t("copied")}
+          onCopy={() => handleCopy("email", contact.email)}
+        />
+      )}
+      <CopyableLine
+        label="github"
+        value={github.replace(/^https?:\/\//, "")}
+        href={github}
+        copied={copied === "github"}
+        copyLabel={t("copy")}
+        copiedLabel={t("copied")}
+        onCopy={() => handleCopy("github", github)}
+      />
+      <CopyableLine
+        label="linkedin"
+        value={linkedin.replace(/^https?:\/\//, "")}
+        href={linkedin}
+        copied={copied === "linkedin"}
+        copyLabel={t("copy")}
+        copiedLabel={t("copied")}
+        onCopy={() => handleCopy("linkedin", linkedin)}
+      />
+      {contact.location && (
+        <>
+          <div className="flex min-w-0 flex-col gap-1 py-3 sm:flex-row sm:items-center sm:gap-4 minimal:hidden">
+            <span className="w-24 shrink-0 font-mono text-[11px] text-accent">
+              location
+            </span>
+            <span className="font-mono text-sm text-muted">
+              {contact.location}
+            </span>
+          </div>
+          <p className="hidden text-base text-muted minimal:block">
+            {contact.location}
+          </p>
+        </>
+      )}
+    </>
+  );
+
+  const fieldClass =
+    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted focus:border-accent minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground";
+
+  const hasEmail = Boolean(contact.email);
+
   return (
-    <Section id="contact" className="py-16 sm:py-28">
-      <div className="mx-auto min-w-0 max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="grid min-w-0 gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start">
-          <div className="min-w-0">
-            <h2 className="text-3xl font-bold tracking-tight break-words text-foreground  sm:text-4xl">
-              {t("title")}
-            </h2>
-            <p className="mt-3 max-w-md text-base leading-relaxed break-words text-muted ">
-              {t("subtitle")}
-            </p>
-            <dl className="mt-10 space-y-6 text-sm">
-              {contact.email && (
-              <div>
-                <dt className="font-semibold uppercase tracking-wider text-muted">
-                  {t("social.emailLabel")}
-                </dt>
-                <dd className="mt-1">
-                  {isValidMailbox(contact.email) ? (
-                    <a
-                      href={`mailto:${contact.email.trim()}`}
-                      className="text-accent transition hover:text-accent  "
-                    >
-                      {contact.email}
-                    </a>
-                  ) : (
-                    <span className="text-muted ">
-                      {contact.email}
-                    </span>
-                  )}
-                </dd>
-              </div>
-              )}
-              <div>
-                <dt className="font-semibold uppercase tracking-wider text-muted">
-                  {t("social.locationLabel")}
-                </dt>
-                <dd className="mt-1 text-foreground ">
-                  {contact.location}
-                </dd>
-              </div>
-            </dl>
-            <div className="mt-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted">
-                {t("social.profiles")}
+    <Section
+      id="contact"
+      className="py-16 sm:py-28 minimal:py-20 minimal:sm:py-28"
+    >
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:px-5 sm:minimal:px-6">
+        <div className="max-w-2xl minimal:max-w-none">
+          <p className="decor font-mono text-xs tracking-wide text-accent">
+            {t("sectionLabel")}
+          </p>
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:mt-0 minimal:text-[1.75rem] minimal:font-normal minimal:sm:text-3xl">
+            {t("title")}
+          </h2>
+          <p className="mt-3 max-w-md text-left text-sm leading-relaxed break-words text-muted minimal:mt-5 minimal:max-w-none minimal:text-base">
+            {t("subtitle")}
+          </p>
+        </div>
+
+        {!hasEmail && (
+          <p className="mt-8 font-mono text-sm text-muted minimal:mt-8 minimal:font-body minimal:text-base">
+            {t("noEmailLine")}
+          </p>
+        )}
+
+        {hasEmail && (
+        <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-10 minimal:block">
+          <div className="min-w-0 overflow-hidden rounded-md border border-border bg-surface minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent">
+            <div className="decor flex items-center gap-1.5 border-b border-border px-3 py-2">
+              <span className="h-2 w-2 rounded-sm bg-danger" aria-hidden />
+              <span className="h-2 w-2 rounded-sm bg-warning" aria-hidden />
+              <span className="h-2 w-2 rounded-sm bg-accent" aria-hidden />
+              <span className="ml-2 font-mono text-[10px] tracking-wide text-muted">
+                ~/contact
+              </span>
+            </div>
+            <div className="bg-background/80 px-3 py-1 sm:px-4 minimal:bg-transparent minimal:px-0 minimal:py-0">
+              <p className="decor border-b border-border py-3 font-mono text-xs text-muted">
+                $ cat contact.txt
               </p>
-              <SocialExternalLinks
-                ariaGithub={s("githubAria")}
-                ariaLinkedin={s("linkedinAria")}
-                className="mt-3 flex flex-wrap items-center gap-3"
-                iconClassName="h-5 w-5"
-              />
+              {contactLines}
             </div>
           </div>
 
-          <motion.form
+          <form
             ref={formRef}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             onSubmit={handleSubmit}
-            className="bg-surface border border-border min-w-0 rounded-md p-8 sm:p-10"
+            className="min-w-0 border border-border bg-surface p-5 sm:p-6 minimal:mt-12 minimal:border-0 minimal:bg-transparent minimal:p-0"
             noValidate
           >
-            <div className="grid gap-6 sm:grid-cols-2">
-              <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-foreground ">
+            <p className="decor font-mono text-[11px] tracking-wide text-muted">
+              <span>{"// "}</span>
+              {t("formHeading")}
+            </p>
+            <p className="hidden font-heading text-xl font-normal tracking-tight text-foreground minimal:block">
+              {t("formHeading")}
+            </p>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 minimal:mt-5 minimal:gap-5">
+              <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
+                <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
                   {t("name")}
                 </span>
                 <input
@@ -172,15 +326,16 @@ export function Contact() {
                   }}
                   autoComplete="name"
                   maxLength={200}
-                  className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
-                  placeholder={t("name")}
+                  className={fieldClass}
                 />
                 {errors.name && (
-                  <span className="text-xs text-danger">{errors.name}</span>
+                  <span className="font-mono text-xs text-danger minimal:font-body">
+                    {errors.name}
+                  </span>
                 )}
               </label>
-              <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-foreground ">
+              <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
+                <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
                   {t("email")}
                 </span>
                 <input
@@ -193,16 +348,18 @@ export function Contact() {
                   type="email"
                   autoComplete="email"
                   maxLength={254}
-                  className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
-                  placeholder={t("email")}
+                  className={fieldClass}
                 />
                 {errors.email && (
-                  <span className="text-xs text-danger">{errors.email}</span>
+                  <span className="font-mono text-xs text-danger minimal:font-body">
+                    {errors.email}
+                  </span>
                 )}
               </label>
             </div>
-            <label className="mt-6 flex flex-col gap-2 text-sm">
-              <span className="font-medium text-foreground ">
+
+            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
+              <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
                 {t("subject")}
               </span>
               <input
@@ -213,15 +370,17 @@ export function Contact() {
                   setSubject(e.target.value);
                 }}
                 maxLength={200}
-                className="rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
-                placeholder={t("subject")}
+                className={fieldClass}
               />
               {errors.subject && (
-                <span className="text-xs text-danger">{errors.subject}</span>
+                <span className="font-mono text-xs text-danger minimal:font-body">
+                  {errors.subject}
+                </span>
               )}
             </label>
-            <label className="mt-6 flex flex-col gap-2 text-sm">
-              <span className="font-medium text-foreground ">
+
+            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
+              <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
                 {t("message")}
               </span>
               <textarea
@@ -233,38 +392,51 @@ export function Contact() {
                 }}
                 rows={5}
                 maxLength={4000}
-                className="resize-y rounded-md border border-border/90 bg-surface px-4 py-3 text-foreground outline-none  transition placeholder:text-muted focus:border-accent/55      "
-                placeholder={t("message")}
+                className={`${fieldClass} resize-y`}
               />
               {errors.message && (
-                <span className="text-xs text-danger">{errors.message}</span>
+                <span className="font-mono text-xs text-danger minimal:font-body">
+                  {errors.message}
+                </span>
               )}
             </label>
 
             {!emailjsConfigured && process.env.NODE_ENV !== "production" && (
-              <p className="mt-6 font-mono text-xs text-warning">
-                [DEV] Contact form disabled. Set {emailjsMissing.join(", ")} in .env.local.
+              <p className="mt-4 font-mono text-xs text-warning minimal:font-body">
+                [DEV] Contact form disabled. Set {emailjsMissing.join(", ")} in
+                .env.local.
               </p>
             )}
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+
+            <div className="mt-6 flex flex-wrap items-center gap-4 minimal:mt-6 minimal:pt-1">
               <button
                 type="submit"
                 disabled={status === "loading" || !emailjsConfigured}
-                className={buttonClasses("primary", "min-w-[160px] px-8")}
+                className={`${buttonClasses("primary", "min-w-[140px] px-6")} minimal:hidden`}
+              >
+                {status === "loading" ? t("sending") : t("send")}
+              </button>
+              <button
+                type="submit"
+                disabled={status === "loading" || !emailjsConfigured}
+                className="essay-link hidden text-base text-foreground disabled:opacity-50 minimal:inline"
               >
                 {status === "loading" ? t("sending") : t("send")}
               </button>
               {status === "success" && (
-                <span className="text-sm text-accent ">
+                <span className="font-mono text-xs text-accent minimal:font-body minimal:text-sm minimal:text-muted">
                   {t("success")}
                 </span>
               )}
               {status === "error" && (
-                <span className="text-sm text-danger">{t("error")}</span>
+                <span className="font-mono text-xs text-danger minimal:font-body minimal:text-sm">
+                  {t("error")}
+                </span>
               )}
             </div>
-          </motion.form>
+          </form>
         </div>
+        )}
       </div>
     </Section>
   );

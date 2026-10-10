@@ -80,6 +80,7 @@ function toProjectDisplay(p: ProjectSource, locale: string): ProjectDisplay {
     liveUrl: p.liveUrl,
     imageUrl: p.image ? getImageUrl(p.image, 960, 600) : undefined,
     imageAlt: p.image?.alt || title || "Project preview",
+    featured: p.featured !== false,
   };
 }
 
@@ -311,13 +312,22 @@ function mapAbout(
   };
 }
 
+/** Known placeholder addresses that must never reach the page. */
+const BANNED_EMAIL_PATTERN = /@example\.(com|org|net)$/i;
+
 function mapContact(
   settings: SanitySiteSettings | null | undefined,
   locale: string,
 ): ContactInfoDisplay {
+  // An empty email is valid: the contact block hides itself rather than showing a placeholder.
+  const email = (settings?.email ?? fallback.siteSettings.email).trim();
+  if (process.env.NODE_ENV !== "production" && BANNED_EMAIL_PATTERN.test(email)) {
+    throw new Error(
+      `Placeholder contact email "${email}" reached mapContact(); fix the Sanity siteSettings or fallback data instead of shipping it.`,
+    );
+  }
   return {
-    // An empty email is valid: the contact block hides itself rather than showing a placeholder.
-    email: (settings?.email ?? fallback.siteSettings.email).trim(),
+    email,
     location: pickLocale(settings?.location ?? fallback.siteSettings.location, locale),
   };
 }

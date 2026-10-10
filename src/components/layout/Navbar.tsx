@@ -1,19 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 import { sections as sectionConfig } from "@/config/sections";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import { SkinSwitcher } from "./SkinSwitcher";
 import {
   SocialExternalLinks,
   socialIconLinkClass,
   socialIconLinkClassNav,
 } from "@/components/ui/SocialIcons";
 
+function padIndex(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function NavToggleGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-stretch gap-1">
+      <span
+        className="text-center font-mono text-[10px] uppercase tracking-[0.2em] text-accent/70 minimal:hidden"
+        aria-hidden
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}
 
 export function Navbar() {
   const t = useTranslations("Nav");
@@ -23,11 +47,32 @@ export function Navbar() {
   const [active, setActive] = useState("home");
   const content = useSiteContent();
   const navSections = sectionConfig
-    .filter((s) => s.inNav && s.isVisible(content))
-    .map(({ id, navKey }) => ({ id, key: navKey }));
+    .filter((section) => section.inNav && section.isVisible(content))
+    .map(({ id, navKey }, index) => ({
+      id,
+      key: navKey,
+      num: padIndex(index + 1),
+    }));
+  const navSectionsRef = useRef(navSections);
+  navSectionsRef.current = navSections;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const atBottom = () =>
+      window.innerHeight + window.scrollY >=
+      document.documentElement.scrollHeight - 2;
+
+    const onScroll = () => {
+      setScrolled(window.scrollY > 16);
+      // The last section can be shorter than the mid-viewport band the
+      // IntersectionObserver below watches, so it may never cross it before
+      // the page bottoms out. Force the last visible nav section active
+      // once scrolling can't go any further.
+      if (atBottom()) {
+        const sections = navSectionsRef.current;
+        const last = sections[sections.length - 1];
+        if (last) setActive(last.id);
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -36,6 +81,12 @@ export function Navbar() {
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
+        if (
+          window.innerHeight + window.scrollY >=
+          document.documentElement.scrollHeight - 2
+        ) {
+          return;
+        }
         for (const e of entries) {
           if (e.isIntersecting && e.target.id) {
             setActive(e.target.id);
@@ -51,96 +102,104 @@ export function Navbar() {
     return () => obs.disconnect();
   }, []);
 
-  const navShell =
-    scrolled
-      ? "border-b border-border/70 bg-surface/75 py-3     "
-      : "border-b border-transparent bg-transparent py-4 ";
-
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 min-w-0 transition-all duration-300 ${navShell}`}>
-      <nav className="mx-auto flex min-w-0 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header
+      className={`fixed inset-x-0 top-0 z-50 min-w-0 transition-colors duration-200 ${
+        scrolled
+          ? "border-b border-border bg-surface/90 minimal:hairline-b minimal:border-border minimal:bg-background/95"
+          : "border-b border-border/60 bg-background/80 minimal:hairline-b minimal:border-border/80 minimal:bg-background/90"
+      }`}
+    >
+      <nav className="mx-auto flex min-h-[80px] min-w-0 w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-5 md:px-8 minimal:min-h-14 minimal:max-w-content minimal:gap-4 minimal:px-5 minimal:py-4 sm:minimal:px-6">
         <Link
           href="/"
-          className="group flex items-center gap-2 font-semibold tracking-tight text-foreground "
+          className="group flex shrink-0 items-center gap-1.5 font-mono text-xs tracking-wide text-muted transition-colors hover:text-accent minimal:font-heading minimal:text-base minimal:font-normal minimal:tracking-tight minimal:text-foreground minimal:hover:text-foreground"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-md    bg-accent text-sm font-bold text-on-accent ">
-            AE
-          </span>
-          <span className="hidden text-sm uppercase tracking-[0.2em] text-muted transition group-hover:text-accent   sm:inline">
-            Arda Ege
+          <span className="decor text-accent">~/</span>
+          <span className="whitespace-nowrap text-foreground group-hover:text-accent minimal:group-hover:text-foreground">
+            <span className="minimal:hidden">_arda-ege-tunc</span>
+            <span className="hidden minimal:inline">{content.siteName}</span>
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 lg:flex">
-          {navSections.map(({ id, key }) => (
-            <Link
-              key={id}
-              href={`/#${id}`}
-              className={`relative rounded-md px-3 py-2 text-sm font-medium transition ${
-                active === id
-                  ? "text-accent "
-                  : "text-muted hover:text-foreground  "
-              }`}
-            >
-              {active === id && (
-                <motion.span
-                  layoutId="nav-dot"
-                  className="absolute inset-x-2 -bottom-0.5 mx-auto h-0.5 bg-accent   "
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
-              )}
-              {t(key)}
-            </Link>
-          ))}
-          <div className="ml-3 flex items-center gap-2 border-l border-border/90 pl-3 ">
-            <ThemeToggle />
-            <LanguageSwitcher />
+        <div className="hidden min-w-0 flex-1 items-center justify-end gap-2 lg:flex minimal:gap-3">
+          <div className="flex flex-nowrap items-center justify-end gap-0.5 minimal:gap-x-4">
+            {navSections.map(({ id, key, num }) => {
+              const isActive = active === id;
+              return (
+                <Link
+                  key={id}
+                  href={`/#${id}`}
+                  className={`relative whitespace-nowrap px-1.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 sm:px-2 minimal:px-0 minimal:py-1 minimal:font-body minimal:text-sm minimal:tracking-normal ${
+                    isActive
+                      ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  <span className="decor mr-1 text-accent/80">{num}</span>
+                  <span className="lowercase minimal:normal-case">{t(key)}</span>
+                  {isActive && (
+                    <span
+                      className="absolute inset-x-1.5 -bottom-px h-px bg-accent sm:inset-x-2 minimal:hidden"
+                      aria-hidden
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="ml-1 flex shrink-0 items-end gap-3 border-l border-border pl-2 sm:ml-2 sm:gap-4 sm:pl-2.5 minimal:ml-4 minimal:items-center minimal:gap-3 minimal:border-0 minimal:pl-0">
+            <NavToggleGroup label={t("toggleMode")}>
+              <ThemeToggle />
+            </NavToggleGroup>
+            <NavToggleGroup label={t("toggleLang")}>
+              <LanguageSwitcher />
+            </NavToggleGroup>
+            <NavToggleGroup label={t("toggleStyle")}>
+              <SkinSwitcher />
+            </NavToggleGroup>
+
             <SocialExternalLinks
               ariaGithub={s("githubAria")}
               ariaLinkedin={s("linkedinAria")}
-              className="flex items-center gap-1.5"
-              iconClassName="h-[18px] w-[18px]"
-              linkClassName={socialIconLinkClassNav}
+              className="mb-0.5 flex items-center gap-1 minimal:mb-0 minimal:gap-2"
+              iconClassName="h-3.5 w-3.5"
+              linkClassName={`${socialIconLinkClassNav} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:p-0 minimal:text-muted minimal:hover:border-0 minimal:hover:text-foreground`}
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 lg:hidden">
+        <div className="flex shrink-0 items-center gap-1.5 lg:hidden minimal:gap-2">
           <ThemeToggle />
           <LanguageSwitcher />
-          <SocialExternalLinks
-            ariaGithub={s("githubAria")}
-            ariaLinkedin={s("linkedinAria")}
-            className="flex items-center gap-0.5"
-            iconClassName="h-[17px] w-[17px]"
-            linkClassName={socialIconLinkClassNav}
-          />
+          <SkinSwitcher />
           <button
             type="button"
-            className="inline-flex h-10 w-10 touch-manipulation items-center justify-center rounded-md border border-border/90 bg-surface/70 text-foreground    "
+            className="inline-flex h-8 w-8 touch-manipulation items-center justify-center rounded-sm border border-border bg-surface text-foreground minimal:h-8 minimal:w-8 minimal:rounded-none minimal:border-0 minimal:bg-transparent"
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? t("closeMenu") : t("openMenu")}
             onClick={() => setOpen((v) => !v)}
           >
-            <span className="sr-only">{open ? t("closeMenu") : t("openMenu")}</span>
             <svg
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
+              aria-hidden
             >
               {open ? (
                 <path
-                  strokeWidth="2"
-                  strokeLinecap="round"
+                  strokeWidth="1.75"
+                  strokeLinecap="square"
                   d="M6 18L18 6M6 6l12 12"
                 />
               ) : (
                 <path
-                  strokeWidth="2"
-                  strokeLinecap="round"
+                  strokeWidth="1.75"
+                  strokeLinecap="square"
                   d="M4 7h16M4 12h16M4 17h16"
                 />
               )}
@@ -155,35 +214,39 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22 }}
+            transition={{ duration: 0.18 }}
             id="mobile-nav"
-            className="border-b border-border/80 bg-surface/95    lg:hidden"
+            className="border-b border-border bg-surface lg:hidden minimal:border-border/60 minimal:bg-background"
           >
-            <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4">
-              {navSections.map(({ id, key }) => (
-                <Link
-                  key={id}
-                  href={`/#${id}`}
-                  onClick={() => setOpen(false)}
-                  className={`touch-manipulation rounded-md px-4 py-3 text-base font-medium ${
-                    active === id
-                      ? "bg-accent/15 text-accent  "
-                      : "text-foreground hover:bg-surface  "
-                  }`}
-                >
-                  {t(key)}
-                </Link>
-              ))}
-              <div className="mt-3 border-t border-border/80 pt-4 ">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+            <div className="mx-auto flex w-full max-w-content flex-col px-4 py-3 minimal:px-5 sm:minimal:px-6">
+              {navSections.map(({ id, key, num }) => {
+                const isActive = active === id;
+                return (
+                  <Link
+                    key={id}
+                    href={`/#${id}`}
+                    onClick={() => setOpen(false)}
+                    className={`flex touch-manipulation items-center gap-3 border-b border-border/60 px-1 py-3 font-mono text-sm last:border-b-0 minimal:border-border/40 minimal:px-0 minimal:py-3 minimal:font-body minimal:text-base ${
+                      isActive
+                        ? "text-accent minimal:text-foreground minimal:underline minimal:underline-offset-[0.22em]"
+                        : "text-foreground hover:text-accent minimal:hover:text-foreground"
+                    }`}
+                  >
+                    <span className="decor w-6 text-[11px] text-muted">{num}</span>
+                    <span className="lowercase minimal:normal-case">{t(key)}</span>
+                  </Link>
+                );
+              })}
+              <div className="mt-3 flex items-center gap-3 border-t border-border pt-3 minimal:border-border/40">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-muted minimal:font-body minimal:normal-case minimal:tracking-normal">
                   {s("mobileHeading")}
                 </p>
                 <SocialExternalLinks
                   ariaGithub={s("githubAria")}
                   ariaLinkedin={s("linkedinAria")}
-                  className="flex items-center gap-3 px-1"
-                  iconClassName="h-5 w-5"
-                  linkClassName={socialIconLinkClass}
+                  className="flex items-center gap-2"
+                  iconClassName="h-4 w-4"
+                  linkClassName={`${socialIconLinkClass} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:p-0`}
                 />
               </div>
             </div>
