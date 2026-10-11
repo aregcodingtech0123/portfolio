@@ -49,6 +49,11 @@ function describeViolations(violations: Result[]): string {
  * top, and wait until no rendered element's inline opacity is in flight.
  * The inactive skin's markup is display:none and never animates, so
  * checkVisibility() leaves it out.
+ *
+ * Likewise the contact form's submit button is disabled (and dimmed via
+ * disabled:opacity-50) until the Turnstile token arrives, which can land
+ * mid-scan; axe then caught it fading back in (3.29:1). So also wait for
+ * that token and for every finite CSS transition/animation to finish.
  */
 async function revealAllSections(page: import("@playwright/test").Page) {
   // The skin/mode switchers are disabled until mounted.
@@ -65,6 +70,26 @@ async function revealAllSections(page: import("@playwright/test").Page) {
     );
   }
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  // Real Cloudflare test endpoint (see e2e/fixtures.ts), so allow it time.
+  await expect(page.locator('#contact button[type="submit"]:visible')).toBeEnabled({
+    timeout: 15_000,
+  });
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .filter(
+              (a) =>
+                a.playState === "running" &&
+                a.effect?.getComputedTiming().iterations !== Infinity,
+            )
+            .map((a) => (a as CSSTransition).transitionProperty ?? a.constructor.name),
+        ),
+      { message: "every finite transition/animation should have finished" },
+    )
+    .toEqual([]);
   await expect
     .poll(
       () =>
