@@ -15,7 +15,7 @@ async function openFirstProject(page: import("@playwright/test").Page, skin: Ski
   await card.click();
   const dialog = page.getByRole("dialog");
   await dialog.waitFor({ state: "visible" });
-  return dialog;
+  return { card, dialog };
 }
 
 async function activeElementIsInsideDialog(page: import("@playwright/test").Page) {
@@ -30,7 +30,6 @@ test.describe("ProjectModal focus trap: minimal skin", () => {
     page,
   }) => {
     await openFirstProject(page, "minimal");
-
     const closeButton = page.getByRole("button", { name: "Close" });
     await expect(closeButton).toBeFocused();
 
@@ -75,3 +74,37 @@ test.describe("ProjectModal focus trap: terminal skin", () => {
     }
   });
 });
+
+for (const skin of ["terminal", "minimal"] as const) {
+  test.describe(`ProjectModal full flow: ${skin} skin`, () => {
+    test(`opens from a card with the right content, locks body scroll, and closes on Escape, restoring scroll and focus (${skin})`, async ({
+      page,
+    }) => {
+      const prevOverflow = await page.evaluate(() => document.body.style.overflow);
+
+      const { card, dialog } = await openFirstProject(page, skin);
+      await expect(dialog).toHaveAttribute("aria-modal", "true");
+      await expect(dialog.locator("h2").first()).not.toBeEmpty();
+      expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
+
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      expect(await page.evaluate(() => document.body.style.overflow)).toBe(prevOverflow);
+      await expect(card).toBeFocused();
+    });
+
+    test(`closes on a backdrop click, restoring focus to the triggering card (${skin})`, async ({
+      page,
+    }) => {
+      const { card, dialog } = await openFirstProject(page, skin);
+
+      // The backdrop is the dialog's sibling under the same role="presentation"
+      // wrapper and renders before the dialog in document order.
+      const backdrop = page.locator('[role="presentation"] > [aria-hidden]').first();
+      await backdrop.click({ position: { x: 5, y: 5 } });
+
+      await expect(dialog).toBeHidden();
+      await expect(card).toBeFocused();
+    });
+  });
+}
