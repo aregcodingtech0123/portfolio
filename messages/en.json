@@ -5,20 +5,25 @@
     "projects": "Projects",
     "certificates": "Certificates",
     "skills": "Skills",
-    "ctf": "CTF",
     "experience": "Experience",
+    "education": "Education",
     "contact": "Contact",
     "language": "Language",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "themeLight": "Switch to light theme",
-    "themeDark": "Switch to dark theme",
+    "themeGroup": "Theme mode",
+    "themeOptionDark": "Dark",
+    "themeOptionLight": "Light",
     "skinGroup": "Visual style",
     "skinTerminal": "Terminal",
     "skinMinimal": "Minimal",
-    "toggleMode": "MODE",
-    "toggleLang": "LANG",
-    "toggleStyle": "STYLE"
+    "langTr": "TR",
+    "langEn": "EN",
+    "langTrFull": "Türkçe",
+    "langEnFull": "English",
+    "toggleMode": "Tema / Mode",
+    "toggleLang": "Dil / Language",
+    "toggleStyle": "Görünüm / Skin"
   },
   "Social": {
     "github": "GitHub",
@@ -28,55 +33,15 @@
     "mobileHeading": "Social"
   },
   "Hero": {
-    "greeting": "Hi, I'm",
-    "name": "Arda Ege Tunç",
-    "rolePrefix": "I build modern products at the intersection of",
-    "ctaProjects": "View Projects",
-    "ctaContact": "Contact Me",
-    "badges": {
-      "ai": "Generative AI",
-      "fullstack": "Full Stack",
-      "security": "Cybersecurity"
-    },
-    "profileTagline": "AI Engineering · Full Stack · Cybersecurity"
+    "portraitAlt": "Arda Ege Tunç - Profile Photo"
   },
   "About": {
     "title": "About Me",
-    "locationLabel": "Location",
-    "location": "Ankara, Turkey",
-    "educationTitle": "Education",
-    "edu1": "Ankara Science University, B.Sc. in Computer Engineering (English)",
-    "edu2": "Istanbul University, Economics",
-    "summary": "A fresh Computer Engineering graduate specializing in Generative AI systems, full-stack web development, and cybersecurity.",
-    "experienced": "Experienced with",
-    "highlights": [
-      "RAG architectures",
-      "LangChain",
-      "LangGraph",
-      "React.js",
-      "Next.js",
-      "AI-assisted development",
-      "Prompt Engineering",
-      "Penetration Testing",
-      "Linux / Bash"
-    ],
-    "stats": {
-      "focus": "Primary focus",
-      "focusValue": "GenAI & secure systems",
-      "stack": "Core stack",
-      "stackValue": "React / Next / Python",
-      "mindset": "Engineering mindset",
-      "mindsetValue": "Ship clean, measurable outcomes"
-    }
+    "locationLabel": "Location"
   },
   "Skills": {
-    "sectionLabel": "// 05 skills",
-    "title": "Skills",
-    "subtitle": "Evidence matrix across AI, product engineering, and security.",
-    "colSkill": "Skill",
-    "colLevel": "Level",
-    "colEvidence": "Evidence",
-    "noEvidence": "—",
+    "sectionLabel": "// 06 skills",
+    "subtitle": "Skills",
     "categories": {
       "ai": "AI & Machine Learning",
       "frontend": "Frontend Development",
@@ -85,9 +50,9 @@
       "languages": "Languages & Tools"
     },
     "levels": {
-      "daily": "daily",
-      "usedInProject": "used in project",
-      "learning": "learning"
+      "daily": "Daily",
+      "usedInProject": "Used in project",
+      "learning": "Learning"
     },
     "tiers": {
       "expertise": "Expertise",
@@ -96,8 +61,7 @@
     }
   },
   "CTF": {
-    "sectionLabel": "// 07 ctf",
-    "title": "CTF",
+    "sectionLabel": "// 08 ctf",
     "subtitle": "Scoreboard",
     "intro": "Public results from Capture The Flag practice.",
     "empty": "No public results yet. Write-ups coming.",
@@ -106,108 +70,82 @@
     "colCategory": "Category",
     "colRank": "Rank",
     "colWriteup": "Write-up",
-    "writeupLink": "open",
-    "noWriteup": "—",
-    "toolsLabel": "Tools & tech",
-    "writeupAvailable": "Write-up",
-    "difficulty": {
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard",
-      "insane": "Insane"
-    }
+    "writeupLink": "Open",
+    "noWriteup": "-"
   },
   "Experience": {
     "sectionLabel": "// 04 experience",
-    "title": "Experience",
     "subtitle": "Roles that shaped how I build and break systems.",
-    "emptyBody": "No experience entries yet. Add roles in Content Hub under Experience.",
-    "colPeriod": "Period",
-    "colRole": "Role",
-    "colDetail": "Detail"
+    "emptyBody": "No experience entries yet. Add roles in Content Hub under Experience."
+  },
+  "Education": {
+    "sectionLabel": "// 05 education",
+    "subtitle": "Academic background and programs of study.",
+    "emptyBody": "No education entries yet. Add programs in Content Hub under Education."
   },
   "Projects": {
     "sectionLabel": "// 03 projects",
-    "title": "Projects",
-    "subtitle": "Featured Projects",
-    "intro": "Selected builds with a short look at the problem, approach, and stack behind each one.",
-    "searchPlaceholder": "technology or keyword…",
+    "subtitle": "Projects",
+    "searchPlaceholder": "Technology or keyword…",
     "grepPrefix": "grep",
-    "filterAll": "all",
-    "filterAi": "ai",
-    "filterFullstack": "fullstack",
-    "filterSecurity": "security",
-    "filterTooling": "tooling",
+    "filterAll": "All",
+    "filterAi": "AI",
+    "filterFullstack": "Fullstack",
+    "filterSecurity": "Security",
+    "filterTooling": "Tooling",
     "emptyTitle": "No projects yet",
     "emptyBody": "No public projects match this filter. Adjust the query or add entries to the content layer.",
     "emptyList": "No matching projects.",
-    "otherHeading": "// other",
     "fieldProblem": "Problem",
     "fieldApproach": "Approach",
     "fieldChallenge": "Challenge",
     "fieldLearned": "What I learned",
     "github": "GitHub",
     "demo": "Live",
-    "liveCta": "View Live",
     "visitSite": "Visit Site",
     "close": "Close",
     "openDetails": "View project details",
     "highlights": "Highlights",
     "noLive": "Coming soon",
-    "preview": "no preview",
-    "tableId": "ID",
-    "tableTitle": "Title",
-    "tableSummary": "Summary",
-    "tableStack": "Stack",
-    "tableLinks": "Links"
+    "preview": "No preview"
   },
   "Certificates": {
-    "sectionLabel": "// 06 certificates",
-    "title": "Certificates",
+    "sectionLabel": "// 07 certificates",
     "subtitle": "Credentials and event participation.",
-    "intro": "Education and events, listed for quick reference.",
     "educationHeading": "// education",
     "eventsHeading": "// events",
     "colTitle": "Title",
     "colIssuer": "Issuer",
-    "colDate": "Date",
-    "countLabel": "{count} entries",
-    "cardEducationKicker": "Education & credentials",
-    "cardEducationTitle": "Education & Specialization",
-    "cardEducationBody": "Courses, lab assistantships, internships, and professional trainings.",
-    "cardParticipationKicker": "Events & volunteering",
-    "cardParticipationTitle": "Participation & Events",
-    "cardParticipationBody": "Summits, career forums, workshops, and mentorship programs.",
-    "cardCta": "View list",
-    "modalEducationTitle": "Education & Specialization",
-    "modalParticipationTitle": "Participation & Events",
-    "modalClose": "Close"
+    "colDate": "Date"
   },
   "Contact": {
-    "sectionLabel": "// 08 contact",
+    "sectionLabel": "// 09 contact",
     "title": "Contact",
-    "subtitle": "Reach out by mail or social — or use the form.",
-    "noEmailLine": "No email is listed yet — find me through the social links in the navbar or footer.",
-    "formHeading": "send a message",
-    "copy": "copy",
-    "copied": "copied",
-    "name": "Name",
-    "email": "Email",
+    "subtitle": "Reach out by mail or social, or use the form.",
+    "noEmailLine": "No public email is listed yet. Use the form or the social links below.",
+    "formHeading": "Send a message",
+    "copy": "Copy",
+    "copied": "Copied",
+    "name": "Full Name",
+    "email": "Email Address",
     "subject": "Subject",
     "message": "Message",
+    "placeholders": {
+      "name": "Your full name",
+      "email": "you@domain.com",
+      "subject": "What is this about?",
+      "message": "Write your message here…"
+    },
     "send": "Send message",
     "sending": "Sending…",
-    "success": "Thanks, your message is on its way.",
+    "success": "Your message was sent successfully!",
     "error": "Something went wrong. Please try again or email directly.",
+    "captchaRequired": "Complete the security check before sending.",
+    "captchaError": "Security check failed. Please try again.",
     "validation": {
       "required": "This field is required.",
       "email": "Enter a valid email address.",
       "maxLength": "This field is too long."
-    },
-    "social": {
-      "profiles": "Profiles",
-      "emailLabel": "Email",
-      "locationLabel": "Location"
     }
   },
   "Footer": {

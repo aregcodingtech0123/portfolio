@@ -5,99 +5,63 @@
     "projects": "Projeler",
     "certificates": "Sertifikalar",
     "skills": "Yetenekler",
-    "ctf": "CTF",
     "experience": "Deneyim",
+    "education": "Eğitim",
     "contact": "İletişim",
     "language": "Dil",
     "openMenu": "Menüyü aç",
     "closeMenu": "Menüyü kapat",
-    "themeLight": "Açık temaya geç",
-    "themeDark": "Koyu temaya geç",
+    "themeGroup": "Tema modu",
+    "themeOptionDark": "Koyu",
+    "themeOptionLight": "Açık",
     "skinGroup": "Görünüm",
     "skinTerminal": "Terminal",
     "skinMinimal": "Sade",
-    "toggleMode": "MOD",
-    "toggleLang": "DİL",
-    "toggleStyle": "STİL"
+    "langTr": "TR",
+    "langEn": "EN",
+    "langTrFull": "Türkçe",
+    "langEnFull": "English",
+    "toggleMode": "Tema / Mode",
+    "toggleLang": "Dil / Language",
+    "toggleStyle": "Görünüm / Skin"
   },
   "Social": {
     "github": "GitHub",
     "linkedin": "LinkedIn",
     "githubAria": "GitHub profilini ziyaret et (yeni sekmede açılır)",
     "linkedinAria": "LinkedIn profilini ziyaret et (yeni sekmede açılır)",
-    "mobileHeading": "Sosyal"
+    "mobileHeading": "Sosyal medya"
   },
   "Hero": {
-    "greeting": "Merhaba, ben",
-    "name": "Arda Ege Tunç",
-    "rolePrefix": "Modern ürünleri şu kesişimde inşa ediyorum:",
-    "ctaProjects": "Projeleri Gör",
-    "ctaContact": "İletişim",
-    "badges": {
-      "ai": "Üretken Yapay Zeka",
-      "fullstack": "Full Stack",
-      "security": "Siber güvenlik"
-    },
-    "profileTagline": "Yapay Zeka Mühendisliği · Full Stack · Siber güvenlik"
+    "portraitAlt": "Arda Ege Tunç - Profil Fotoğrafı"
   },
   "About": {
     "title": "Hakkımda",
-    "locationLabel": "Konum",
-    "location": "Ankara, Türkiye",
-    "educationTitle": "Eğitim",
-    "edu1": "Ankara Bilim Üniversitesi, Bilgisayar Mühendisliği Lisans (İngilizce)",
-    "edu2": "İstanbul Üniversitesi, İktisat",
-    "summary": "Üretken yapay zeka sistemleri, full-stack web geliştirme ve siber güvenlik alanlarında uzmanlaşan yeni mezun Bilgisayar Mühendisi.",
-    "experienced": "Deneyim alanları",
-    "highlights": [
-      "RAG mimarileri",
-      "LangChain",
-      "LangGraph",
-      "React.js",
-      "Next.js",
-      "Yapay zeka destekli geliştirme",
-      "İstem mühendisliği",
-      "Sızma testi",
-      "Linux / Bash"
-    ],
-    "stats": {
-      "focus": "Odak",
-      "focusValue": "Üretken yapay zeka ve güvenli sistemler",
-      "stack": "Temel yığın",
-      "stackValue": "React / Next / Python",
-      "mindset": "Yaklaşım",
-      "mindsetValue": "Temiz, ölçülebilir sonuçlar üretmek"
-    }
+    "locationLabel": "Konum"
   },
   "Skills": {
-    "sectionLabel": "// 05 yetenekler",
-    "title": "Yetenekler",
-    "subtitle": "Yapay zeka, ürün mühendisliği ve güvenlik kanıt matrisi.",
-    "colSkill": "Yetenek",
-    "colLevel": "Seviye",
-    "colEvidence": "Kanıt",
-    "noEvidence": "—",
+    "sectionLabel": "// 06 yetenekler",
+    "subtitle": "Yetenekler",
     "categories": {
       "ai": "Yapay Zeka ve Makine Öğrenmesi",
-      "frontend": "Ön Uç Geliştirme",
-      "backend": "Arka Uç Geliştirme",
+      "frontend": "Frontend Geliştirme",
+      "backend": "Backend Geliştirme",
       "security": "Siber Güvenlik",
       "languages": "Diller ve Araçlar"
     },
     "levels": {
-      "daily": "günlük",
-      "usedInProject": "projede kullandım",
-      "learning": "öğreniyorum"
+      "daily": "Günlük",
+      "usedInProject": "Projede kullandım",
+      "learning": "Öğreniyorum"
     },
     "tiers": {
       "expertise": "Uzmanlık",
-      "comfortable": "İyi düzey",
+      "comfortable": "Yetkin",
       "learning": "Öğreniyorum"
     }
   },
   "CTF": {
-    "sectionLabel": "// 07 ctf",
-    "title": "CTF",
+    "sectionLabel": "// 08 ctf",
     "subtitle": "Skor tablosu",
     "intro": "Capture The Flag pratiğinden genel sonuçlar.",
     "empty": "Henüz genel sonuç yok. Write-up'lar yakında.",
@@ -106,108 +70,82 @@
     "colCategory": "Kategori",
     "colRank": "Sıra",
     "colWriteup": "Write-up",
-    "writeupLink": "aç",
-    "noWriteup": "—",
-    "toolsLabel": "Araçlar ve teknolojiler",
-    "writeupAvailable": "Write-up",
-    "difficulty": {
-      "easy": "Kolay",
-      "medium": "Orta",
-      "hard": "Zor",
-      "insane": "İnsane"
-    }
+    "writeupLink": "Aç",
+    "noWriteup": "-"
   },
   "Experience": {
     "sectionLabel": "// 04 deneyim",
-    "title": "Deneyim",
-    "subtitle": "Sistemleri nasıl kurduğumu ve kırdığımı şekillendiren roller.",
-    "emptyBody": "Henüz deneyim kaydı yok. Content Hub'dan Deneyim bölümüne ekleyin.",
-    "colPeriod": "Dönem",
-    "colRole": "Rol",
-    "colDetail": "Detay"
+    "subtitle": "Deneyimlerim",
+    "emptyBody": "Henüz deneyim kaydı yok. Content Hub'dan Deneyim bölümüne ekleyin."
+  },
+  "Education": {
+    "sectionLabel": "// 05 eğitim",
+    "subtitle": "Eğitim",
+    "emptyBody": "Henüz eğitim kaydı yok. Content Hub'dan Eğitim bölümüne ekleyin."
   },
   "Projects": {
     "sectionLabel": "// 03 projeler",
-    "title": "Projeler",
-    "subtitle": "Öne Çıkan Projeler",
-    "intro": "Seçili işlere kısa bir bakış: problem, yaklaşım ve her projenin arkasındaki yığın.",
-    "searchPlaceholder": "teknoloji veya anahtar kelime…",
+    "subtitle": "Projeler",
+    "searchPlaceholder": "Teknoloji veya anahtar kelime…",
     "grepPrefix": "grep",
-    "filterAll": "tümü",
-    "filterAi": "ai",
-    "filterFullstack": "fullstack",
-    "filterSecurity": "güvenlik",
-    "filterTooling": "araçlar",
+    "filterAll": "Tümü",
+    "filterAi": "AI",
+    "filterFullstack": "Fullstack",
+    "filterSecurity": "Güvenlik",
+    "filterTooling": "Araçlar",
     "emptyTitle": "Henüz proje yok",
     "emptyBody": "Bu filtreyle eşleşen genel proje yok. Sorguyu değiştirin veya içerik katmanına kayıt ekleyin.",
     "emptyList": "Eşleşen proje yok.",
-    "otherHeading": "// diğer",
     "fieldProblem": "Problem",
     "fieldApproach": "Yaklaşımım",
     "fieldChallenge": "Zorlandığım yer",
     "fieldLearned": "Ne öğrendim",
     "github": "GitHub",
     "demo": "Canlı",
-    "liveCta": "Canlı Gör",
     "visitSite": "Siteyi Ziyaret Et",
     "close": "Kapat",
     "openDetails": "Proje detaylarını gör",
     "highlights": "Öne çıkanlar",
     "noLive": "Yakında",
-    "preview": "önizleme yok",
-    "tableId": "ID",
-    "tableTitle": "Başlık",
-    "tableSummary": "Özet",
-    "tableStack": "Yığın",
-    "tableLinks": "Bağlantılar"
+    "preview": "Önizleme yok"
   },
   "Certificates": {
-    "sectionLabel": "// 06 sertifikalar",
-    "title": "Sertifikalar",
+    "sectionLabel": "// 07 sertifikalar",
     "subtitle": "Yeterlilikler ve etkinlik katılımları.",
-    "intro": "Eğitim ve etkinlikler, hızlı referans için listelenir.",
     "educationHeading": "// eğitim",
     "eventsHeading": "// etkinlikler",
     "colTitle": "Başlık",
     "colIssuer": "Kurum",
-    "colDate": "Tarih",
-    "countLabel": "{count} kayıt",
-    "cardEducationKicker": "Eğitim ve yeterlilikler",
-    "cardEducationTitle": "Eğitim ve Uzmanlaşma",
-    "cardEducationBody": "Kurslar, laboratuvar görevleri, stajlar ve profesyonel eğitimler.",
-    "cardParticipationKicker": "Etkinlik ve gönüllülük",
-    "cardParticipationTitle": "Katılım ve Etkinlikler",
-    "cardParticipationBody": "Zirveler, kariyer forumları, atölyeler ve mentorluk programları.",
-    "cardCta": "Listeyi aç",
-    "modalEducationTitle": "Eğitim ve Uzmanlaşma",
-    "modalParticipationTitle": "Katılım ve Etkinlikler",
-    "modalClose": "Kapat"
+    "colDate": "Tarih"
   },
   "Contact": {
-    "sectionLabel": "// 08 iletişim",
+    "sectionLabel": "// 09 iletişim",
     "title": "İletişim",
-    "subtitle": "E-posta veya sosyal üzerinden ulaşın — ya da formu kullanın.",
-    "noEmailLine": "Henüz bir e-posta adresi paylaşılmadı — bana gezinme çubuğu veya alt bilgideki sosyal bağlantılardan ulaşabilirsiniz.",
-    "formHeading": "mesaj gönder",
-    "copy": "kopyala",
-    "copied": "kopyalandı",
+    "subtitle": "E-posta veya sosyal medya üzerinden ulaşın, ya da formu kullanın.",
+    "noEmailLine": "Henüz genel bir e-posta paylaşılmadı. Formu veya aşağıdaki sosyal bağlantıları kullanın.",
+    "formHeading": "Mesaj Gönder",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
     "name": "Ad Soyad",
     "email": "E-posta",
     "subject": "Konu",
     "message": "Mesaj",
-    "send": "Mesaj gönder",
+    "placeholders": {
+      "name": "Adınız ve soyadınız",
+      "email": "ornek@domain.com",
+      "subject": "Konu nedir?",
+      "message": "Mesajınızı buraya yazın…"
+    },
+    "send": "Mesaj Gönder",
     "sending": "Gönderiliyor…",
-    "success": "Teşekkürler, mesajınız iletildi.",
+    "success": "Mesajınız başarıyla iletildi!",
     "error": "Bir sorun oluştu. Lütfen tekrar deneyin veya doğrudan e-posta gönderin.",
+    "captchaRequired": "Göndermeden önce güvenlik doğrulamasını tamamlayın.",
+    "captchaError": "Güvenlik doğrulaması başarısız. Lütfen tekrar deneyin.",
     "validation": {
       "required": "Bu alan zorunlu.",
       "email": "Geçerli bir e-posta girin.",
       "maxLength": "Bu alan çok uzun."
-    },
-    "social": {
-      "profiles": "Profiller",
-      "emailLabel": "E-posta",
-      "locationLabel": "Konum"
     }
   },
   "Footer": {
