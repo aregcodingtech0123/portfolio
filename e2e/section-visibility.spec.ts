@@ -1,0 +1,67 @@
+import { expect, test } from "./fixtures";
+
+/**
+ * This suite's webServer runs with sanityConfigured=false (see
+ * playwright.config.ts), so every request deterministically serves the
+ * real fallback dataset (src/data/migration-portfolio.ts), which has
+ * non-empty content for every conditionally-visible section. That rules
+ * out demonstrating the *absence* branch here: driving it "through
+ * intercepted content" would require Sanity's content fetch (which runs
+ * in a Server Component, during SSR) to be interceptable, but
+ * page.route() only sees requests made from the browser page -- a
+ * separate Node process makes that one. @sanity/client's Node transport
+ * goes through its own `get-it` request layer (confirmed in
+ * node_modules/get-it/src/request/node/), not a globally mockable
+ * fetch/undici dispatcher, and giving it a test-only endpoint override
+ * would mean adding one to src/sanity/client.ts, an application-code
+ * change outside the focus-trap fix this task scopes "don't change
+ * app behavior" around.
+ *
+ * What IS genuinely verified here instead: with real content, the whole
+ * pipeline -- Server Component rendering -> visibleSections() -> Navbar's
+ * and Footer's filters -> actual DOM -- agrees with src/config/sections.ts
+ * for every section that should appear, in both the page and both
+ * navigation surfaces. The *logic* that an empty section also disappears
+ * from nav and footer together is already covered by
+ * src/config/sections.test.ts's full empty/partial/full matrix; this
+ * suite covers the wiring a unit test cannot: that the real rendered page
+ * actually agrees with that config, not just the pure function.
+ */
+
+const SECTIONS_WITH_CONTENT = [
+  { id: "projects", navLabel: "Projects", inFooter: true },
+  { id: "experience", navLabel: "Experience", inFooter: false },
+  { id: "education", navLabel: "Education", inFooter: false },
+  { id: "skills", navLabel: "Skills", inFooter: true },
+  { id: "certificates", navLabel: "Certificates", inFooter: false },
+];
+
+test("every section with real fallback content appears in the page, and in the nav/footer exactly as sections.ts configures", async ({
+  page,
+}) => {
+  await page.goto("/en");
+
+  for (const { id } of SECTIONS_WITH_CONTENT) {
+    await expect(page.locator(`#${id}`)).toBeVisible();
+  }
+
+  const nav = page.locator("nav").first();
+  const footer = page.locator("footer");
+
+  for (const { navLabel, inFooter } of SECTIONS_WITH_CONTENT) {
+    await expect(nav.getByRole("link", { name: new RegExp(navLabel) })).toBeVisible();
+    const footerLink = footer.getByRole("link", { name: navLabel, exact: true });
+    if (inFooter) {
+      await expect(footerLink).toBeVisible();
+    } else {
+      await expect(footerLink).toHaveCount(0);
+    }
+  }
+
+  // ctf is deliberately excluded from both nav and footer regardless of
+  // content (inNav: false, inFooter: false in sections.ts), while still
+  // always rendering on the page itself (isVisible: always).
+  await expect(page.locator("#ctf")).toBeVisible();
+  await expect(nav.getByRole("link", { name: /CTF/ })).toHaveCount(0);
+  await expect(footer.getByRole("link", { name: "CTF", exact: true })).toHaveCount(0);
+});
