@@ -1,36 +1,19 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { motion, useReducedMotion } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { InteractiveTerminal } from "@/components/about/InteractiveTerminal";
 import { ProfilePhoto } from "@/components/ui/ProfilePhoto";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 
+// The entrance fade is owned by the surrounding Section (pure-CSS reveal,
+// see globals.css). The inner blocks here render plainly visible, so the
+// content can never be hidden by reduced motion or missing/slow JS -- the
+// bug that used to leave per-element Framer reveals stuck at opacity: 0.
+
 export function About() {
   const t = useTranslations("About");
   const { about } = useSiteContent();
-  const reduceMotion = useReducedMotion();
-
-  const fadeIn = (delay = 0) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 14 },
-          whileInView: { opacity: 1, y: 0 },
-          viewport: { once: true },
-          transition: { delay, duration: 0.4 },
-        };
-
-  const essayIn = (delay = 0) =>
-    reduceMotion
-      ? {}
-      : {
-          initial: { opacity: 0 },
-          whileInView: { opacity: 1 },
-          viewport: { once: true },
-          transition: { delay, duration: 0.45, ease: "easeOut" as const },
-        };
 
   const hasLocation = Boolean(about.location);
   const hasHighlights = about.highlights.length > 0;
@@ -51,13 +34,12 @@ export function About() {
     hasHighlights ? (
       <div className="flex flex-wrap gap-2">
         {about.highlights.map((text, i) => (
-          <motion.span
+          <span
             key={`${text}-${i}`}
-            {...fadeIn(i * 0.04)}
             className="rounded-sm border border-border bg-background px-3 py-1.5 font-mono text-[11px] font-medium tracking-wide text-foreground transition-colors hover:border-accent hover:text-accent minimal:rounded-none minimal:border-border minimal:bg-transparent minimal:font-body minimal:text-xs minimal:tracking-normal minimal:hover:border-foreground minimal:hover:text-foreground"
           >
             {text}
-          </motion.span>
+          </span>
         ))}
       </div>
     ) : null;
@@ -121,15 +103,14 @@ export function About() {
           </div>
 
           <div className="min-w-0 space-y-4">
-            <motion.div {...fadeIn()}>
+            <div>
               <InteractiveTerminal />
-            </motion.div>
+            </div>
             {stats.length > 0 && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                {stats.map(([labelKey, valueKey], i) => (
-                  <motion.div
+                {stats.map(([labelKey, valueKey]) => (
+                  <div
                     key={labelKey}
-                    {...fadeIn(0.08 * i)}
                     className="rounded-md border border-border bg-surface p-6"
                   >
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted">
@@ -138,7 +119,7 @@ export function About() {
                     <p className="mt-3 text-lg font-semibold text-accent">
                       {about.stats[valueKey]}
                     </p>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
@@ -148,19 +129,15 @@ export function About() {
         {/* Minimal: written paragraphs + structured skill chips */}
         <div className="mt-12 hidden minimal:block">
           {proseParagraphs.length > 0 && (
-            <motion.div
-              {...essayIn(0.08)}
-              className="space-y-5 text-base leading-relaxed text-foreground sm:text-lg"
-            >
+            <div className="space-y-5 text-base leading-relaxed text-foreground sm:text-lg">
               {proseParagraphs.map((paragraph, i) => (
                 <p key={`${i}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
               ))}
-            </motion.div>
+            </div>
           )}
 
           {(hasExperienced || hasHighlights) && (
-            <motion.div
-              {...essayIn(0.14)}
+            <div
               className={`hairline-t border-t border-border ${proseParagraphs.length > 0 ? "mt-10 pt-8" : ""}`}
             >
               {hasExperienced && (
@@ -173,7 +150,7 @@ export function About() {
                   {renderHighlightBadges()}
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
         </div>
       </div>

@@ -9,6 +9,17 @@ const COMBOS: Array<{ skin: Skin; mode: Mode }> = [
   { skin: "minimal", mode: "light" },
 ];
 
+// Scan under reduced motion. The entrance reveals are hidden only for
+// motion-OK browsers (globals.css), so with prefers-reduced-motion every
+// section renders fully visible at once -- no scrolling, no waiting on a
+// fade, nothing half-faded or skipped-as-invisible. The at-rest colours and
+// layout axe checks are identical to the motion build, so this loses no
+// coverage. Crucially, it is no longer this scan's job to make hidden
+// content appear: that the reveal never leaves content permanently hidden
+// (reduced motion, no/slow JS) is proved directly by e2e/reduced-motion
+// .spec.ts, so a visibility regression surfaces there, not masked here.
+test.use({ reducedMotion: "reduce" });
+
 /**
  * Splits violations by severity. Moderate/minor are logged as a warning,
  * never failing the suite. Serious/critical are returned for the caller to
@@ -40,37 +51,19 @@ function describeViolations(violations: Result[]): string {
 }
 
 /**
- * Brings the page to the state a reader actually sees before scanning.
- * Sections fade in once on entering the viewport (Framer Motion, inline
- * opacity 0 -> 1). Scanning straight after load raced the hero's entrance
- * (axe measured half-faded text, e.g. 1.45:1) and skipped every section
- * below the fold as invisible. So: once hydrated (Framer's observers only
- * exist from then on), scroll through to reveal everything, return to the
- * top, and wait until no rendered element's inline opacity is in flight.
- * The inactive skin's markup is display:none and never animates, so
- * checkVisibility() leaves it out.
- *
- * Likewise the contact form's submit button is disabled (and dimmed via
- * disabled:opacity-50) until the Turnstile token arrives, which can land
- * mid-scan; axe then caught it fading back in (3.29:1). So also wait for
- * that token and for every finite CSS transition/animation to finish.
+ * Settles the page before scanning. Under reduced motion the content is
+ * already all visible (see the note by COMBOS), so there is nothing to
+ * scroll or reveal -- this only waits out the two state changes that would
+ * otherwise race the scan:
+ *   - the skin/mode switchers are disabled until the theme mounts;
+ *   - the contact submit button is disabled (dimmed via disabled:opacity-50)
+ *     until the real Cloudflare Turnstile test token arrives, and axe once
+ *     caught it fading back in at 3.29:1.
  */
-async function revealAllSections(page: import("@playwright/test").Page) {
-  // The skin/mode switchers are disabled until mounted.
+async function settlePage(page: import("@playwright/test").Page) {
   await expect(
     page.locator('button[aria-haspopup="listbox"]:visible:disabled'),
   ).toHaveCount(0);
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  const step = page.viewportSize()!.height / 2;
-  for (let y = 0; y <= height; y += step) {
-    await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), y);
-    // Frames for the IntersectionObserver to see this position.
-    await page.evaluate(
-      () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))),
-    );
-  }
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  // Real Cloudflare test endpoint (see e2e/fixtures.ts), so allow it time.
   await expect(page.locator('#contact button[type="submit"]:visible')).toBeEnabled({
     timeout: 15_000,
   });
@@ -90,17 +83,6 @@ async function revealAllSections(page: import("@playwright/test").Page) {
       { message: "every finite transition/animation should have finished" },
     )
     .toEqual([]);
-  await expect
-    .poll(
-      () =>
-        page.evaluate(() =>
-          Array.from(document.querySelectorAll<HTMLElement>("[style*=opacity]"))
-            .filter((el) => el.checkVisibility() && el.style.opacity !== "1")
-            .map((el) => `${el.tagName.toLowerCase()} opacity=${el.style.opacity}`),
-        ),
-      { message: "every entrance animation should have finished at opacity 1" },
-    )
-    .toEqual([]);
 }
 
 for (const locale of ["en", "tr"] as const) {
@@ -110,7 +92,7 @@ for (const locale of ["en", "tr"] as const) {
     }) => {
       await seedTheme(page, { skin, mode });
       await page.goto(`/${locale}`);
-      await revealAllSections(page);
+      await settlePage(page);
 
       const results = await new AxeBuilder({ page }).analyze();
       const serious = splitBySeverity(results.violations);

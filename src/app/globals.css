@@ -404,3 +404,61 @@ html[data-skin="minimal"] .hairline-t {
     scroll-behavior: auto !important;
   }
 }
+
+/* --- Entrance reveals ----------------------------------------------------
+   Fade / rise-in used by the hero and the scrolling sections. These are a
+   progressive enhancement, never a precondition for seeing the content:
+   the hidden start state (opacity: 0) is applied ONLY inside
+   prefers-reduced-motion: no-preference, and the scroll variants also
+   require @supports (animation-timeline: view()). So content renders fully
+   visible for every other case -- reduced motion, no JavaScript, slow or
+   failed JavaScript, and browsers without scroll-driven animation -- with
+   no script needed to reveal it. The server never ships opacity: 0 as the
+   only state. */
+@keyframes reveal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes reveal-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-rise-sm {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* On-load reveals, for content above the fold (the hero): time-based, so
+     they run and finish without JavaScript or a scroll. */
+  .reveal-load {
+    opacity: 0;
+    animation: reveal-fade 0.5s ease-out both;
+    animation-delay: var(--reveal-delay, 0s);
+  }
+  .reveal-load-rise {
+    opacity: 0;
+    animation: reveal-rise-sm 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--reveal-delay, 0s);
+  }
+
+  /* Scroll reveals, for the sections and their contents. Driven by the
+     element's own scroll position, so they need no IntersectionObserver
+     and no JS at all. Gated on scroll-timeline support; where it is
+     missing the content is simply visible. */
+  @supports (animation-timeline: view()) {
+    .reveal-fade,
+    .reveal-rise {
+      opacity: 0;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 12%;
+    }
+    .reveal-fade {
+      animation-name: reveal-fade;
+    }
+    .reveal-rise {
+      animation-name: reveal-rise;
+    }
+  }
+}

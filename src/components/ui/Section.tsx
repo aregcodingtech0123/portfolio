@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
 import { useTheme } from "@/components/providers/ThemeProvider";
 
 type Props = {
@@ -9,36 +8,27 @@ type Props = {
   className?: string;
 };
 
+/**
+ * Section wrapper with a scroll-reveal entrance.
+ *
+ * The reveal is pure CSS (see globals.css): the section ships visible and
+ * is only hidden-then-revealed for motion-OK browsers that support
+ * scroll-driven animation. Reduced motion, no/slow/failed JS, and older
+ * browsers all render the section fully visible with no script. This
+ * replaced a Framer `whileInView` reveal whose server-rendered opacity: 0
+ * left the whole page blank under reduced motion or before hydration.
+ */
 export function Section({ id, children, className = "" }: Props) {
-  const reduceMotion = useReducedMotion();
   const { skin } = useTheme();
-  const essay = skin === "minimal";
+  // Terminal rises in; the minimal "essay" skin only fades.
+  const reveal = skin === "minimal" ? "reveal-fade" : "reveal-rise";
 
   return (
-    <motion.section
+    <section
       id={id}
-      initial={
-        reduceMotion
-          ? false
-          : essay
-            ? { opacity: 0 }
-            : { opacity: 0, y: 20 }
-      }
-      whileInView={
-        reduceMotion
-          ? undefined
-          : essay
-            ? { opacity: 1 }
-            : { opacity: 1, y: 0 }
-      }
-      viewport={{ once: true, margin: "-8%", amount: 0.2 }}
-      transition={{
-        duration: reduceMotion ? 0.01 : essay ? 0.45 : 0.42,
-        ease: essay ? "easeOut" : [0.22, 1, 0.36, 1],
-      }}
-      className={`scroll-mt-28 minimal:py-[var(--rhythm-half)] ${className}`}
+      className={`${reveal} scroll-mt-28 minimal:py-[var(--rhythm-half)] ${className}`}
     >
       {children}
-    </motion.section>
+    </section>
   );
 }

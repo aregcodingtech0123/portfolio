@@ -151,7 +151,11 @@ function ProjectsView({
             <div className="mt-12 minimal:hidden">
               {filtered.length > 0 ? (
                 <div className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <AnimatePresence mode="popLayout">
+                  {/* initial={false}: the cards paint at their final state on
+                      first render (and in the SSR HTML), so they are never
+                      hidden with no/slow JS. The enter/exit fade still plays
+                      when the category filter changes the list. */}
+                  <AnimatePresence mode="popLayout" initial={false}>
                     {filtered.map((p) => (
                       <motion.div
                         key={p.id}
