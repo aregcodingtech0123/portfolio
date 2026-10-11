@@ -21,6 +21,27 @@ type Highlight = { label: string; body: string };
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/**
+ * FOCUSABLE_SELECTOR matches by tag/attribute only, so it also matches an
+ * element a skin-specific CSS class (e.g. minimal:hidden) has hidden:
+ * querySelectorAll doesn't know about computed visibility, and a real
+ * browser's native Tab order skips a display:none element regardless. That
+ * mismatch let focus escape the trap in the minimal skin, where the
+ * footer close button is hidden but still "focusable" by selector alone.
+ * checkVisibility() reports real, user-reachable visibility, including
+ * display:none/visibility:hidden/opacity:0 inherited from an ancestor; the
+ * inert check covers an inert subtree, which checkVisibility does not
+ * treat as a visibility concern since inert is a separate,
+ * non-interactivity mechanism.
+ */
+function isReallyFocusable(el: HTMLElement): boolean {
+  if (el.closest("[inert]")) return false;
+  if (typeof el.checkVisibility === "function") {
+    return el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+  }
+  return el.offsetParent !== null; // fallback where checkVisibility is unavailable
+}
+
 export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
   const t = useTranslations("Projects");
   const titleId = useId();
@@ -48,7 +69,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
 
       const focusable = Array.from(
         dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      );
+      ).filter(isReallyFocusable);
       if (focusable.length === 0) return;
 
       const first = focusable[0];

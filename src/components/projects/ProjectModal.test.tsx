@@ -76,7 +76,18 @@ describe("ProjectModal", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("traps Tab/Shift+Tab between the header and footer close buttons", async () => {
+  // SKIPPED, not deleted: the trap's Tab/Shift+Tab handler filters
+  // candidates by real visibility (checkVisibility()/offsetParent) to fix
+  // a bug where a CSS-hidden-but-DOM-present button (minimal skin's footer
+  // close button, hidden via the minimal:hidden utility class) was still
+  // counted as a trap boundary, letting focus escape onto the dialog's
+  // content div. jsdom never loads Tailwind's actual stylesheet, so it has
+  // no CSS basis for checkVisibility() to report on, and jsdom's layout
+  // engine always reports offsetParent as null regardless of real
+  // visibility -- there is no way to make this assertion meaningful under
+  // jsdom any more. The real behavior, in both skins, is covered by a real
+  // browser in e2e/project-modal.spec.ts.
+  it.skip("traps Tab/Shift+Tab between the header and footer close buttons", async () => {
     renderModal();
     const closeButtons = await waitFor(() => {
       const buttons = screen.getAllByRole("button", { name: "Close" });
