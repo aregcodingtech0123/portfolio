@@ -12,6 +12,7 @@
     "lint": "eslint && node scripts/check-copy.mjs && node scripts/check-i18n.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "sanity:types": "sanity schema extract && sanity typegen generate",
     "seed:sanity": "tsx scripts/seed-sanity.ts",
     "check:copy": "node scripts/check-copy.mjs",
@@ -36,6 +37,8 @@
     "sanity": "^5.28.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
