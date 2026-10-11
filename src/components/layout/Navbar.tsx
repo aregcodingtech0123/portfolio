@@ -120,7 +120,7 @@ export function Navbar() {
                       : "text-muted hover:text-foreground"
                   }`}
                 >
-                  <span className="decor mr-1 hidden text-accent/80 xl:inline">
+                  <span className="decor mr-1 hidden text-accent-subtle xl:inline">
                     {num}
                   </span>
                   <span>{t(key)}</span>

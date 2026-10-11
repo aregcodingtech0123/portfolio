@@ -55,7 +55,7 @@ export function ProjectCard({ entry, onOpen }: ProjectCardProps) {
         />
       </a>
     ) : (
-      <span className="inline-flex min-h-10 items-center font-mono text-xs tracking-wide text-muted/70 uppercase minimal:min-h-0 minimal:font-body minimal:text-sm minimal:normal-case minimal:tracking-normal">
+      <span className="inline-flex min-h-10 items-center font-mono text-xs tracking-wide text-subtle uppercase minimal:min-h-0 minimal:font-body minimal:text-sm minimal:normal-case minimal:tracking-normal">
         {t("noLive")}
       </span>
     );

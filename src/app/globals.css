@@ -8,6 +8,16 @@
  *      palette is not a simple inversion of the terminal one.
  * The inline script in app/layout.tsx and ThemeProvider set both attributes.
  * Only tokens that change are written. Each skin×mode combination is complete.
+ *
+ * Text emphasis is three solid steps, never an opacity modifier on a text
+ * colour (an opacity modifier composites against whatever happens to be
+ * behind it, so its contrast can't be guaranteed per combination):
+ *   --foreground > --muted > --subtle
+ * --subtle is the dimmest value on --muted's hue that still clears WCAG AA
+ * 4.5:1 (measured ≥4.6) against both --background and --surface in that
+ * skin×mode. --accent-subtle is the same idea for decorative accent text;
+ * in terminal light there is no room left between --accent (4.84:1) and the
+ * floor, so it lands just under --accent there by necessity, not choice.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant terminal (&:where([data-skin="terminal"], [data-skin="terminal"] *));
@@ -21,7 +31,9 @@
   --border: #1e252d;
   --foreground: #e8ebee;
   --muted: #8a94a0;
+  --subtle: #78818c;
   --accent: #5bf29b;
+  --accent-subtle: #4bc47f;
   --on-accent: #0a0c0f;
   --danger: #ff5c57;
   --warning: #e5b567;
@@ -45,7 +57,9 @@
   --border: #d9d5c9;
   --foreground: #12151a;
   --muted: #5c6570;
+  --subtle: #666e78;
   --accent: #0b7a43;
+  --accent-subtle: #117d47;
   --on-accent: #fbfaf6;
   --danger: #c4352f;
   --warning: #8a5a00;
@@ -108,7 +122,9 @@
   --border: rgba(245, 242, 235, 0.14);
   --foreground: #f3f0e8;
   --muted: #9a958a;
+  --subtle: #827e75;
   --accent: #f3f0e8;
+  --accent-subtle: #c6c4bd;
   --on-accent: #121211;
   --danger: #f3f0e8;
   --warning: #c4a574;
@@ -131,7 +147,9 @@
   --border: rgba(28, 26, 22, 0.12);
   --foreground: #1c1a16;
   --muted: #6b665c;
+  --subtle: #757067;
   --accent: #1c1a16;
+  --accent-subtle: #484642;
   --on-accent: #faf8f4;
   --danger: #1c1a16;
   --warning: #8a5a00;
@@ -173,7 +191,9 @@
   --color-border: var(--border);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
   --color-accent: var(--accent);
+  --color-accent-subtle: var(--accent-subtle);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
   --color-warning: var(--warning);

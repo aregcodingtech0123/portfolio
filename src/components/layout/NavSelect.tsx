@@ -108,7 +108,7 @@ export function NavSelect<T extends string>({
     >
       {showLabel ? (
         <span
-          className="truncate text-[9px] font-medium uppercase tracking-wider text-muted/80 xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
+          className="truncate text-[9px] font-medium uppercase tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
           id={`${listId}-label`}
           title={label}
         >

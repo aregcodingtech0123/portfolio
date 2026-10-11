@@ -315,7 +315,7 @@ export function Contact() {
   );
 
   const fieldClass =
-    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted/70 focus:border-accent focus:ring-1 focus:ring-accent/40 minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground minimal:focus:ring-0";
+    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-subtle focus:border-accent focus:ring-1 focus:ring-accent/40 minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground minimal:focus:ring-0";
 
   const labelClass =
     "font-mono text-[11px] tracking-wide text-muted minimal:font-body minimal:text-sm";
