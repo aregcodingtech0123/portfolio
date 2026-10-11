@@ -120,3 +120,69 @@ describe("evaluate on a catalog pair with full parity and coverage", () => {
     expect(result.unused).toEqual([]);
   });
 });
+
+describe("extractUsage: same-file lookup-object resolution", () => {
+  const filePath = join(FIXTURES, "src", "sample-lookup.ts");
+  const { usedKeys, dynamicUsages } = extractUsage(
+    filePath,
+    readFileSync(filePath, "utf8"),
+  );
+  const keys = usedKeys.map((u) => u.key);
+
+  it("resolves OBJECT[x] to every string value OBJECT can produce", () => {
+    expect(keys).toContain("Status.active");
+    expect(keys).toContain("Status.archived");
+  });
+
+  it("resolves OBJECT[x] inside a template literal, combined with its literal prefix", () => {
+    expect(keys).toContain("Status.prefix.active");
+    expect(keys).toContain("Status.prefix.archived");
+  });
+
+  it("does not report either call as an unresolved dynamic usage", () => {
+    expect(dynamicUsages).toEqual([]);
+  });
+});
+
+describe("evaluate: allowlist", () => {
+  it("counts a passed-in allowlisted key as used, without affecting missing/parity checks", () => {
+    const enCatalog = { Foo: { bar: "x" } };
+    const trCatalog = { Foo: { bar: "y" } };
+    const result = evaluate({
+      usedKeys: [],
+      dynamicUsages: [],
+      enCatalog,
+      trCatalog,
+      allowlist: [{ key: "Foo.bar", reason: "test fixture" }],
+    });
+    expect(result.unused).toEqual([]);
+    expect(result.failed).toBe(false);
+  });
+
+  it("defaults to the real i18nDynamicAllowlist when none is passed", () => {
+    // Nav.home is a real entry in scripts/i18n-dynamic-allowlist.mjs.
+    const enCatalog = { Nav: { home: "Home" } };
+    const trCatalog = { Nav: { home: "Ana Sayfa" } };
+    const result = evaluate({
+      usedKeys: [],
+      dynamicUsages: [],
+      enCatalog,
+      trCatalog,
+    });
+    expect(result.unused).toEqual([]);
+  });
+
+  it("does not let an allowlisted key hide a genuinely missing used key", () => {
+    const enCatalog = { Foo: { bar: "x" } };
+    const trCatalog = {};
+    const result = evaluate({
+      usedKeys: [{ key: "Foo.baz", file: "x.ts", line: 1 }],
+      dynamicUsages: [],
+      enCatalog,
+      trCatalog,
+      allowlist: [{ key: "Foo.bar", reason: "test fixture" }],
+    });
+    expect(result.failed).toBe(true);
+    expect(result.missing[0].key).toBe("Foo.baz");
+  });
+});

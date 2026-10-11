@@ -17,6 +17,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import ts from "typescript";
+import { i18nDynamicAllowlist } from "./i18n-dynamic-allowlist.mjs";
 
 // cwd, not a URL derived from import.meta.url: see the same comment in
 // check-copy.mjs. Both real invocations run from the repo root.
@@ -96,15 +97,47 @@ function namespaceFromHookCall(call) {
   return undefined;
 }
 
+/** Unwraps `expr as const`, `expr satisfies T`, or both, down to the real expression. */
+function unwrapAssertions(node) {
+  while (ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) {
+    node = node.expression;
+  }
+  return node;
+}
+
+/**
+ * If `node` is an object literal whose every property is a plain
+ * `key: "stringLiteral"` assignment (no shorthand, computed keys, spreads,
+ * or non-string values), returns its values. Otherwise null: a partial or
+ * guessed resolution would be worse than reporting the call as unresolved.
+ */
+function literalStringMapValues(node) {
+  const obj = unwrapAssertions(node);
+  if (!ts.isObjectLiteralExpression(obj)) return null;
+  const values = [];
+  for (const prop of obj.properties) {
+    if (
+      !ts.isPropertyAssignment(prop) ||
+      (!ts.isIdentifier(prop.name) && !ts.isStringLiteral(prop.name)) ||
+      !ts.isStringLiteralLike(prop.initializer)
+    ) {
+      return null;
+    }
+    values.push(prop.initializer.text);
+  }
+  return values;
+}
+
 /**
  * Parses one source file and returns the i18n keys it statically resolves,
  * plus any key lookup it could not resolve.
  *
- * Bindings (`t`/`s`/`n` -> namespace) are tracked in one flat, file-scoped map
- * rather than real lexical scope. That's a deliberate simplification: this
- * codebase never shadows a translation variable across nested scopes, and a
- * flat map walked in source order resolves correctly as long as that holds.
- * It would under- or over-resolve in a file that did shadow one.
+ * Bindings (`t`/`s`/`n` -> namespace, and lookup-object name -> its string
+ * values) are tracked in one flat, file-scoped map rather than real lexical
+ * scope. That's a deliberate simplification: this codebase never shadows a
+ * translation variable or a lookup object across nested scopes, and a flat
+ * map walked in source order resolves correctly as long as that holds. It
+ * would under- or over-resolve in a file that did shadow one.
  */
 export function extractUsage(filePath, content) {
   const scriptKind = filePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
@@ -118,11 +151,43 @@ export function extractUsage(filePath, content) {
 
   const relPath = relative(ROOT, filePath);
   const bindings = new Map();
+  const lookupObjects = new Map();
   const usedKeys = [];
   const dynamicUsages = [];
 
   const lineOf = (node) =>
     sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+
+  /**
+   * Resolves the common "lookup table" dynamic-key shape: `OBJECT[x]`, or
+   * that same access as the sole interpolation in a template literal (e.g.
+   * `` `tiers.${TIER_KEY[tier]}` ``), where OBJECT is a same-file `const`
+   * object literal with all string-literal values (an enum-to-key-suffix
+   * map, typically written `as const satisfies Record<...>`). Returns the
+   * full set of possible literal suffixes -- every value OBJECT could
+   * produce, since which one a given call takes isn't known statically, and
+   * over-approximating "used" keys here is harmless for an unused-key
+   * warning. Returns null if the shape doesn't match.
+   */
+  function resolveLookupObjectAccess(node) {
+    if (ts.isElementAccessExpression(node) && ts.isIdentifier(node.expression)) {
+      const values = lookupObjects.get(node.expression.text);
+      return values ? values.map((v) => ({ prefix: "", value: v, suffix: "" })) : null;
+    }
+    if (ts.isTemplateExpression(node) && node.templateSpans.length === 1) {
+      const span = node.templateSpans[0];
+      if (ts.isElementAccessExpression(span.expression) && ts.isIdentifier(span.expression.expression)) {
+        const values = lookupObjects.get(span.expression.expression.text);
+        if (!values) return null;
+        return values.map((v) => ({
+          prefix: node.head.text,
+          value: v,
+          suffix: span.literal.text,
+        }));
+      }
+    }
+    return null;
+  }
 
   function recordKeyUsage(namespace, keyArgNode) {
     if (namespace === DYNAMIC_NAMESPACE) {
@@ -143,6 +208,18 @@ export function extractUsage(filePath, content) {
       });
       return;
     }
+    const lookupMatches = resolveLookupObjectAccess(keyArgNode);
+    if (lookupMatches) {
+      for (const { prefix, value, suffix } of lookupMatches) {
+        const literal = `${prefix}${value}${suffix}`;
+        usedKeys.push({
+          key: namespace ? `${namespace}.${literal}` : literal,
+          file: relPath,
+          line: lineOf(keyArgNode),
+        });
+      }
+      return;
+    }
     dynamicUsages.push({
       file: relPath,
       line: lineOf(keyArgNode),
@@ -159,6 +236,9 @@ export function extractUsage(filePath, content) {
       if (ts.isCallExpression(init)) {
         const ns = namespaceFromHookCall(init);
         if (ns !== undefined) bindings.set(node.name.text, ns);
+      } else {
+        const values = literalStringMapValues(node.initializer);
+        if (values) lookupObjects.set(node.name.text, values);
       }
     }
 
@@ -201,13 +281,25 @@ export function collectUsage(files) {
 /**
  * Pure: given extracted usage and both parsed catalogs, returns missing-key,
  * parity-drift, unused-key and dynamic-usage findings. No file I/O.
+ *
+ * `allowlist` entries count as "used" for the unused-key warning only. They
+ * are never checked against missing/parity-drift: an allowlist entry for a
+ * key that doesn't exist in the catalog is a stale allowlist, not a build
+ * failure, and this script already can't verify an allowlisted key is
+ * actually still reached in code (that's exactly why it's allowlisted).
  */
-export function evaluate({ usedKeys, dynamicUsages, enCatalog, trCatalog }) {
+export function evaluate({
+  usedKeys,
+  dynamicUsages,
+  enCatalog,
+  trCatalog,
+  allowlist = i18nDynamicAllowlist,
+}) {
   const enKeys = flattenCatalog(enCatalog);
   const trKeys = flattenCatalog(trCatalog);
 
   const missing = [];
-  const seenKeys = new Set();
+  const seenKeys = new Set(allowlist.map((entry) => entry.key));
   for (const usage of usedKeys) {
     seenKeys.add(usage.key);
     const missingFrom = [];
