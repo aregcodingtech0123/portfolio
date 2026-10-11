@@ -9,25 +9,24 @@ import {
   type CertificateDisplay,
   type ContactInfoDisplay,
   type CtfDisplay,
+  type EducationDisplay,
   type HeroDisplay,
   type LocaleField,
   type ProjectDisplay,
   type SanityCertificate,
   type SanityCtf,
+  type SanityEducation,
   type SanityExperience,
   type SanityImageAsset,
   type SanityProject,
   type SanitySiteSettings,
   type SanitySkill,
-  type SanitySkillCategory,
   type SkillCategoryDisplay,
   type SkillCategoryId,
   type SkillDisplay,
-  type SkillTierGroupDisplay,
-  type SkillTierId,
   type SocialLinksDisplay,
 } from "@/sanity/types";
-import type { ExperienceItem } from "@/types/content";
+import type { EducationItem, ExperienceItem } from "@/types/content";
 import { sanityConfigured } from "../../sanity/env";
 
 export type {
@@ -35,11 +34,13 @@ export type {
   SkillCategoryDisplay,
   CtfDisplay,
   CertificateDisplay,
+  EducationDisplay,
 } from "@/sanity/types";
 
 export type PortfolioContent = {
   projects: ProjectDisplay[];
   experience: ExperienceItem[];
+  education: EducationItem[];
   educationCertificates: CertificateDisplay[];
   participationCertificates: CertificateDisplay[];
   skillCategories: SkillCategoryDisplay[];
@@ -54,7 +55,51 @@ export type PortfolioContent = {
 };
 
 const fallback = migrationPortfolio;
-const TIER_ORDER: SkillTierId[] = ["expertise", "comfortable", "learning"];
+
+/** Known category keys → bilingual labels (used when grouping skills). */
+const CATEGORY_LABELS: Record<string, LocaleField> = {
+  ai: { en: "AI & Machine Learning", tr: "Yapay Zeka ve Makine Öğrenmesi" },
+  frontend: { en: "Frontend Development", tr: "Frontend Geliştirme" },
+  backend: { en: "Backend Development", tr: "Backend Geliştirme" },
+  security: { en: "Cybersecurity", tr: "Siber Güvenlik" },
+  languages: { en: "Languages & Tools", tr: "Diller ve Araçlar" },
+};
+
+/** Canonical English skill names → Turkish display labels for /tr. */
+const SKILL_NAME_TR: Record<string, string> = {
+  "Penetration Testing": "Sızma Testi",
+  "Vulnerability Scanning": "Zafiyet Tarama",
+  "Cloud Security": "Bulut Güvenliği",
+  "Web Animations": "Web Animasyonları",
+  "Vector Databases": "Vektör Veritabanları",
+};
+
+function localizeSkillName(name: string, locale: string): string {
+  if (locale !== "tr") return name;
+  return SKILL_NAME_TR[name] ?? name;
+}
+
+function localizeCategoryLabel(category: string, locale: string): string {
+  const known = CATEGORY_LABELS[category];
+  if (known) return pickLocale(known, locale);
+  return category;
+}
+
+/**
+ * Treat blank strings and leftover placeholder hints as absent copy so they
+ * never reach the page (including values already saved in Sanity).
+ */
+function usableCopy(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/\[TODO\b/i.test(trimmed) || /^TODO:/i.test(trimmed)) return "";
+  return trimmed;
+}
+
+function optionalCopy(value: string): string | undefined {
+  const usable = usableCopy(value);
+  return usable || undefined;
+}
 
 /** Shape shared by Sanity projects and fallback seeds. `id` is the slug or the seed id. */
 type ProjectSource = Omit<SanityProject, "_id" | "slug" | "image"> & {
@@ -69,11 +114,11 @@ function toProjectDisplay(p: ProjectSource, locale: string): ProjectDisplay {
     code: p.code,
     status: p.status,
     title,
-    description: pickLocale(p.description, locale),
-    problem: pickLocale(p.problem, locale) || undefined,
-    approach: pickLocale(p.approach, locale) || undefined,
-    challenge: pickLocale(p.challenge, locale) || undefined,
-    learned: pickLocale(p.learned, locale) || undefined,
+    description: usableCopy(pickLocale(p.description, locale)),
+    problem: optionalCopy(pickLocale(p.problem, locale)),
+    approach: optionalCopy(pickLocale(p.approach, locale)),
+    challenge: optionalCopy(pickLocale(p.challenge, locale)),
+    learned: optionalCopy(pickLocale(p.learned, locale)),
     technologies: p.technologies ?? [],
     category: p.category,
     githubUrl: p.githubUrl,
@@ -84,7 +129,10 @@ function toProjectDisplay(p: ProjectSource, locale: string): ProjectDisplay {
   };
 }
 
-type ExperienceSource = Pick<SanityExperience, "company" | "role" | "period" | "detail">;
+type ExperienceSource = Pick<
+  SanityExperience,
+  "company" | "role" | "period" | "description" | "detail"
+>;
 
 function mapExperience(
   items: readonly ExperienceSource[] | undefined,
@@ -94,7 +142,53 @@ function mapExperience(
     company: pickLocale(item.company, locale),
     role: pickLocale(item.role, locale),
     period: pickLocale(item.period, locale),
-    detail: pickLocale(item.detail, locale),
+    description: usableCopy(
+      pickLocale(item.description ?? item.detail, locale),
+    ),
+  }));
+}
+
+type EducationSource = {
+  id: string;
+  institution: LocaleField | string;
+  degree: LocaleField | string;
+  fieldOfStudy: LocaleField | string;
+  startDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
+};
+
+function formatEducationPeriod(
+  startDate: string,
+  endDate: string | undefined,
+  isCurrent: boolean | undefined,
+  locale: string,
+): string {
+  const start = startDate.trim();
+  if (!start) return "";
+  if (isCurrent) {
+    const present = locale === "tr" ? "Günümüz" : "Present";
+    return `${start} – ${present}`;
+  }
+  const end = endDate?.trim();
+  return end ? `${start} – ${end}` : start;
+}
+
+function mapEducation(
+  items: readonly EducationSource[] | undefined,
+  locale: string,
+): EducationDisplay[] {
+  return (items ?? []).map((item) => ({
+    id: item.id,
+    institution: usableCopy(pickLocale(item.institution, locale)),
+    degree: usableCopy(pickLocale(item.degree, locale)),
+    fieldOfStudy: usableCopy(pickLocale(item.fieldOfStudy, locale)),
+    period: formatEducationPeriod(
+      item.startDate,
+      item.endDate,
+      item.isCurrent,
+      locale,
+    ),
   }));
 }
 
@@ -163,41 +257,71 @@ function evidenceFor(
   };
 }
 
+type SkillForGrouping = {
+  category: SkillCategoryId;
+  categoryOrder: number;
+  order: number;
+  featured?: boolean;
+  display: SkillDisplay;
+};
+
 /**
- * Builds category → tier → skill groups. Categories with no skills are dropped.
- * Skills are sorted by their own order inside each tier.
+ * Groups flat skill rows by `category`, sorted by `categoryOrder` then
+ * featured / skill `order` within each category.
  */
-function buildSkillCategories(
-  categories: { id: SkillCategoryId; label: LocaleField; order: number }[],
-  skills: { categoryId: SkillCategoryId; tier: SkillTierId; order: number; display: SkillDisplay }[],
+function groupSkillsByCategory(
+  skills: SkillForGrouping[],
   locale: string,
 ): SkillCategoryDisplay[] {
-  return [...categories]
-    .sort((a, b) => a.order - b.order)
-    .map((cat) => {
-      const groups: SkillTierGroupDisplay[] = TIER_ORDER.map((tier) => ({
-        tier,
-        skills: skills
-          .filter((s) => s.categoryId === cat.id && s.tier === tier)
-          .sort((a, b) => a.order - b.order)
-          .map((s) => s.display),
-      })).filter((g) => g.skills.length > 0);
-      return { id: cat.id, label: pickLocale(cat.label, locale), groups };
-    })
-    .filter((cat) => cat.groups.length > 0);
+  const byCategory = new Map<
+    string,
+    { categoryOrder: number; skills: SkillForGrouping[] }
+  >();
+
+  for (const skill of skills) {
+    const key = String(skill.category || "").trim();
+    if (!key) continue;
+    const existing = byCategory.get(key);
+    if (existing) {
+      existing.categoryOrder = Math.min(existing.categoryOrder, skill.categoryOrder);
+      existing.skills.push(skill);
+    } else {
+      byCategory.set(key, {
+        categoryOrder: skill.categoryOrder,
+        skills: [skill],
+      });
+    }
+  }
+
+  return [...byCategory.entries()]
+    .sort((a, b) => a[1].categoryOrder - b[1].categoryOrder || a[0].localeCompare(b[0]))
+    .map(([id, group]) => ({
+      id,
+      label: localizeCategoryLabel(id, locale),
+      skills: group.skills
+        .sort(
+          (a, b) =>
+            Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
+            a.order - b.order,
+        )
+        .map((s) => s.display),
+    }))
+    .filter((cat) => cat.skills.length > 0);
 }
 
 function fallbackSkillCategories(locale: string): SkillCategoryDisplay[] {
   const projectTitle = (id: string) =>
     fallback.projects.find((p) => p.id === id);
-  return buildSkillCategories(
-    fallback.skillCategories,
+  return groupSkillsByCategory(
     fallback.skills.map((s) => ({
-      categoryId: s.categoryId,
-      tier: s.tier,
+      category: s.category,
+      categoryOrder: s.categoryOrder,
       order: s.order,
+      featured: s.featured,
       display: {
-        name: s.name,
+        name: localizeSkillName(s.name, locale),
+        featured: s.featured,
+        tier: s.tier,
         level: s.level,
         ...(s.evidenceProjectId
           ? {
@@ -212,45 +336,25 @@ function fallbackSkillCategories(locale: string): SkillCategoryDisplay[] {
 }
 
 function sanitySkillCategories(
-  categoryDocs: SanitySkillCategory[],
   skillDocs: SanitySkill[],
   locale: string,
 ): SkillCategoryDisplay[] {
-  const categories = categoryDocs.map((c) => ({
-    id: c.categoryId,
-    label: c.label,
-    order: c.order,
-  }));
-
-  // Prefer per-skill documents. Fall back to legacy group lists only when none exist.
-  if (skillDocs.length > 0) {
-    return buildSkillCategories(
-      categories,
-      skillDocs.map((s) => ({
-        categoryId: s.categoryId,
+  return groupSkillsByCategory(
+    skillDocs.map((s) => ({
+      category: s.category,
+      categoryOrder: s.categoryOrder ?? s.order ?? 0,
+      order: s.order ?? 0,
+      featured: s.featured,
+      display: {
+        name: localizeSkillName(s.name, locale),
+        featured: s.featured,
         tier: s.tier,
-        order: s.order,
-        display: {
-          name: s.name,
-          level: s.level,
-          ...evidenceFor(s.evidence, locale),
-        },
-      })),
-      locale,
-    );
-  }
-
-  return categoryDocs
-    .sort((a, b) => a.order - b.order)
-    .map((cat) => ({
-      id: cat.categoryId,
-      label: pickLocale(cat.label, locale),
-      groups: (cat.groups ?? []).map((g) => ({
-        tier: g.tier,
-        skills: g.skills.map((name) => ({ name })),
-      })),
-    }))
-    .filter((cat) => cat.groups.length > 0);
+        level: s.level,
+        ...evidenceFor(s.evidence, locale),
+      },
+    })),
+    locale,
+  );
 }
 
 function mapHero(
@@ -294,20 +398,42 @@ function mapAbout(
   const paragraphs = about?.paragraphs ?? fb.about.paragraphs;
 
   return {
-    summary: pickLocale(about?.summary ?? fb.about.summary, locale),
-    paragraphs: paragraphs.map((p) => pickLocale(p, locale)).filter(Boolean),
-    location: pickLocale(settings?.location ?? fb.location, locale),
-    edu1: pickLocale(about?.edu1 ?? fb.about.edu1, locale),
-    edu2: pickLocale(about?.edu2 ?? fb.about.edu2, locale),
-    experienced: pickLocale(about?.experienced ?? fb.about.experienced, locale),
-    highlights: highlightsSource.map((h) => pickLocale(h.text, locale)).filter(Boolean),
+    summary: usableCopy(pickLocale(about?.summary ?? fb.about.summary, locale)),
+    paragraphs: paragraphs
+      .map((p) => usableCopy(pickLocale(p, locale)))
+      .filter(Boolean),
+    location: usableCopy(pickLocale(settings?.location ?? fb.location, locale)),
+    experienced: usableCopy(
+      pickLocale(about?.experienced ?? fb.about.experienced, locale),
+    ),
+    highlights: highlightsSource
+      .map((h) => usableCopy(pickLocale(h.text, locale)))
+      .filter(Boolean),
     stats: {
-      focus: pickLocale(about?.stats?.focus ?? fb.about.stats.focus, locale),
-      focusValue: pickLocale(about?.stats?.focusValue ?? fb.about.stats.focusValue, locale),
-      stack: pickLocale(about?.stats?.stack ?? fb.about.stats.stack, locale),
-      stackValue: pickLocale(about?.stats?.stackValue ?? fb.about.stats.stackValue, locale),
-      mindset: pickLocale(about?.stats?.mindset ?? fb.about.stats.mindset, locale),
-      mindsetValue: pickLocale(about?.stats?.mindsetValue ?? fb.about.stats.mindsetValue, locale),
+      focus: usableCopy(
+        pickLocale(about?.stats?.focus ?? fb.about.stats.focus, locale),
+      ),
+      focusValue: usableCopy(
+        pickLocale(about?.stats?.focusValue ?? fb.about.stats.focusValue, locale),
+      ),
+      stack: usableCopy(
+        pickLocale(about?.stats?.stack ?? fb.about.stats.stack, locale),
+      ),
+      stackValue: usableCopy(
+        pickLocale(
+          about?.stats?.stackValue ?? fb.about.stats.stackValue,
+          locale,
+        ),
+      ),
+      mindset: usableCopy(
+        pickLocale(about?.stats?.mindset ?? fb.about.stats.mindset, locale),
+      ),
+      mindsetValue: usableCopy(
+        pickLocale(
+          about?.stats?.mindsetValue ?? fb.about.stats.mindsetValue,
+          locale,
+        ),
+      ),
     },
   };
 }
@@ -315,17 +441,30 @@ function mapAbout(
 /** Known placeholder addresses that must never reach the page. */
 const BANNED_EMAIL_PATTERN = /@example\.(com|org|net)$/i;
 
+function sanitizeContactEmail(raw: string): string {
+  const email = raw.trim();
+  if (!email) return "";
+  // Strip placeholders instead of throwing: a throw here used to abort the whole
+  // Sanity merge and silently fall back to migration data (missing projects/images).
+  if (BANNED_EMAIL_PATTERN.test(email)) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[Sanity] Ignoring placeholder contact email "${email}". Set a real address in siteSettings or leave it blank.`,
+      );
+    }
+    return "";
+  }
+  return email;
+}
+
 function mapContact(
   settings: SanitySiteSettings | null | undefined,
   locale: string,
 ): ContactInfoDisplay {
   // An empty email is valid: the contact block hides itself rather than showing a placeholder.
-  const email = (settings?.email ?? fallback.siteSettings.email).trim();
-  if (process.env.NODE_ENV !== "production" && BANNED_EMAIL_PATTERN.test(email)) {
-    throw new Error(
-      `Placeholder contact email "${email}" reached mapContact(); fix the Sanity siteSettings or fallback data instead of shipping it.`,
-    );
-  }
+  const email = sanitizeContactEmail(
+    settings?.email ?? fallback.siteSettings.email,
+  );
   return {
     email,
     location: pickLocale(settings?.location ?? fallback.siteSettings.location, locale),
@@ -361,6 +500,10 @@ function buildFallbackContent(locale: string): PortfolioContent {
   return {
     projects: fallbackProjects(locale),
     experience: mapExperience(fallback.experience, locale),
+    education: mapEducation(
+      fallback.education.map((e) => ({ ...e, id: e.id })),
+      locale,
+    ),
     educationCertificates: certs.education,
     participationCertificates: certs.participation,
     skillCategories: fallbackSkillCategories(locale),
@@ -376,11 +519,11 @@ function buildFallbackContent(locale: string): PortfolioContent {
 }
 
 type SanityPayload = {
-  projects?: (SanityProject)[];
+  projects?: SanityProject[];
   experience?: SanityExperience[];
+  education?: SanityEducation[];
   certificates?: (SanityCertificate & { legacyName?: string })[];
   skills?: SanitySkill[];
-  skillCategories?: SanitySkillCategory[];
   siteSettings?: SanitySiteSettings | null;
   ctfs?: SanityCtf[];
 };
@@ -392,16 +535,17 @@ function mergeWithFallback(locale: string, data: SanityPayload): PortfolioConten
     toProjectDisplay({ ...p, id: p.slug || p._id }, locale),
   );
   const experience = mapExperience(data.experience, locale);
-  const skillCategories = sanitySkillCategories(
-    data.skillCategories ?? [],
-    data.skills ?? [],
+  const education = mapEducation(
+    (data.education ?? []).map((e) => ({ ...e, id: e._id })),
     locale,
   );
+  const skillCategories = sanitySkillCategories(data.skills ?? [], locale);
   const settings = data.siteSettings ?? null;
 
   return {
     projects: projects.length ? projects : fb.projects,
     experience: experience.length ? experience : fb.experience,
+    education: education.length ? education : fb.education,
     educationCertificates: certs.education.length ? certs.education : fb.educationCertificates,
     participationCertificates: certs.participation.length
       ? certs.participation
@@ -432,9 +576,9 @@ export async function getPortfolioContent(locale: string): Promise<PortfolioCont
     const hasStructuredContent =
       (data.projects?.length ?? 0) > 0 ||
       (data.experience?.length ?? 0) > 0 ||
+      (data.education?.length ?? 0) > 0 ||
       (data.certificates?.length ?? 0) > 0 ||
       (data.skills?.length ?? 0) > 0 ||
-      (data.skillCategories?.length ?? 0) > 0 ||
       Boolean(data.siteSettings);
 
     if (!hasStructuredContent) {

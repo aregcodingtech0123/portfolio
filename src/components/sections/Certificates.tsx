@@ -68,13 +68,13 @@ function EssayCertificateGroup({
 
   return (
     <div className="min-w-0">
-      <h3 className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <h3 className="hairline-b flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-2">
         <span className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
           {cleanTitle}
         </span>
         <span className="text-sm text-muted tabular-nums">{count}</span>
       </h3>
-      <ul className="mt-4 space-y-3">
+      <ul className="mt-5 space-y-3.5">
         {items.map((item, i) => (
           <li
             key={`${item.title}-${item.issuer}-${i}`}

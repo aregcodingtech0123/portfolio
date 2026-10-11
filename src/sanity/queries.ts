@@ -45,10 +45,12 @@ const ctfFields = groq`
 const skillFields = groq`
   _id,
   name,
-  categoryId,
-  tier,
-  level,
+  "category": coalesce(category, categoryId),
+  categoryOrder,
   order,
+  featured,
+  "tier": coalesce(proficiencyTier, tier),
+  level,
   "evidence": evidence->{
     _type,
     title,
@@ -69,7 +71,21 @@ export const portfolioContentQuery = groq`{
     company,
     role,
     period,
-    detail,
+    "description": coalesce(description, detail),
+    order
+  },
+  "education": *[_type == "education"] | order(
+    coalesce(endDate, startDate) desc,
+    order asc,
+    institution.en asc
+  ) {
+    _id,
+    institution,
+    degree,
+    fieldOfStudy,
+    startDate,
+    endDate,
+    isCurrent,
     order
   },
   "certificates": *[_type == "certificate"] | order(order asc, title.en asc) {
@@ -82,15 +98,8 @@ export const portfolioContentQuery = groq`{
     order,
     credentialUrl
   },
-  "skills": *[_type == "skill"] | order(order asc, name asc) {
+  "skills": *[_type == "skill"] | order(categoryOrder asc, order asc, name asc) {
     ${skillFields}
-  },
-  "skillCategories": *[_type == "skillCategory"] | order(order asc, categoryId asc) {
-    _id,
-    categoryId,
-    label,
-    groups,
-    order
   },
   "siteSettings": *[_type == "siteSettings" && _id == "siteSettings"][0] {
     siteName,

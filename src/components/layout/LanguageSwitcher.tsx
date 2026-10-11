@@ -1,14 +1,23 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useLayoutEffect, useRef, useTransition } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { FlagGB, FlagTR } from "@/components/ui/flags";
+import { NavSelect } from "./NavSelect";
 
-export function LanguageSwitcher() {
-  const locale = useLocale();
+type LocaleCode = (typeof routing.locales)[number];
+
+type LanguageSwitcherProps = {
+  showLabel?: boolean;
+};
+
+export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
+  const locale = useLocale() as LocaleCode;
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("Nav");
   const [pending, startTransition] = useTransition();
   const scrollRestoreY = useRef<number | null>(null);
 
@@ -19,7 +28,7 @@ export function LanguageSwitcher() {
     window.scrollTo({ top: y, left: 0, behavior: "auto" });
   }, [locale]);
 
-  function switchTo(next: (typeof routing.locales)[number]) {
+  function switchTo(next: LocaleCode) {
     if (next === locale) return;
     const hash = typeof window !== "undefined" ? window.location.hash : "";
     scrollRestoreY.current = window.scrollY;
@@ -32,29 +41,25 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div
-      className="flex touch-manipulation items-stretch overflow-hidden rounded-sm border border-border bg-surface minimal:gap-2 minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent"
-      role="group"
-      aria-label="Language"
-    >
-      {routing.locales.map((code) => {
-        const active = code === locale;
-        return (
-          <button
-            key={code}
-            type="button"
-            onClick={() => switchTo(code)}
-            disabled={pending}
-            className={`min-h-8 min-w-8 touch-manipulation px-2 font-mono text-[10px] font-medium uppercase tracking-wider transition-colors duration-150 minimal:min-h-0 minimal:min-w-0 minimal:px-0 minimal:py-0.5 minimal:font-body minimal:text-xs minimal:font-normal minimal:tracking-normal ${
-              active
-                ? "bg-accent text-on-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.22em]"
-                : "text-muted hover:text-foreground"
-            }`}
-          >
-            {code}
-          </button>
-        );
-      })}
-    </div>
+    <NavSelect
+      label={t("toggleLang")}
+      ariaLabel={t("language")}
+      value={locale}
+      disabled={pending}
+      showLabel={showLabel}
+      onChange={switchTo}
+      options={[
+        {
+          value: "tr",
+          label: t("langTr"),
+          icon: <FlagTR title={t("langTrFull")} />,
+        },
+        {
+          value: "en",
+          label: t("langEn"),
+          icon: <FlagGB title={t("langEnFull")} />,
+        },
+      ]}
+    />
   );
 }

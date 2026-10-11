@@ -10,6 +10,7 @@ export type SectionId =
   | "about"
   | "projects"
   | "experience"
+  | "education"
   | "skills"
   | "certificates"
   | "ctf"
@@ -44,6 +45,13 @@ export const sections: readonly SectionConfig[] = [
     isVisible: (c) => c.experience.length > 0,
   },
   {
+    id: "education",
+    navKey: "education",
+    inNav: true,
+    inFooter: false,
+    isVisible: (c) => c.education.length > 0,
+  },
+  {
     id: "skills",
     navKey: "skills",
     inNav: true,
@@ -61,7 +69,7 @@ export const sections: readonly SectionConfig[] = [
   {
     id: "ctf",
     navKey: "ctf",
-    inNav: true,
+    inNav: false,
     inFooter: false,
     isVisible: always,
   },

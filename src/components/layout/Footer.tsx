@@ -23,7 +23,7 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden border-t border-border bg-surface py-14 minimal:hairline-t minimal:border-border minimal:bg-transparent minimal:py-16">
-      <div className="relative z-10 mx-auto grid min-w-0 max-w-content gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8 minimal:gap-8 minimal:px-5 sm:minimal:px-6">
+      <div className="relative z-10 mx-auto grid min-w-0 max-w-content gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8 minimal:max-w-content-wide minimal:gap-8 minimal:px-5 sm:minimal:px-6">
         <div className="lg:col-span-1">
           <p className="font-semibold tracking-tight text-foreground minimal:font-heading minimal:text-xl minimal:font-normal minimal:tracking-tight">
             {siteName}

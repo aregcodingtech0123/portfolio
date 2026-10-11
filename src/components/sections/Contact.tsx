@@ -1,8 +1,13 @@
 "use client";
 
 import emailjs, { EmailJSResponseStatus } from "@emailjs/browser";
+import {
+  Turnstile,
+  type TurnstileInstance,
+} from "@marsidev/react-turnstile";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
 import { isValidMailbox } from "@/lib/mailto";
@@ -12,7 +17,13 @@ import {
   emailjsMissing,
   reportEmailjsMissing,
 } from "@/lib/emailjs";
+import {
+  reportTurnstileMissing,
+  turnstileConfigured,
+  turnstileSiteKey,
+} from "@/lib/turnstile";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 import { socialLinks } from "@/components/ui/SocialIcons";
 
 type FieldErrors = Partial<
@@ -104,19 +115,30 @@ function CopyableLine({
 
 export function Contact() {
   const t = useTranslations("Contact");
+  const locale = useLocale();
+  const { mode } = useTheme();
   const { contact, social } = useSiteContent();
   const formRef = useRef<HTMLFormElement>(null);
+  const turnstileRef = useRef<TurnstileInstance | null>(null);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState<CopyKey>(null);
   const copyTimer = useRef<number | null>(null);
 
   const github = social.github || socialLinks.github;
   const linkedin = social.linkedin || socialLinks.linkedin;
+  const hasEmail = Boolean(contact.email);
+  // CAPTCHA is required only when a site key is present; otherwise the form still works.
+  const captchaReady = !turnstileConfigured || Boolean(turnstileToken);
+  const canSubmit =
+    emailjsConfigured && captchaReady && status !== "loading";
 
   const handleCopy = useCallback(
     async (key: Exclude<CopyKey, null>, text: string) => {
@@ -138,8 +160,19 @@ export function Contact() {
     };
   }, []);
 
+  useEffect(() => {
+    reportEmailjsMissing();
+    reportTurnstileMissing();
+  }, []);
+
   function dismissFeedback() {
     setStatus((s) => (s === "error" || s === "success" ? "idle" : s));
+    setStatusMessage(null);
+  }
+
+  function resetTurnstile() {
+    setTurnstileToken("");
+    turnstileRef.current?.reset();
   }
 
   function validate(): boolean {
@@ -157,38 +190,69 @@ export function Contact() {
     return Object.keys(next).length === 0;
   }
 
-  useEffect(() => {
-    reportEmailjsMissing();
-  }, []);
+  async function verifyTurnstile(token: string): Promise<boolean> {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+
+    if (!res.ok) {
+      setStatus("error");
+      setStatusMessage(t("captchaError"));
+      resetTurnstile();
+      return false;
+    }
+    return true;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!emailjsConfigured) return;
     if (!validate()) return;
 
+    if (turnstileConfigured && !turnstileToken) {
+      setStatus("error");
+      setStatusMessage(t("captchaRequired"));
+      return;
+    }
+
     const form = formRef.current;
     if (!form) {
       setStatus("error");
+      setStatusMessage(t("error"));
       return;
     }
 
     setStatus("loading");
+    setStatusMessage(null);
+
     try {
+      if (turnstileConfigured) {
+        const verified = await verifyTurnstile(turnstileToken);
+        if (!verified) return;
+      }
+
       await emailjs.sendForm(
         emailjsConfig.serviceId,
         emailjsConfig.templateId,
         form,
         { publicKey: emailjsConfig.publicKey },
       );
+
       setStatus("success");
+      setStatusMessage(t("success"));
       setName("");
       setEmail("");
       setSubject("");
       setMessage("");
       setErrors({});
       form.reset();
+      resetTurnstile();
     } catch (err) {
       setStatus("error");
+      setStatusMessage(t("error"));
+      resetTurnstile();
       if (err instanceof EmailJSResponseStatus) {
         console.error("EmailJS:", err.status, err.text);
       } else {
@@ -251,9 +315,13 @@ export function Contact() {
   );
 
   const fieldClass =
-    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted focus:border-accent minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground";
+    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted/70 focus:border-accent focus:ring-1 focus:ring-accent/40 minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground minimal:focus:ring-0";
 
-  const hasEmail = Boolean(contact.email);
+  const labelClass =
+    "font-mono text-[11px] tracking-wide text-muted minimal:font-body minimal:text-sm";
+
+  const turnstileTheme =
+    mode === "light" ? "light" : mode === "dark" ? "dark" : "auto";
 
   return (
     <Section id="contact" className="py-16 sm:py-28">
@@ -268,15 +336,13 @@ export function Contact() {
           <p className="mt-3 max-w-md text-left text-sm leading-relaxed break-words text-muted minimal:mt-5 minimal:max-w-none minimal:text-base">
             {t("subtitle")}
           </p>
+          {!hasEmail && (
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted minimal:max-w-none minimal:text-base">
+              {t("noEmailLine")}
+            </p>
+          )}
         </div>
 
-        {!hasEmail && (
-          <p className="mt-8 font-mono text-sm text-muted minimal:mt-12 minimal:font-body minimal:text-base">
-            {t("noEmailLine")}
-          </p>
-        )}
-
-        {hasEmail && (
         <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-12 minimal:block">
           <div className="min-w-0 overflow-hidden rounded-md border border-border bg-surface minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent">
             <div className="decor flex items-center gap-1.5 border-b border-border px-3 py-2">
@@ -311,17 +377,18 @@ export function Contact() {
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2 minimal:mt-5 minimal:gap-5">
               <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
-                <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
-                  {t("name")}
-                </span>
+                <span className={labelClass}>{t("name")}</span>
                 <input
                   name="from_name"
+                  type="text"
                   value={name}
                   onChange={(e) => {
                     dismissFeedback();
                     setName(e.target.value);
                   }}
+                  placeholder={t("placeholders.name")}
                   autoComplete="name"
+                  required
                   maxLength={200}
                   className={fieldClass}
                 />
@@ -332,18 +399,18 @@ export function Contact() {
                 )}
               </label>
               <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
-                <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
-                  {t("email")}
-                </span>
+                <span className={labelClass}>{t("email")}</span>
                 <input
                   name="reply_to"
+                  type="email"
                   value={email}
                   onChange={(e) => {
                     dismissFeedback();
                     setEmail(e.target.value);
                   }}
-                  type="email"
+                  placeholder={t("placeholders.email")}
                   autoComplete="email"
+                  required
                   maxLength={254}
                   className={fieldClass}
                 />
@@ -356,16 +423,17 @@ export function Contact() {
             </div>
 
             <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
-              <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
-                {t("subject")}
-              </span>
+              <span className={labelClass}>{t("subject")}</span>
               <input
                 name="subject"
+                type="text"
                 value={subject}
                 onChange={(e) => {
                   dismissFeedback();
                   setSubject(e.target.value);
                 }}
+                placeholder={t("placeholders.subject")}
+                required
                 maxLength={200}
                 className={fieldClass}
               />
@@ -377,9 +445,7 @@ export function Contact() {
             </label>
 
             <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
-              <span className="font-mono text-[11px] text-muted minimal:font-body minimal:text-sm">
-                {t("message")}
-              </span>
+              <span className={labelClass}>{t("message")}</span>
               <textarea
                 name="message"
                 value={message}
@@ -387,7 +453,9 @@ export function Contact() {
                   dismissFeedback();
                   setMessage(e.target.value);
                 }}
-                rows={5}
+                placeholder={t("placeholders.message")}
+                required
+                rows={4}
                 maxLength={4000}
                 className={`${fieldClass} resize-y`}
               />
@@ -397,6 +465,38 @@ export function Contact() {
                 </span>
               )}
             </label>
+
+            {turnstileConfigured ? (
+              <div className="mt-5 overflow-x-auto">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={turnstileSiteKey}
+                  onSuccess={(token) => {
+                    dismissFeedback();
+                    setTurnstileToken(token);
+                  }}
+                  onExpire={() => setTurnstileToken("")}
+                  onError={() => {
+                    setTurnstileToken("");
+                    setStatus("error");
+                    setStatusMessage(t("captchaError"));
+                  }}
+                  options={{
+                    theme: turnstileTheme,
+                    size: "flexible",
+                    language: locale.startsWith("tr") ? "tr" : "en",
+                    responseField: false,
+                  }}
+                />
+              </div>
+            ) : (
+              process.env.NODE_ENV !== "production" && (
+                <p className="mt-4 font-mono text-xs text-warning minimal:font-body">
+                  [DEV] Turnstile disabled. Set NEXT_PUBLIC_TURNSTILE_SITE_KEY
+                  and TURNSTILE_SECRET_KEY in .env.local.
+                </p>
+              )
+            )}
 
             {!emailjsConfigured && process.env.NODE_ENV !== "production" && (
               <p className="mt-4 font-mono text-xs text-warning minimal:font-body">
@@ -408,32 +508,51 @@ export function Contact() {
             <div className="mt-6 flex flex-wrap items-center gap-4 minimal:mt-6 minimal:pt-1">
               <button
                 type="submit"
-                disabled={status === "loading" || !emailjsConfigured}
-                className={`${buttonClasses("primary", "min-w-[140px] px-6")} minimal:hidden`}
+                disabled={!canSubmit}
+                className={`${buttonClasses("primary", "min-w-[160px] px-6")} minimal:hidden`}
               >
-                {status === "loading" ? t("sending") : t("send")}
+                {status === "loading" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    {t("sending")}
+                  </span>
+                ) : (
+                  t("send")
+                )}
               </button>
               <button
                 type="submit"
-                disabled={status === "loading" || !emailjsConfigured}
+                disabled={!canSubmit}
                 className="essay-link hidden text-base text-foreground disabled:opacity-50 minimal:inline"
               >
-                {status === "loading" ? t("sending") : t("send")}
+                {status === "loading" ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    {t("sending")}
+                  </span>
+                ) : (
+                  t("send")
+                )}
               </button>
-              {status === "success" && (
-                <span className="font-mono text-xs text-accent minimal:font-body minimal:text-sm minimal:text-muted">
-                  {t("success")}
+              {status === "success" && statusMessage && (
+                <span
+                  role="status"
+                  className="font-mono text-xs text-accent minimal:font-body minimal:text-sm minimal:text-muted"
+                >
+                  {statusMessage}
                 </span>
               )}
-              {status === "error" && (
-                <span className="font-mono text-xs text-danger minimal:font-body minimal:text-sm">
-                  {t("error")}
+              {status === "error" && statusMessage && (
+                <span
+                  role="alert"
+                  className="font-mono text-xs text-danger minimal:font-body minimal:text-sm"
+                >
+                  {statusMessage}
                 </span>
               )}
             </div>
           </form>
         </div>
-        )}
       </div>
     </Section>
   );

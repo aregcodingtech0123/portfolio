@@ -19,26 +19,6 @@ function padIndex(n: number) {
   return String(n).padStart(2, "0");
 }
 
-function NavToggleGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-stretch gap-1">
-      <span
-        className="text-center font-mono text-[10px] uppercase tracking-[0.2em] text-accent/70 minimal:hidden"
-        aria-hidden
-      >
-        {label}
-      </span>
-      {children}
-    </div>
-  );
-}
-
 export function Navbar() {
   const t = useTranslations("Nav");
   const s = useTranslations("Social");
@@ -112,7 +92,8 @@ export function Navbar() {
           : "border-b border-border/60 bg-background/80 minimal:hairline-b minimal:border-border/80 minimal:bg-background/90"
       }`}
     >
-      <nav className="mx-auto flex min-h-[80px] min-w-0 w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-5 md:px-8 minimal:min-h-14 minimal:max-w-content minimal:gap-4 minimal:px-5 minimal:py-4 sm:minimal:px-6">
+      <nav className="mx-auto flex min-h-[5.75rem] w-full max-w-full items-center justify-between gap-4 px-5 py-3.5 sm:gap-6 sm:px-6 lg:gap-8 lg:px-8 xl:px-10 minimal:min-h-[4.5rem] minimal:py-3">
+        {/* Left: brand */}
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-1.5 font-mono text-xs tracking-wide text-muted transition-colors hover:text-accent minimal:font-heading minimal:text-base minimal:font-normal minimal:tracking-tight minimal:text-foreground minimal:hover:text-foreground"
@@ -124,25 +105,28 @@ export function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-end gap-2 lg:flex minimal:gap-3">
-          <div className="flex flex-nowrap items-center justify-end gap-0.5 minimal:gap-x-4">
+        {/* Center: section links (desktop) */}
+        <div className="hidden min-w-0 flex-1 items-center justify-center overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-nowrap items-center justify-center gap-2 xl:gap-3 2xl:gap-4">
             {navSections.map(({ id, key, num }) => {
               const isActive = active === id;
               return (
                 <Link
                   key={id}
                   href={`/#${id}`}
-                  className={`relative whitespace-nowrap px-1.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 sm:px-2 minimal:px-0 minimal:py-1 minimal:font-body minimal:text-sm minimal:tracking-normal ${
+                  className={`relative shrink-0 whitespace-nowrap px-1 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
                     isActive
                       ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
-                  <span className="decor mr-1 text-accent/80">{num}</span>
-                  <span className="lowercase minimal:normal-case">{t(key)}</span>
+                  <span className="decor mr-1 hidden text-accent/80 xl:inline">
+                    {num}
+                  </span>
+                  <span>{t(key)}</span>
                   {isActive && (
                     <span
-                      className="absolute inset-x-1.5 -bottom-px h-px bg-accent sm:inset-x-2 minimal:hidden"
+                      className="absolute inset-x-1 -bottom-px h-px bg-accent xl:inset-x-1.5 minimal:hidden"
                       aria-hidden
                     />
                   )}
@@ -150,32 +134,30 @@ export function Navbar() {
               );
             })}
           </div>
-
-          <div className="ml-1 flex shrink-0 items-end gap-3 border-l border-border pl-2 sm:ml-2 sm:gap-4 sm:pl-2.5 minimal:ml-4 minimal:items-center minimal:gap-3 minimal:border-0 minimal:pl-0">
-            <NavToggleGroup label={t("toggleMode")}>
-              <ThemeToggle />
-            </NavToggleGroup>
-            <NavToggleGroup label={t("toggleLang")}>
-              <LanguageSwitcher />
-            </NavToggleGroup>
-            <NavToggleGroup label={t("toggleStyle")}>
-              <SkinSwitcher />
-            </NavToggleGroup>
-
-            <SocialExternalLinks
-              ariaGithub={s("githubAria")}
-              ariaLinkedin={s("linkedinAria")}
-              className="mb-0.5 flex items-center gap-1 minimal:mb-0 minimal:gap-2"
-              iconClassName="h-3.5 w-3.5"
-              linkClassName={`${socialIconLinkClassNav} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:p-0 minimal:text-muted minimal:hover:border-0 minimal:hover:text-foreground`}
-            />
-          </div>
         </div>
 
+        {/* Right: selectors + social (desktop) */}
+        <div className="hidden shrink-0 items-center gap-3 lg:flex xl:gap-3.5">
+          <div className="flex items-end gap-2.5 xl:gap-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            <SkinSwitcher />
+          </div>
+
+          <SocialExternalLinks
+            ariaGithub={s("githubAria")}
+            ariaLinkedin={s("linkedinAria")}
+            className="flex items-center gap-1 self-end pb-0.5 xl:gap-1.5"
+            iconClassName="h-3.5 w-3.5"
+            linkClassName={`${socialIconLinkClassNav} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:p-0 minimal:text-muted minimal:hover:border-0 minimal:hover:text-foreground`}
+          />
+        </div>
+
+        {/* Right: compact controls + menu (mobile / tablet) */}
         <div className="flex shrink-0 items-center gap-1.5 lg:hidden minimal:gap-2">
-          <ThemeToggle />
-          <LanguageSwitcher />
-          <SkinSwitcher />
+          <LanguageSwitcher showLabel={false} />
+          <ThemeToggle showLabel={false} />
+          <SkinSwitcher showLabel={false} />
           <button
             type="button"
             className="inline-flex h-8 w-8 touch-manipulation items-center justify-center rounded-sm border border-border bg-surface text-foreground minimal:h-8 minimal:w-8 minimal:rounded-none minimal:border-0 minimal:bg-transparent"
@@ -235,7 +217,7 @@ export function Navbar() {
                     }`}
                   >
                     <span className="decor w-6 text-[11px] text-muted">{num}</span>
-                    <span className="lowercase minimal:normal-case">{t(key)}</span>
+                    <span>{t(key)}</span>
                   </Link>
                 );
               })}

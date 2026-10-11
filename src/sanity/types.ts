@@ -25,7 +25,8 @@ export type SkillCategoryId =
   | "frontend"
   | "backend"
   | "security"
-  | "languages";
+  | "languages"
+  | (string & {});
 export type SkillTierId = "expertise" | "comfortable" | "learning";
 export type SkillLevel = "daily" | "used-in-project" | "learning";
 
@@ -56,7 +57,22 @@ export type SanityExperience = {
   company: LocaleField;
   role: LocaleField;
   period: LocaleField;
-  detail: LocaleField;
+  /** Localized role summary. GROQ may coalesce legacy `detail` into this. */
+  description?: LocaleField;
+  /** @deprecated Prefer `description`. */
+  detail?: LocaleField;
+  order: number;
+};
+
+export type SanityEducation = {
+  _id: string;
+  institution: LocaleField;
+  degree: LocaleField;
+  fieldOfStudy: LocaleField;
+  startDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  description?: LocaleField;
   order: number;
 };
 
@@ -75,27 +91,18 @@ export type SanityCertificate = {
 export type SanitySkill = {
   _id: string;
   name: string;
-  categoryId: SkillCategoryId;
-  tier: SkillTierId;
-  level?: SkillLevel;
+  /** Category key (e.g. ai, frontend) or a custom string. */
+  category: SkillCategoryId;
+  categoryOrder?: number;
   order: number;
+  featured?: boolean;
+  tier?: SkillTierId;
+  level?: SkillLevel;
   evidence?: {
     _type: "project" | "ctf";
     slug?: string;
     title?: LocaleField | string;
   } | null;
-};
-
-export type SanitySkillCategory = {
-  _id: string;
-  categoryId: SkillCategoryId;
-  label: LocaleField;
-  /** Legacy grouping, used only when no `skill` documents exist yet. */
-  groups?: {
-    tier: SkillTierId;
-    skills: string[];
-  }[];
-  order: number;
 };
 
 export type SanityCtf = {
@@ -187,21 +194,19 @@ export type CertificateDisplay = {
 
 export type SkillDisplay = {
   name: string;
+  featured?: boolean;
+  /** Proficiency tier from Sanity (`tier` / `proficiencyTier`). */
+  tier?: SkillTierId;
   level?: SkillLevel;
   evidenceTitle?: string;
   /** In-page anchor of the evidence section, e.g. "#projects". */
   evidenceHref?: string;
 };
 
-export type SkillTierGroupDisplay = {
-  tier: SkillTierId;
-  skills: SkillDisplay[];
-};
-
 export type SkillCategoryDisplay = {
-  id: SkillCategoryId;
+  id: string;
   label: string;
-  groups: SkillTierGroupDisplay[];
+  skills: SkillDisplay[];
 };
 
 export type CtfDisplay = {
@@ -239,8 +244,6 @@ export type AboutDisplay = {
   summary: string;
   paragraphs: string[];
   location: string;
-  edu1: string;
-  edu2: string;
   experienced: string;
   highlights: string[];
   stats: {
@@ -251,6 +254,14 @@ export type AboutDisplay = {
     mindset: string;
     mindsetValue: string;
   };
+};
+
+export type EducationDisplay = {
+  id: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy: string;
+  period: string;
 };
 
 export type ContactInfoDisplay = {

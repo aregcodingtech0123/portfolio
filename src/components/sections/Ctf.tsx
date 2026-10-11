@@ -97,7 +97,7 @@ export function Ctf({ ctfs }: CtfProps) {
                         <p className="text-[10px] tracking-wider text-muted uppercase md:hidden">
                           {t("colCategory")}
                         </p>
-                        <p className="lowercase text-foreground">{category}</p>
+                        <p className="text-foreground">{category}</p>
                       </div>
 
                       <div className="px-1 md:px-0">
@@ -134,14 +134,14 @@ export function Ctf({ ctfs }: CtfProps) {
 
             {/* Minimal: plain table, hairline under header only */}
             <div className="mt-12 hidden min-w-0 overflow-x-auto minimal:block">
-              <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
+              <table className="w-full min-w-[36rem] border-collapse text-left text-base">
                 <thead>
-                  <tr className="hairline-b border-b border-border text-muted">
-                    <th className="pb-2 pr-4 font-normal">{t("colEvent")}</th>
-                    <th className="pb-2 pr-4 font-normal">{t("colDate")}</th>
-                    <th className="pb-2 pr-4 font-normal">{t("colCategory")}</th>
-                    <th className="pb-2 pr-4 font-normal">{t("colRank")}</th>
-                    <th className="pb-2 font-normal">{t("colWriteup")}</th>
+                  <tr className="hairline-b border-b border-border text-sm text-muted">
+                    <th className="pb-2.5 pr-4 font-normal">{t("colEvent")}</th>
+                    <th className="pb-2.5 pr-4 font-normal">{t("colDate")}</th>
+                    <th className="pb-2.5 pr-4 font-normal">{t("colCategory")}</th>
+                    <th className="pb-2.5 pr-4 font-normal">{t("colRank")}</th>
+                    <th className="pb-2.5 font-normal">{t("colWriteup")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,26 +150,26 @@ export function Ctf({ ctfs }: CtfProps) {
                     const category = entry.category || entry.difficulty;
                     return (
                       <tr key={entry.id} className="align-top">
-                        <td className="py-3 pr-4 text-foreground">
+                        <td className="py-3.5 pr-4 text-foreground">
                           <span className="text-muted">{entry.platform}</span>
                           <span className="mx-1.5 text-muted">/</span>
                           {event}
                           {entry.eventName && entry.title !== entry.eventName && (
-                            <span className="mt-0.5 block text-xs text-muted">
+                            <span className="mt-0.5 block text-sm text-muted">
                               {entry.title}
                             </span>
                           )}
                         </td>
-                        <td className="py-3 pr-4 whitespace-nowrap text-muted">
+                        <td className="py-3.5 pr-4 whitespace-nowrap font-code text-sm text-muted tabular-nums">
                           {formatSolvedDate(entry.dateSolved, locale)}
                         </td>
-                        <td className="py-3 pr-4 lowercase text-foreground">
+                        <td className="py-3.5 pr-4 text-foreground">
                           {category}
                         </td>
-                        <td className="py-3 pr-4 text-foreground">
+                        <td className="py-3.5 pr-4 font-code text-sm text-foreground tabular-nums">
                           {entry.placement || "—"}
                         </td>
-                        <td className="py-3">
+                        <td className="py-3.5">
                           {entry.writeupUrl ? (
                             <a
                               href={entry.writeupUrl}

@@ -5,7 +5,7 @@
  * src/sanity/fetch.ts) and as the seed source for scripts/seed-sanity.ts.
  *
  * Copy rules: first person, plain language, no em dashes, at most two sentences
- * per paragraph. Anything the site owner has not written yet is a [TODO: ...] hint.
+ * per paragraph. Leave unwritten fields empty or omit them; never seed placeholder hints.
  */
 import type {
   LocaleField,
@@ -28,10 +28,11 @@ type ProjectSeed = {
   status: ProjectStatus;
   title: LocaleField;
   description: LocaleField;
-  problem: LocaleField;
-  approach: LocaleField;
-  challenge: LocaleField;
-  learned: LocaleField;
+  /** Omit until written in Studio; empty values must not reach the page. */
+  problem?: LocaleField;
+  approach?: LocaleField;
+  challenge?: LocaleField;
+  learned?: LocaleField;
   technologies: string[];
   category: ProjectCategory;
   githubUrl?: string;
@@ -42,12 +43,16 @@ type ProjectSeed = {
 
 type SkillSeed = {
   name: string;
-  categoryId: SkillCategoryId;
-  tier: SkillTierId;
+  category: SkillCategoryId;
+  /** Shared sort key for the category column (same value for peers). */
+  categoryOrder: number;
+  /** Sort order within the category. */
+  order: number;
+  featured?: boolean;
+  tier?: SkillTierId;
   level?: SkillLevel;
   /** Project id from `projects` above. Only set when the project really used this skill. */
   evidenceProjectId?: string;
-  order: number;
 };
 
 /** Same text in English and Turkish: official certificate names and issuers are not translated yet. */
@@ -63,8 +68,12 @@ function cert(
   return { title: sameInBoth(title), issuer: sameInBoth(issuer), date };
 }
 
-function todo(en: string, tr: string): LocaleField {
-  return { en: `[TODO: ${en}]`, tr: `[TODO: ${tr}]` };
+function certLocalized(
+  title: LocaleField,
+  issuer: string,
+  date?: string,
+): CertificateSeed {
+  return { title, issuer: sameInBoth(issuer), date };
 }
 
 export const migrationPortfolio = {
@@ -82,22 +91,22 @@ export const migrationPortfolio = {
       name: { en: "Arda Ege Tunç", tr: "Arda Ege Tunç" },
       rolePrefix: {
         en: "I build modern products at the intersection of",
-        tr: "Modern ürünleri şu kesişimde inşa ediyorum:",
+        tr: "Modern ürünleri şu kesişimde geliştiriyorum:",
       },
       headline: {
-        en: "I build AI systems, then I try to break them.",
-        tr: "AI sistemleri kuruyorum. Sonra onları kırmaya çalışıyorum.",
+        en: "Focused on continuously developing myself across AI systems, full-stack web architectures, and cybersecurity.",
+        tr: "Yapay zeka sistemleri, full-stack web mimarileri ve siber güvenlik alanında kendimi sürekli geliştirmeye odaklanıyorum.",
       },
       subline: {
-        en: "I work where AI engineering meets cybersecurity. Here are the projects I have built, the CTFs I have solved, and what I have learned.",
-        tr: "Yapay zeka mühendisliği ile siber güvenliğin kesiştiği yerde çalışıyorum. Burada yaptığım projeler, çözdüğüm CTF'ler ve öğrendiklerim var.",
+        en: "Recent Computer Engineering graduate continuously advancing skills in generative AI systems, full-stack web development, and cybersecurity.",
+        tr: "Üretken yapay zeka sistemleri, full-stack web geliştirme ve siber güvenlik alanlarında kendini geliştiren yeni mezun Bilgisayar Mühendisi.",
       },
       ctaProjects: { en: "See projects", tr: "Projelere bak" },
       ctaContact: { en: "Write to me", tr: "Bana yaz" },
       badges: {
         ai: { en: "Generative AI", tr: "Üretken Yapay Zeka" },
         fullstack: { en: "Full Stack", tr: "Full Stack" },
-        security: { en: "Cybersecurity", tr: "Siber güvenlik" },
+        security: { en: "Cybersecurity", tr: "Siber Güvenlik" },
       },
       typingRoles: [
         { en: "AI Engineer", tr: "Yapay Zeka Mühendisi" },
@@ -107,44 +116,46 @@ export const migrationPortfolio = {
       ],
       profileTagline: {
         en: "AI Engineering · Full Stack · Cybersecurity",
-        tr: "Yapay Zeka Mühendisliği · Full Stack · Siber güvenlik",
+        tr: "Yapay Zeka Mühendisliği · Full Stack · Siber Güvenlik",
       },
     },
     about: {
       summary: {
-        en: "A fresh Computer Engineering graduate specializing in Generative AI systems, full-stack web development, and cybersecurity.",
-        tr: "Üretken yapay zeka sistemleri, full-stack web geliştirme ve siber güvenlik alanlarında uzmanlaşan yeni mezun Bilgisayar Mühendisi.",
+        en: "Recent Computer Engineering graduate continuously advancing skills in generative AI systems, full-stack web development, and cybersecurity.",
+        tr: "Üretken yapay zeka sistemleri, full-stack web geliştirme ve siber güvenlik alanlarında kendini geliştiren yeni mezun Bilgisayar Mühendisi.",
       },
       paragraphs: [
-        todo(
-          "Who you are, in two sentences. Where you study and what you are working toward.",
-          "Kim olduğun, iki cümleyle. Nerede okuduğun ve nereye yöneldiğin.",
-        ),
-        todo(
-          "What you are building or studying now, and why AI and security matter to you.",
-          "Şu an neyi inşa ettiğin ya da neyi öğrendiğin ve yapay zeka ile güvenliğin neden önemli olduğu.",
-        ),
-        todo(
-          "How you work: one thing you check before you ship, and one thing you care about in code.",
-          "Nasıl çalıştığın: yayına almadan önce kontrol ettiğin bir şey ve kodda önem verdiğin bir şey.",
-        ),
-      ],
+        {
+          en: "Continuously exploring the theoretical foundations and underlying mechanics of AI, translating knowledge into practice by building AI-integrated applications.",
+          tr: "Yapay zekanın teorik temellerini ve arka plandaki işleyişini sürekli inceliyor; teorik bilgimi yapay zeka entegrasyonlu projeler geliştirerek pratiğe döküyorum.",
+        },
+        {
+          en: "Developing full-stack web applications while auditing their performance, optimization, and security processes end-to-end.",
+          tr: "Full-stack web uygulamaları geliştiriyor; bu sistemlerin performans, optimizasyon ve güvenlik süreçlerini uçtan uca denetliyorum.",
+        },
+        {
+          en: "Actively pursuing training in cybersecurity to build strong fundamentals, aiming to merge AI with cybersecurity to specialize in this intersection in the future.",
+          tr: "Siber güvenlik alanında aktif olarak eğitimler alarak kendimi geliştiriyor; gelecekte yapay zeka ile siber güvenliği harmanlayarak bu alanda uzmanlaşmayı hedefliyorum.",
+        },
+      ] as LocaleField[],
+      /** @deprecated Prefer standalone `education` entries below. */
       edu1: {
         en: "Ankara Science University, B.Sc. in Computer Engineering (English)",
         tr: "Ankara Bilim Üniversitesi, Bilgisayar Mühendisliği Lisans (İngilizce)",
       },
+      /** @deprecated Prefer standalone `education` entries below. */
       edu2: {
         en: "Istanbul University, Economics",
         tr: "İstanbul Üniversitesi, İktisat",
       },
-      experienced: { en: "Experienced with", tr: "Deneyim alanları" },
+      experienced: { en: "Skills & tools", tr: "Yetenekler ve araçlar" },
       stats: {
         focus: { en: "Primary focus", tr: "Odak" },
         focusValue: {
           en: "GenAI & secure systems",
           tr: "Üretken yapay zeka ve güvenli sistemler",
         },
-        stack: { en: "Core stack", tr: "Temel yığın" },
+        stack: { en: "Core stack", tr: "Teknoloji yığını" },
         stackValue: { en: "React / Next / Python", tr: "React / Next / Python" },
         mindset: { en: "Engineering mindset", tr: "Yaklaşım" },
         mindsetValue: {
@@ -161,7 +172,7 @@ export const migrationPortfolio = {
       { text: { en: "Next.js", tr: "Next.js" } },
       { text: { en: "AI-assisted development", tr: "Yapay zeka destekli geliştirme" } },
       { text: { en: "Prompt Engineering", tr: "İstem mühendisliği" } },
-      { text: { en: "Penetration Testing", tr: "Sızma testi" } },
+      { text: { en: "Penetration Testing", tr: "Sızma Testi" } },
       { text: { en: "Linux / Bash", tr: "Linux / Bash" } },
     ],
     seo: {
@@ -174,6 +185,32 @@ export const migrationPortfolio = {
 
   projects: [
     {
+      id: "vocabeacon-ai-powered-language-dictionary",
+      code: "PRJ-003",
+      status: "live",
+      title: {
+        en: "VocaBeacon AI-Powered Language Dictionary",
+        tr: "VocaBeacon Yapay Zeka Destekli Dil Sözlüğü",
+      },
+      description: {
+        en: "VocaBeacon is an AI-powered multilingual dictionary and language-learning platform that delivers smart definitions, CEFR-based contextual examples, and usage insights driven by Google Gemini.",
+        tr: "VocaBeacon, Google Gemini destekli akıllı tanımlar, CEFR tabanlı bağlamsal örnekler ve kullanım analizleri sunan yapay zeka tabanlı çok dilli bir sözlük ve dil öğrenme platformudur.",
+      },
+      technologies: [
+        "Next.js",
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "Tailwind CSS",
+        "Google Gemini API",
+        "REST API",
+      ],
+      category: "ai",
+      liveUrl: "https://vocabeacon-ai-powered-lang-dictiona.vercel.app/",
+      order: 0,
+      featured: true,
+    },
+    {
       id: "atmosmind-weather",
       code: "PRJ-001",
       status: "live",
@@ -185,26 +222,10 @@ export const migrationPortfolio = {
         en: "AtmosMind is an AI-powered intelligent weather dashboard that delivers real-time forecasts, hourly and 7-day predictions, enhanced with a Google Gemini AI assistant for natural conversational weather insights.",
         tr: "AtmosMind, gerçek zamanlı hava durumu tahminleri, saatlik ve 7 günlük öngörüler sunan ve Google Gemini AI asistanı ile doğal sohbet deneyimi sağlayan yapay zeka destekli akıllı bir hava durumu panelidir.",
       },
-      problem: todo(
-        "What problem did AtmosMind solve for you? Two sentences, first person.",
-        "AtmosMind sana hangi sorunu çözdürdü? İki cümle, birinci şahıs.",
-      ),
-      approach: todo(
-        "How did you build it? Name the key decisions, not the feature list.",
-        "Nasıl inşa ettin? Özellik listesi değil, önemli kararları yaz.",
-      ),
-      challenge: todo(
-        "What was the hardest part, and what did you do about it?",
-        "En zor kısım neydi ve ona karşı ne yaptın?",
-      ),
-      learned: todo(
-        "What would you carry into the next project?",
-        "Bir sonraki projeye neyi taşıyacaksın?",
-      ),
       technologies: ["Next.js", "TypeScript", "Google Gemini", "Weather APIs"],
       category: "ai",
       liveUrl: "https://atmosmindweather.com/",
-      order: 0,
+      order: 1,
       featured: true,
     },
     {
@@ -216,29 +237,53 @@ export const migrationPortfolio = {
         en: "Exqubit is an AI-powered assessment platform that instantly generates high-quality, professional multiple-choice quizzes from PDFs and text documents using Google Gemini.",
         tr: "Exqubit, PDF ve metin belgelerinden Google Gemini kullanarak profesyonel kalitede çoktan seçmeli quiz ve değerlendirmeleri anında oluşturan yapay zeka destekli bir eğitim platformudur.",
       },
-      problem: todo(
-        "What problem did Exqubit solve for you? Two sentences, first person.",
-        "Exqubit sana hangi sorunu çözdürdü? İki cümle, birinci şahıs.",
-      ),
-      approach: todo(
-        "How did you build it? Name the key decisions, not the feature list.",
-        "Nasıl inşa ettin? Özellik listesi değil, önemli kararları yaz.",
-      ),
-      challenge: todo(
-        "What was the hardest part, and what did you do about it?",
-        "En zor kısım neydi ve ona karşı ne yaptın?",
-      ),
-      learned: todo(
-        "What would you carry into the next project?",
-        "Bir sonraki projeye neyi taşıyacaksın?",
-      ),
       technologies: ["Google Gemini", "PDF", "Quiz generation", "AI"],
       category: "ai",
       liveUrl: "https://exqubitai.com/",
-      order: 1,
+      order: 2,
       featured: true,
     },
   ] satisfies ProjectSeed[],
+
+  education: [
+    {
+      id: "education-asbu-ce",
+      institution: {
+        en: "Ankara Science University",
+        tr: "Ankara Bilim Üniversitesi",
+      },
+      degree: { en: "B.Sc.", tr: "Lisans" },
+      fieldOfStudy: {
+        en: "Computer Engineering",
+        tr: "Bilgisayar Mühendisliği",
+      },
+      startDate: "2021",
+      endDate: "2025",
+      isCurrent: false,
+      description: {
+        en: "English-medium undergraduate program focused on software systems and applied computing.",
+        tr: "Yazılım sistemleri ve uygulamalı bilişim odaklı İngilizce lisans programı.",
+      },
+      order: 0,
+    },
+    {
+      id: "education-iu-econ",
+      institution: {
+        en: "Istanbul University",
+        tr: "İstanbul Üniversitesi",
+      },
+      degree: { en: "Undergraduate", tr: "Lisans" },
+      fieldOfStudy: { en: "Economics", tr: "İktisat" },
+      startDate: "2020",
+      endDate: "2021",
+      isCurrent: false,
+      description: {
+        en: "Foundational coursework in economics before transitioning fully into computer engineering.",
+        tr: "Bilgisayar mühendisliğine geçmeden önce iktisat alanında temel dersler.",
+      },
+      order: 1,
+    },
+  ],
 
   experience: [
     {
@@ -249,7 +294,7 @@ export const migrationPortfolio = {
         tr: "Full Stack Developer Stajyeri",
       },
       period: { en: "08/2025 – 10/2025", tr: "08/2025 – 10/2025" },
-      detail: {
+      description: {
         en: "Built internal tooling and web experiences with a focus on reliability and maintainability.",
         tr: "Güvenilirlik ve sürdürülebilirlik odaklı iç araçlar ve web deneyimleri geliştirdim.",
       },
@@ -263,9 +308,9 @@ export const migrationPortfolio = {
         tr: "Full Stack Developer Stajyeri",
       },
       period: { en: "03/2025 – 05/2025", tr: "03/2025 – 05/2025" },
-      detail: {
+      description: {
         en: "Collaborated on full-stack features with emphasis on performance and clean architecture.",
-        tr: "Performans ve temiz mimariye vurguyla full-stack özellikler üzerinde iş birliği yaptım.",
+        tr: "Performans ve temiz mimari odaklı full-stack özelliklerin geliştirilmesinde rol aldım.",
       },
       order: 1,
     },
@@ -280,50 +325,42 @@ export const migrationPortfolio = {
         tr: "Bilgisayar Laboratuvarı Asistanı",
       },
       period: { en: "10/2023 – 01/2025", tr: "10/2023 – 01/2025" },
-      detail: {
+      description: {
         en: "Supported coursework labs, troubleshooting, and mentoring peers on systems and tooling.",
-        tr: "Ders laboratuvarlarında destek, sorun giderme ve sistemler konusunda eşlere mentorluk.",
+        tr: "Ders laboratuvarlarında destek verdim; sorun giderme ile öğrencilere ve çalışma arkadaşlarına mentorluk yaptım.",
       },
       order: 2,
     },
   ],
 
-  skillCategories: [
-    { id: "ai", label: { en: "AI & Machine Learning", tr: "Yapay Zeka ve Makine Öğrenmesi" }, order: 0 },
-    { id: "frontend", label: { en: "Frontend Development", tr: "Ön Uç Geliştirme" }, order: 1 },
-    { id: "backend", label: { en: "Backend Development", tr: "Arka Uç Geliştirme" }, order: 2 },
-    { id: "security", label: { en: "Cybersecurity", tr: "Siber Güvenlik" }, order: 3 },
-    { id: "languages", label: { en: "Languages & Tools", tr: "Diller ve Araçlar" }, order: 4 },
-  ] satisfies { id: SkillCategoryId; label: LocaleField; order: number }[],
-
   /**
-   * Skills are plain names with a tier. `level` and `evidenceProjectId` are only set
+   * Skills carry their own category. `level` and `evidenceProjectId` are only set
    * where the repo itself shows the link. Everything else stays unset for the owner to decide.
    */
   skills: [
-    { name: "LangChain", categoryId: "ai", tier: "expertise", order: 0 },
-    { name: "RAG", categoryId: "ai", tier: "expertise", order: 1 },
-    { name: "LangGraph", categoryId: "ai", tier: "comfortable", order: 2 },
-    { name: "Vector Databases", categoryId: "ai", tier: "comfortable", order: 3 },
-    { name: "LlamaIndex", categoryId: "ai", tier: "learning", level: "learning", order: 4 },
+    { name: "LangChain", category: "ai", categoryOrder: 0, order: 0, featured: true, tier: "expertise" },
+    { name: "RAG", category: "ai", categoryOrder: 0, order: 1, featured: true, tier: "expertise" },
+    { name: "LangGraph", category: "ai", categoryOrder: 0, order: 2, tier: "comfortable" },
+    { name: "Vector Databases", category: "ai", categoryOrder: 0, order: 3, tier: "comfortable" },
+    { name: "LlamaIndex", category: "ai", categoryOrder: 0, order: 4, tier: "learning", level: "learning" },
 
-    { name: "React.js", categoryId: "frontend", tier: "expertise", order: 5 },
-    { name: "Next.js", categoryId: "frontend", tier: "expertise", level: "used-in-project", evidenceProjectId: "atmosmind-weather", order: 6 },
-    { name: "JavaScript", categoryId: "frontend", tier: "comfortable", order: 7 },
-    { name: "TypeScript", categoryId: "frontend", tier: "comfortable", level: "used-in-project", evidenceProjectId: "atmosmind-weather", order: 8 },
-    { name: "Web Animations", categoryId: "frontend", tier: "learning", level: "learning", order: 9 },
+    { name: "React.js", category: "frontend", categoryOrder: 1, order: 0, featured: true, tier: "expertise" },
+    { name: "Next.js", category: "frontend", categoryOrder: 1, order: 1, featured: true, tier: "expertise", level: "used-in-project", evidenceProjectId: "atmosmind-weather" },
+    { name: "JavaScript", category: "frontend", categoryOrder: 1, order: 2, tier: "comfortable" },
+    { name: "TypeScript", category: "frontend", categoryOrder: 1, order: 3, tier: "comfortable", level: "used-in-project", evidenceProjectId: "atmosmind-weather" },
+    { name: "Web Animations", category: "frontend", categoryOrder: 1, order: 4, tier: "learning", level: "learning" },
 
-    { name: "Python", categoryId: "backend", tier: "expertise", order: 10 },
-    { name: "Java", categoryId: "backend", tier: "comfortable", order: 11 },
-    { name: "Go", categoryId: "backend", tier: "learning", level: "learning", order: 12 },
+    { name: "Python", category: "backend", categoryOrder: 2, order: 0, featured: true, tier: "expertise" },
+    { name: "Java", category: "backend", categoryOrder: 2, order: 1, tier: "comfortable" },
+    { name: "Go", category: "backend", categoryOrder: 2, order: 2, tier: "learning", level: "learning" },
 
-    { name: "Penetration Testing", categoryId: "security", tier: "expertise", order: 13 },
-    { name: "Vulnerability Scanning", categoryId: "security", tier: "comfortable", order: 14 },
-    { name: "Cloud Security", categoryId: "security", tier: "learning", level: "learning", order: 15 },
+    { name: "Penetration Testing", category: "security", categoryOrder: 3, order: 0, featured: true, tier: "expertise" },
+    { name: "Vulnerability Scanning", category: "security", categoryOrder: 3, order: 1, tier: "comfortable" },
+    { name: "Cloud Security", category: "security", categoryOrder: 3, order: 2, tier: "learning", level: "learning" },
 
-    { name: "Linux / Bash", categoryId: "languages", tier: "expertise", order: 16 },
-    { name: "Git", categoryId: "languages", tier: "comfortable", order: 17 },
-    { name: "Docker", categoryId: "languages", tier: "learning", level: "learning", order: 18 },
+    { name: "Linux / Bash", category: "languages", categoryOrder: 4, order: 0, featured: true, tier: "expertise" },
+    { name: "Git", category: "languages", categoryOrder: 4, order: 1, tier: "comfortable" },
+    { name: "Docker", category: "languages", categoryOrder: 4, order: 2, tier: "learning", level: "learning" },
   ] satisfies SkillSeed[],
 
   educationCertificates: [
@@ -334,12 +371,22 @@ export const migrationPortfolio = {
     cert("Advanced Cyber Security in Technologies", "HAVELSAN", "February 2024"),
     cert("AI Literacy", "Ankara Science University", "May 2024"),
     cert("3D Design and Printing", "KA3D Arge Tasarım", "October 2022"),
-    cert("Java Lab Assistantship", "Ankara Science University"),
+    certLocalized(
+      {
+        en: "Java Lab Assistantship",
+        tr: "Java Laboratuvar Asistanlığı",
+      },
+      "Ankara Science University",
+    ),
     cert("Internship Completion Certificate", "RE/MAX Wise", "October 2025"),
     cert("Blockchain Training", "1. Vision & Efficiency Summit", "May 2023"),
     cert("Ethical Hacking Training", "1. Vision & Efficiency Summit", "May 2023"),
     cert("Game & AI Training", "VES 2024", "May 2024"),
-    cert("Penetration Testing", "CSCON'22", "March 2022"),
+    certLocalized(
+      { en: "Penetration Testing", tr: "Sızma Testi" },
+      "CSCON'22",
+      "March 2022",
+    ),
     cert("SEM Education Certificate", "FSMVU / Altin Kariyer", "July 2023"),
   ] satisfies CertificateSeed[],
 

@@ -14,14 +14,14 @@ type ProfilePhotoProps = {
 };
 
 /**
- * Profile slot. Renders /profile.jpg when it loads; otherwise renders
- * nothing at all and lets the layout reflow around its absence. Terminal
- * skins apply a duotone treatment via `.profile-duotone` unless `natural`
- * is set.
+ * Profile slot. Renders /images/profilephoto.jpeg when it loads; otherwise
+ * renders nothing at all and lets the layout reflow around its absence.
+ * Terminal skins apply a duotone treatment via `.profile-duotone` unless
+ * `natural` is set.
  */
 export function ProfilePhoto({
   className = "h-16 w-16",
-  alt = "Profile photo",
+  alt = "Arda Ege Tunç - Profile Photo",
   natural = false,
 }: ProfilePhotoProps) {
   const [failed, setFailed] = useState(false);
@@ -34,10 +34,10 @@ export function ProfilePhoto({
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- intentional: graceful missing-file fallback */}
       <img
-        src="/profile.jpg"
+        src="/images/profilephoto.jpeg"
         alt={alt}
         onError={() => setFailed(true)}
-        className={`absolute inset-0 h-full w-full ${natural ? "object-contain object-top" : "object-cover"}`}
+        className={`absolute inset-0 h-full w-full ${natural ? "object-contain object-top" : "object-cover object-center"}`}
       />
     </div>
   );

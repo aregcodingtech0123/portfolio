@@ -1,17 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
 import type { SkillCategoryDisplay } from "@/sanity/fetch";
-import type { SkillCategoryId, SkillDisplay, SkillLevel } from "@/sanity/types";
+import type { SkillDisplay, SkillTierId } from "@/sanity/types";
 
 type SkillsProps = {
   categories: SkillCategoryDisplay[];
 };
 
-/** CLI path segment for each skill category. */
-const CATEGORY_PATH: Record<SkillCategoryId, string> = {
+/** CLI path segment for known category keys; custom categories use the key as-is. */
+const CATEGORY_PATH: Record<string, string> = {
   ai: "ai-ml",
   frontend: "frontend",
   backend: "backend",
@@ -19,14 +18,23 @@ const CATEGORY_PATH: Record<SkillCategoryId, string> = {
   languages: "languages",
 };
 
-const LEVEL_KEY = {
-  daily: "daily",
-  "used-in-project": "usedInProject",
+const TIER_KEY = {
+  expertise: "expertise",
+  comfortable: "comfortable",
   learning: "learning",
-} as const satisfies Record<SkillLevel, string>;
+} as const satisfies Record<SkillTierId, string>;
 
-function flattenSkills(cat: SkillCategoryDisplay): SkillDisplay[] {
-  return cat.groups.flatMap((group) => group.skills);
+function SkillTierLabel({
+  tier,
+  label,
+}: {
+  tier?: SkillTierId;
+  label: string | null;
+}) {
+  if (!tier || !label) return null;
+  return (
+    <span className="italic text-foreground"> ({label})</span>
+  );
 }
 
 /** Terminal: panel styled as `$ cat skills/<path>.txt` output. */
@@ -34,10 +42,12 @@ function TerminalSkillPanel({
   categoryId,
   label,
   skills,
+  tierLabel,
 }: {
-  categoryId: SkillCategoryId;
+  categoryId: string;
   label: string;
   skills: SkillDisplay[];
+  tierLabel: (tier?: SkillTierId) => string | null;
 }) {
   if (skills.length === 0) return null;
 
@@ -69,11 +79,23 @@ function TerminalSkillPanel({
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {skills.map((skill) => (
             <li key={skill.name}>
-              <span className="inline-flex max-w-full items-center rounded-sm border border-border bg-background px-2 py-1 font-mono text-[11px] break-words text-foreground transition-colors hover:border-accent hover:text-accent">
+              <span
+                className={`inline-flex max-w-full items-center rounded-sm border bg-background px-2 py-1 font-mono text-[11px] break-words transition-colors hover:border-accent ${
+                  skill.featured
+                    ? "border-accent text-accent"
+                    : "border-border text-foreground"
+                }`}
+              >
                 <span className="mr-1.5 text-accent" aria-hidden>
                   ›
                 </span>
-                {skill.name}
+                <span className="font-normal text-foreground">
+                  {skill.name}
+                </span>
+                <SkillTierLabel
+                  tier={skill.tier}
+                  label={tierLabel(skill.tier)}
+                />
               </span>
             </li>
           ))}
@@ -88,55 +110,37 @@ function TerminalSkillPanel({
   );
 }
 
-function EssaySkillList({
+function EssaySkillGroup({
   label,
   skills,
-  levelLabel,
-  noEvidence,
+  tierLabel,
 }: {
   label: string;
   skills: SkillDisplay[];
-  levelLabel: (level?: SkillLevel) => string | null;
-  noEvidence: string;
+  tierLabel: (tier?: SkillTierId) => string | null;
 }) {
   if (skills.length === 0) return null;
 
   return (
     <div className="min-w-0">
-      <h3 className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
+      <h3 className="hairline-b border-b border-border pb-2 font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
         {label}
       </h3>
       <dl className="mt-4 space-y-3">
-        {skills.map((skill) => {
-          const level = levelLabel(skill.level);
-          const evidence =
-            skill.evidenceHref && skill.evidenceTitle ? (
-              <Link
-                href={`/#${skill.evidenceHref.replace(/^#/, "")}`}
-                className="essay-link text-sm text-foreground"
-              >
-                {skill.evidenceTitle}
-              </Link>
-            ) : skill.evidenceTitle ? (
-              <span className="text-sm text-muted">{skill.evidenceTitle}</span>
-            ) : null;
-
-          return (
-            <div
-              key={skill.name}
-              className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-base"
-            >
-              <dt className="text-foreground">{skill.name}</dt>
-              {level && (
-                <dd className="text-sm italic text-muted">{level}</dd>
-              )}
-              {evidence && <dd>{evidence}</dd>}
-              {!skill.level && !skill.evidenceTitle && (
-                <dd className="sr-only">{noEvidence}</dd>
-              )}
-            </div>
-          );
-        })}
+        {skills.map((skill) => (
+          <div
+            key={skill.name}
+            className="flex min-w-0 flex-wrap items-baseline text-base"
+          >
+            <dt className="font-normal text-foreground no-underline">
+              {skill.name}
+              <SkillTierLabel
+                tier={skill.tier}
+                label={tierLabel(skill.tier)}
+              />
+            </dt>
+          </div>
+        ))}
       </dl>
     </div>
   );
@@ -145,10 +149,14 @@ function EssaySkillList({
 export function Skills({ categories }: SkillsProps) {
   const t = useTranslations("Skills");
 
-  const levelLabel = (level?: SkillLevel) => {
-    if (!level) return null;
-    return t(`levels.${LEVEL_KEY[level]}`);
+  const tierLabel = (tier?: SkillTierId) => {
+    if (!tier || !(tier in TIER_KEY)) return null;
+    return t(`tiers.${TIER_KEY[tier]}`);
   };
+
+  const categoryLabel = (cat: SkillCategoryDisplay) =>
+    cat.label ||
+    (cat.id in CATEGORY_PATH ? t(`categories.${cat.id}`) : cat.id);
 
   return (
     <Section id="skills" className="py-16 sm:py-24">
@@ -164,37 +172,27 @@ export function Skills({ categories }: SkillsProps) {
 
         {/* Terminal: CLI catalog panels */}
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 minimal:hidden">
-          {categories.map((cat) => {
-            const skills = flattenSkills(cat);
-            const label = cat.label || t(`categories.${cat.id}`);
-
-            return (
-              <TerminalSkillPanel
-                key={cat.id}
-                categoryId={cat.id}
-                label={label}
-                skills={skills}
-              />
-            );
-          })}
+          {categories.map((cat) => (
+            <TerminalSkillPanel
+              key={cat.id}
+              categoryId={cat.id}
+              label={categoryLabel(cat)}
+              skills={cat.skills}
+              tierLabel={tierLabel}
+            />
+          ))}
         </div>
 
-        {/* Minimal: quiet definition lists */}
-        <div className="mt-12 hidden space-y-12 minimal:block">
-          {categories.map((cat) => {
-            const skills = flattenSkills(cat);
-            const label = cat.label || t(`categories.${cat.id}`);
-
-            return (
-              <EssaySkillList
-                key={cat.id}
-                label={label}
-                skills={skills}
-                levelLabel={levelLabel}
-                noEvidence={t("noEvidence")}
-              />
-            );
-          })}
+        {/* Minimal: two-column definition lists on the wide canvas */}
+        <div className="mt-12 hidden grid-cols-1 gap-x-12 gap-y-12 md:grid-cols-2 minimal:grid">
+          {categories.map((cat) => (
+            <EssaySkillGroup
+              key={cat.id}
+              label={categoryLabel(cat)}
+              skills={cat.skills}
+              tierLabel={tierLabel}
+            />
+          ))}
         </div>
       </div>
     </Section>

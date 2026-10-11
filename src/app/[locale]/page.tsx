@@ -9,6 +9,7 @@ import { Certificates } from "@/components/sections/Certificates";
 import { Skills } from "@/components/sections/Skills";
 import { Ctf } from "@/components/sections/Ctf";
 import { Experience } from "@/components/sections/Experience";
+import { Education } from "@/components/sections/Education";
 import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
@@ -47,6 +48,8 @@ function renderSection(id: SectionId, content: PortfolioContent): ReactNode {
       return <Projects projects={content.projects} />;
     case "experience":
       return <Experience items={content.experience} />;
+    case "education":
+      return <Education items={content.education} />;
     case "skills":
       return <Skills categories={content.skillCategories} />;
     case "certificates":

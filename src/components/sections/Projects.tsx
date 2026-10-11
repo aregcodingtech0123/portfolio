@@ -3,304 +3,55 @@
 import {
   Suspense,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
-import { buttonClasses } from "@/components/ui/Button";
-import { Tag } from "@/components/ui/Tag";
-import { StatusLine, type StatusKind } from "@/components/ui/StatusLine";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import type { ProjectDisplay } from "@/sanity/fetch";
-import type { ProjectCategory, ProjectStatus } from "@/sanity/types";
+import type { ProjectCategory } from "@/sanity/types";
 
 const PROJECT_QUERY_KEY = "project";
 
 function projectQueryValue(project: ProjectDisplay): string {
-  return project.code || project.id;
+  // Prefer slug/id: Sanity docs may omit `code`, and empty strings are falsy.
+  return (project.code?.trim() || project.id).trim();
 }
 
-/**
- * One-way sync from the `?project=` query param to the open modal: loading
- * (or browser back/forward-ing to) a URL with the param opens the matching
- * project, and a URL without it closes whatever is open. Writing the param
- * in the other direction happens directly in openProject/closeProject below,
- * not here, so the two directions can't race against each other's stale
- * closure values in the same effect pass.
- */
-function ProjectDeepLink({
-  projects,
-  activeProject,
-  onOpen,
-  onClose,
-}: {
-  projects: ProjectDisplay[];
-  activeProject: ProjectDisplay | null;
-  onOpen: (project: ProjectDisplay) => void;
-  onClose: () => void;
-}) {
-  const searchParams = useSearchParams();
-  const queryValue = searchParams.get(PROJECT_QUERY_KEY);
-
-  useEffect(() => {
-    if (!queryValue) {
-      // Only close if something is actually open (e.g. browser back/forward
-      // past a deep link) — avoid an unnecessary URL replace on plain loads.
-      if (activeProject) onClose();
-      return;
-    }
-    if (activeProject && projectQueryValue(activeProject) === queryValue) {
-      return;
-    }
-    const match = projects.find((p) => projectQueryValue(p) === queryValue);
-    if (match) onOpen(match);
-  }, [queryValue, projects, activeProject, onOpen, onClose]);
-
-  return null;
+function projectMatchesQuery(project: ProjectDisplay, value: string): boolean {
+  return (
+    project.id === value ||
+    (Boolean(project.code) && project.code === value)
+  );
 }
 
 type FilterKey = "all" | ProjectCategory;
-
-function statusMeta(status?: ProjectStatus): {
-  kind: StatusKind;
-  label: string;
-  key: "live" | "wip" | "archived";
-} {
-  if (status === "wip") return { kind: "pending", label: "WIP", key: "wip" };
-  if (status === "archived")
-    return { kind: "archived", label: "ARCHIVED", key: "archived" };
-  return { kind: "live", label: "LIVE", key: "live" };
-}
-
-function ProjectStatusChip({ status }: { status?: ProjectStatus }) {
-  const t = useTranslations("Status");
-  const { kind, label, key } = statusMeta(status);
-  return <StatusLine status={kind} label={label} plain={t(key)} />;
-}
-
-function ProjectLinks({
-  entry,
-  githubLabel,
-  liveLabel,
-}: {
-  entry: ProjectDisplay;
-  githubLabel: string;
-  liveLabel: string;
-}) {
-  if (!entry.githubUrl && !entry.liveUrl) return null;
-
-  return (
-    <div className="flex flex-wrap gap-2 minimal:gap-x-5 minimal:gap-y-2">
-      {entry.githubUrl && (
-        <>
-          <a
-            href={entry.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${buttonClasses("ghost", "px-3 py-1.5 text-xs")} minimal:hidden`}
-          >
-            {githubLabel}
-          </a>
-          <a
-            href={entry.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="essay-link hidden text-sm text-foreground minimal:inline"
-          >
-            {githubLabel}
-          </a>
-        </>
-      )}
-      {entry.liveUrl && (
-        <>
-          <a
-            href={entry.liveUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`${buttonClasses("primary", "px-3 py-1.5 text-xs")} minimal:hidden`}
-          >
-            {liveLabel}
-          </a>
-          <a
-            href={entry.liveUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="essay-link hidden text-sm text-foreground minimal:inline"
-          >
-            {liveLabel}
-          </a>
-        </>
-      )}
-    </div>
-  );
-}
-
-function ProjectRow({ entry }: { entry: ProjectDisplay }) {
-  const t = useTranslations("Projects");
-
-  return (
-    <motion.li
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.18 }}
-      className="group border-b border-border py-4 transition-colors hover:border-accent sm:grid sm:grid-cols-[5.5rem_minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-start sm:gap-4 sm:px-1"
-    >
-      <div className="hidden items-center justify-between gap-3 sm:block">
-        <span className="decor font-mono text-[11px] text-muted">
-          {entry.code ?? "—"}
-        </span>
-        <div className="sm:mt-1">
-          <ProjectStatusChip status={entry.status} />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-3 sm:hidden">
-        <span className="decor font-mono text-[11px] text-muted">
-          {entry.code ?? "—"}
-        </span>
-        <ProjectStatusChip status={entry.status} />
-      </div>
-
-      <div className="mt-3 min-w-0 sm:mt-0">
-        <p className="font-mono text-[10px] tracking-wider text-muted uppercase sm:hidden">
-          {t("tableTitle")}
-        </p>
-        <p className="font-heading text-base font-semibold break-words text-foreground">
-          {entry.title}
-        </p>
-      </div>
-
-      <div className="mt-3 min-w-0 sm:mt-0">
-        <p className="font-mono text-[10px] tracking-wider text-muted uppercase sm:hidden">
-          {t("tableSummary")}
-        </p>
-        <p className="line-clamp-2 text-sm leading-relaxed break-words text-muted">
-          {entry.description}
-        </p>
-      </div>
-
-      <div className="mt-3 min-w-0 sm:mt-0">
-        <p className="font-mono text-[10px] tracking-wider text-muted uppercase sm:hidden">
-          {t("tableStack")}
-        </p>
-        <div className="flex flex-wrap gap-1">
-          {entry.technologies.slice(0, 4).map((tech) => (
-            <Tag key={tech} className="text-[10px]">
-              {tech}
-            </Tag>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-4 sm:mt-0 sm:justify-self-end">
-        <ProjectLinks
-          entry={entry}
-          githubLabel={t("github")}
-          liveLabel={t("demo")}
-        />
-      </div>
-    </motion.li>
-  );
-}
-
-function EssayCaseFields({ entry }: { entry: ProjectDisplay }) {
-  const t = useTranslations("Projects");
-  const fields = (
-    [
-      entry.problem ? { label: t("fieldProblem"), body: entry.problem } : null,
-      entry.approach
-        ? { label: t("fieldApproach"), body: entry.approach }
-        : null,
-      entry.challenge
-        ? { label: t("fieldChallenge"), body: entry.challenge }
-        : null,
-      entry.learned ? { label: t("fieldLearned"), body: entry.learned } : null,
-    ] as const
-  ).filter((item): item is { label: string; body: string } => item !== null);
-
-  if (fields.length === 0) return null;
-
-  return (
-    <div className="mt-6 space-y-5">
-      {fields.map((field) => (
-        <div key={field.label}>
-          <p className="text-xs font-medium tracking-[0.08em] text-muted uppercase italic sm:text-[0.7rem]">
-            {field.label}
-          </p>
-          <p className="mt-1.5 text-base leading-relaxed text-foreground">
-            {field.body}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EssayFeaturedArticle({ entry }: { entry: ProjectDisplay }) {
-  const t = useTranslations("Projects");
-
-  return (
-    <article className="min-w-0">
-      <h3 className="font-heading text-2xl font-normal tracking-tight break-words text-foreground sm:text-3xl">
-        {entry.title}
-      </h3>
-      <p className="mt-3 text-base leading-relaxed text-muted">
-        {entry.description}
-      </p>
-
-      <EssayCaseFields entry={entry} />
-
-      {entry.imageUrl && (
-        <figure className="mt-8">
-          <div className="relative aspect-[16/10] w-full overflow-hidden">
-            <Image
-              src={entry.imageUrl}
-              alt={entry.imageAlt || entry.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 720px"
-            />
-          </div>
-          <figcaption className="mt-2 text-sm text-muted">
-            {entry.imageAlt || entry.title}
-          </figcaption>
-        </figure>
-      )}
-
-      <div className="mt-6">
-        <ProjectLinks
-          entry={entry}
-          githubLabel={t("github")}
-          liveLabel={t("demo")}
-        />
-      </div>
-    </article>
-  );
-}
 
 type ProjectsProps = {
   projects: ProjectDisplay[];
 };
 
-export function Projects({ projects: projectData }: ProjectsProps) {
+type ProjectsViewProps = ProjectsProps & {
+  activeProject: ProjectDisplay | null;
+  onOpen: (project: ProjectDisplay) => void;
+  onClose: () => void;
+};
+
+function ProjectsView({
+  projects: projectData,
+  activeProject,
+  onOpen,
+  onClose,
+}: ProjectsViewProps) {
   const t = useTranslations("Projects");
-  const pathname = usePathname();
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
-  const [activeProject, setActiveProject] = useState<ProjectDisplay | null>(
-    null,
-  );
 
   const filtered = useMemo(() => {
     let list = projectData;
@@ -317,11 +68,11 @@ export function Projects({ projects: projectData }: ProjectsProps) {
           (p.code?.toLowerCase().includes(q) ?? false),
       );
     }
-    return list;
+    // Featured first; preserve relative order within each group.
+    return [...list].sort(
+      (a, b) => Number(b.featured) - Number(a.featured),
+    );
   }, [filter, query, projectData]);
-
-  const featured = filtered.filter((p) => p.featured);
-  const others = filtered.filter((p) => !p.featured);
 
   const chips: { id: FilterKey; label: string }[] = [
     { id: "all", label: t("filterAll") },
@@ -332,29 +83,6 @@ export function Projects({ projects: projectData }: ProjectsProps) {
   ];
 
   const empty = projectData.length === 0;
-
-  const triggerRef = useRef<HTMLElement | null>(null);
-
-  const openProject = useCallback(
-    (project: ProjectDisplay) => {
-      triggerRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-      setActiveProject(project);
-      router.replace(`${pathname}?${PROJECT_QUERY_KEY}=${projectQueryValue(project)}`, {
-        scroll: false,
-      });
-    },
-    [pathname, router],
-  );
-
-  const closeProject = useCallback(() => {
-    setActiveProject(null);
-    triggerRef.current?.focus();
-    triggerRef.current = null;
-    router.replace(pathname, { scroll: false });
-  }, [pathname, router]);
 
   return (
     <Section id="projects" className="py-20 sm:py-24">
@@ -367,9 +95,6 @@ export function Projects({ projects: projectData }: ProjectsProps) {
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
               {t("subtitle")}
             </h2>
-            <p className="mt-3 max-w-xl text-left text-sm leading-relaxed text-muted sm:text-base minimal:mt-4 minimal:max-w-none">
-              {t("intro")}
-            </p>
           </div>
 
           <div className="flex w-full min-w-0 flex-col gap-3 sm:max-w-md minimal:mt-8 minimal:max-w-none">
@@ -422,12 +147,12 @@ export function Projects({ projects: projectData }: ProjectsProps) {
 
         {!empty && (
           <>
-            {/* Terminal layouts */}
-            <div className="mt-12 space-y-14 minimal:hidden">
-              {featured.length > 0 && (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Terminal: full project card grid */}
+            <div className="mt-12 minimal:hidden">
+              {filtered.length > 0 ? (
+                <div className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <AnimatePresence mode="popLayout">
-                    {featured.map((p) => (
+                    {filtered.map((p) => (
                       <motion.div
                         key={p.id}
                         layout
@@ -435,69 +160,29 @@ export function Projects({ projects: projectData }: ProjectsProps) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.22 }}
-                        className="relative z-0"
+                        className="relative z-0 min-h-0 h-full"
                       >
-                        <ProjectCard entry={p} onOpen={openProject} />
+                        <ProjectCard entry={p} onOpen={onOpen} />
                       </motion.div>
                     ))}
                   </AnimatePresence>
                 </div>
-              )}
-
-              {others.length > 0 && (
-                <div>
-                  <p className="decor mb-4 font-mono text-xs tracking-wide text-muted">
-                    {t("otherHeading")}
-                  </p>
-
-                  <div className="hidden border-b border-border pb-2 font-mono text-[10px] tracking-wider text-muted uppercase sm:grid sm:grid-cols-[5.5rem_minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:gap-4 sm:px-1">
-                    <span>{t("tableId")}</span>
-                    <span>{t("tableTitle")}</span>
-                    <span>{t("tableSummary")}</span>
-                    <span>{t("tableStack")}</span>
-                    <span className="justify-self-end">{t("tableLinks")}</span>
-                  </div>
-
-                  <ul className="min-w-0">
-                    <AnimatePresence mode="popLayout">
-                      {others.map((p) => (
-                        <ProjectRow key={p.id} entry={p} />
-                      ))}
-                    </AnimatePresence>
-                  </ul>
-                </div>
-              )}
-
-              {filtered.length === 0 && (
+              ) : (
                 <p className="font-mono text-sm text-muted">{t("emptyList")}</p>
               )}
             </div>
 
-            {/* Minimal: essay articles (full case study, no modal needed) +
-               an unpolished card grid for the rest, opening the shared modal. */}
-            <div className="mt-12 hidden space-y-16 minimal:block">
-              {featured.length > 0 && (
-                <div className="space-y-16">
-                  {featured.map((p) => (
-                    <EssayFeaturedArticle key={p.id} entry={p} />
+            {/* Minimal: full project card grid */}
+            <div className="mt-12 hidden minimal:block">
+              {filtered.length > 0 ? (
+                <div className="grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+                  {filtered.map((p) => (
+                    <div key={p.id} className="min-h-0 h-full">
+                      <ProjectCard entry={p} onOpen={onOpen} />
+                    </div>
                   ))}
                 </div>
-              )}
-
-              {others.length > 0 && (
-                <div>
-                  <p className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
-                    {t("otherHeading").replace(/^\/\/\s*/, "")}
-                  </p>
-                  <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {others.map((p) => (
-                      <ProjectCard key={p.id} entry={p} onOpen={openProject} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {filtered.length === 0 && (
+              ) : (
                 <p className="text-sm text-muted">{t("emptyList")}</p>
               )}
             </div>
@@ -505,20 +190,78 @@ export function Projects({ projects: projectData }: ProjectsProps) {
         )}
       </div>
 
-      <Suspense fallback={null}>
-        <ProjectDeepLink
-          projects={projectData}
-          activeProject={activeProject}
-          onOpen={openProject}
-          onClose={closeProject}
-        />
-      </Suspense>
-
       <ProjectModal
         project={activeProject}
         open={activeProject !== null}
-        onClose={closeProject}
+        onClose={onClose}
       />
     </Section>
+  );
+}
+
+/**
+ * Modal open state is derived from `?project=` — open/close only mutate the URL.
+ * That avoids races where local state and searchParams briefly disagree and the
+ * modal immediately re-opens (or closes) after a click.
+ */
+function ProjectsWithQuery({ projects }: ProjectsProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  const queryValue = searchParams.get(PROJECT_QUERY_KEY);
+  const activeProject = useMemo(() => {
+    if (!queryValue) return null;
+    return projects.find((p) => projectMatchesQuery(p, queryValue)) ?? null;
+  }, [projects, queryValue]);
+
+  const openProject = useCallback(
+    (project: ProjectDisplay) => {
+      triggerRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const closeProject = useCallback(() => {
+    triggerRef.current?.focus();
+    triggerRef.current = null;
+    const params = new URLSearchParams(searchParams.toString());
+    if (!params.has(PROJECT_QUERY_KEY)) return;
+    params.delete(PROJECT_QUERY_KEY);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+  return (
+    <ProjectsView
+      projects={projects}
+      activeProject={activeProject}
+      onOpen={openProject}
+      onClose={closeProject}
+    />
+  );
+}
+
+export function Projects(props: ProjectsProps) {
+  return (
+    <Suspense
+      fallback={
+        <ProjectsView
+          {...props}
+          activeProject={null}
+          onOpen={() => {}}
+          onClose={() => {}}
+        />
+      }
+    >
+      <ProjectsWithQuery {...props} />
+    </Suspense>
   );
 }

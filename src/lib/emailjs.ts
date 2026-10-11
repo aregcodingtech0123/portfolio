@@ -21,10 +21,10 @@ export const emailjsMissing = (
 /** True only when all three variables are set. The form stays disabled otherwise. */
 export const emailjsConfigured = emailjsMissing.length === 0;
 
-/** Logs once per page load in development, and always in the browser console when unset. */
+/** Dev-only hint; uses warn so Next.js does not surface a console-error overlay. */
 export function reportEmailjsMissing() {
-  if (emailjsConfigured) return;
-  console.error(
+  if (emailjsConfigured || process.env.NODE_ENV === "production") return;
+  console.warn(
     `[Contact] EmailJS is not configured. Missing: ${emailjsMissing.join(", ")}. The contact form is disabled.`,
   );
 }
