@@ -24,7 +24,6 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
   return (
     <NavSelect
       label={t("toggleMode")}
-      ariaLabel={t("themeGroup")}
       value={value}
       disabled={!mounted}
       showLabel={showLabel}

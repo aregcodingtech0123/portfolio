@@ -20,10 +20,11 @@ type NavSelectProps<T extends string> = {
   value: T;
   options: NavSelectOption<T>[];
   onChange: (value: T) => void;
-  /** Accessible name for the trigger (defaults to `label`). */
-  ariaLabel?: string;
   disabled?: boolean;
-  /** Hide the micro-label (e.g. compact mobile controls). */
+  /**
+   * Hide the micro-label visually (e.g. compact mobile controls). It stays
+   * in the DOM as sr-only, so the accessible name is the same either way.
+   */
   showLabel?: boolean;
   className?: string;
 };
@@ -36,12 +37,13 @@ export function NavSelect<T extends string>({
   value,
   options,
   onChange,
-  ariaLabel,
   disabled = false,
   showLabel = true,
   className = "",
 }: NavSelectProps<T>) {
   const listId = useId();
+  const labelId = `${listId}-label`;
+  const triggerId = `${listId}-trigger`;
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const selected =
@@ -106,24 +108,30 @@ export function NavSelect<T extends string>({
         showLabel ? "w-[7.25rem] xl:w-[7.75rem]" : "min-w-0"
       } ${className}`.trim()}
     >
-      {showLabel ? (
-        <span
-          className="truncate text-[9px] font-medium uppercase tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
-          id={`${listId}-label`}
-          title={label}
-        >
-          {label}
-        </span>
-      ) : null}
+      {/* The visible label is the only source of the accessible name, so
+          what a speech-input user sees is what they can say (WCAG 2.5.3). */}
+      <span
+        className={
+          showLabel
+            ? "truncate text-[9px] font-medium uppercase tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
+            : "sr-only"
+        }
+        id={labelId}
+        title={showLabel ? label : undefined}
+      >
+        {label}
+      </span>
 
+      {/* Label first, then the trigger's own content: the name carries the
+          current value too (ARIA APG listbox-button pattern). */}
       <button
+        id={triggerId}
         type="button"
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
-        aria-labelledby={showLabel ? `${listId}-label` : undefined}
-        aria-label={ariaLabel ?? label}
+        aria-labelledby={`${labelId} ${triggerId}`}
         onClick={() => setOpen((prev) => !prev)}
         onKeyDown={onTriggerKeyDown}
         className={[
@@ -158,7 +166,7 @@ export function NavSelect<T extends string>({
           id={listId}
           role="listbox"
           tabIndex={open ? 0 : -1}
-          aria-label={ariaLabel ?? label}
+          aria-labelledby={labelId}
           onKeyDown={onListKeyDown}
           className={[
             "overflow-hidden rounded-sm border border-border bg-surface py-1 shadow-sm",

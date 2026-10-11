@@ -1,12 +1,14 @@
 import { expect, test } from "./fixtures";
 
-// NavSelect's trigger sets BOTH aria-label and (when showLabel is true, the
-// default) aria-labelledby pointing at the visible micro-label span. Per
-// ARIA accessible-name computation, aria-labelledby takes precedence, so
-// the real accessible name is that bilingual micro-label text ("Görünüm /
-// Skin" etc.), not the semantic aria-label ("Visual style" etc.) NavSelect
-// also sets. Confirmed via a Playwright trace snapshot after the obvious
-// name guess timed out.
+// NavSelect triggers are named by the visible micro-label followed by the
+// trigger's current value (aria-labelledby="label trigger"), so the names
+// below are "<label> <current value>". e2e/nav-select-names.spec.ts pins
+// those names down in both locales.
+
+// The default mode follows prefers-color-scheme, and Playwright emulates
+// "light" unless told otherwise -- which made picking "Light" below a
+// no-op. Start from dark so the switch is a real change.
+test.use({ colorScheme: "dark" });
 async function pickOption(
   page: import("@playwright/test").Page,
   triggerName: string,
@@ -19,8 +21,8 @@ async function pickOption(
 test("switching skin and mode from the navbar survives a reload", async ({ page }) => {
   await page.goto("/en");
 
-  await pickOption(page, "Görünüm / Skin", "Minimal");
-  await pickOption(page, "Tema / Mode", "Light");
+  await pickOption(page, "Görünüm / Skin Terminal", "Minimal");
+  await pickOption(page, "Tema / Mode Dark", "Light");
 
   await expect(page.locator("html")).toHaveAttribute("data-skin", "minimal");
   await expect(page.locator("html")).toHaveClass(/light/);
@@ -36,12 +38,12 @@ test("switching locale from the navbar does not reset the theme choice", async (
 }) => {
   await page.goto("/en");
 
-  await pickOption(page, "Görünüm / Skin", "Minimal");
-  await pickOption(page, "Tema / Mode", "Light");
+  await pickOption(page, "Görünüm / Skin Terminal", "Minimal");
+  await pickOption(page, "Tema / Mode Dark", "Light");
 
   // The language switcher also renders in the footer, so this picks the
   // first match (the navbar's) rather than require a strict single match.
-  await page.getByRole("button", { name: "Dil / Language", exact: true }).first().click();
+  await page.getByRole("button", { name: "Dil / Language English EN", exact: true }).first().click();
   // The option's accessible name includes the flag icon's title text, so
   // it's "Türkçe TR", not just "TR".
   await page.getByRole("option", { name: "Türkçe TR", exact: true }).first().click();

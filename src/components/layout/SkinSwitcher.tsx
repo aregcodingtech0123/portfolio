@@ -30,7 +30,6 @@ export function SkinSwitcher({ showLabel = true }: SkinSwitcherProps) {
   return (
     <NavSelect
       label={t("toggleStyle")}
-      ariaLabel={t("skinGroup")}
       value={value}
       disabled={!mounted}
       showLabel={showLabel}

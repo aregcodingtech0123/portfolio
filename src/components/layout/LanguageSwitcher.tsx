@@ -43,7 +43,6 @@ export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
   return (
     <NavSelect
       label={t("toggleLang")}
-      ariaLabel={t("language")}
       value={locale}
       disabled={pending}
       showLabel={showLabel}
