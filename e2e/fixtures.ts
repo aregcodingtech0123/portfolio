@@ -86,6 +86,63 @@ export async function readThemeAttributes(page: Page) {
   }));
 }
 
+export type ThemeLogEntry = {
+  skin?: string;
+  classes: string;
+  colorScheme: string;
+};
+
+/**
+ * Installs a MutationObserver that records every data-skin/class/style
+ * mutation on <html>, starting from the earliest possible moment, so a
+ * test can tell "correct from the first mutation" apart from "eventually
+ * correct after something else fixed it". addInitScript runs before any of
+ * the page's own scripts, but document.documentElement does not exist yet
+ * at that point (confirmed empirically: it's null) -- the parser hasn't
+ * created <html> yet. This observes `document` itself for the childList
+ * mutation that adds <html>, then immediately attaches the attribute
+ * observer to it, which is early enough to catch the inline boot script's
+ * own writes as they happen (it runs synchronously, as soon as <head> is
+ * parsed, which is right after <html> exists).
+ */
+export async function installThemeMutationLog(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __themeLog: ThemeLogEntry[] };
+    w.__themeLog = [];
+    const record = () => {
+      const el = document.documentElement;
+      w.__themeLog.push({
+        skin: el?.dataset.skin,
+        classes: el?.className ?? "",
+        colorScheme: el?.style.colorScheme ?? "",
+      });
+    };
+    const attach = () => {
+      record();
+      new MutationObserver(record).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "data-skin", "style"],
+      });
+    };
+    if (document.documentElement) {
+      attach();
+    } else {
+      new MutationObserver((_mutations, observer) => {
+        if (document.documentElement) {
+          observer.disconnect();
+          attach();
+        }
+      }).observe(document, { childList: true, subtree: true });
+    }
+  });
+}
+
+export async function readThemeLog(page: Page): Promise<ThemeLogEntry[]> {
+  return page.evaluate(
+    () => (window as unknown as { __themeLog: ThemeLogEntry[] }).__themeLog,
+  );
+}
+
 /** Intercepts EmailJS's send call with a fulfilled success response. */
 export async function mockEmailJsSuccess(page: Page) {
   await page.route("**/api.emailjs.com/**", (route) =>
