@@ -1,11 +1,15 @@
 import { defineField, defineType } from "sanity";
 import { EarthGlobeIcon } from "@sanity/icons";
+import { LocaleTranslateInput } from "../../components/LocaleTranslateInput";
 
 export const localeString = defineType({
   name: "localeString",
   title: "Localized string",
   type: "object",
   icon: EarthGlobeIcon,
+  components: {
+    input: LocaleTranslateInput,
+  },
   fields: [
     defineField({
       name: "en",

@@ -89,9 +89,28 @@ export const siteSettings = defineType({
           description: "Up to three short paragraphs. Two sentences each, first person.",
           validation: (rule) => rule.max(3),
         }),
-        defineField({ name: "edu1", type: "localeString", title: "Education line 1" }),
-        defineField({ name: "edu2", type: "localeString", title: "Education line 2" }),
-        defineField({ name: "experienced", type: "localeString", title: "Highlights heading" }),
+        defineField({
+          name: "edu1",
+          type: "localeString",
+          title: "Education line 1 (legacy)",
+          description:
+            "Deprecated. Prefer Education documents in the sidebar. Kept for older content only.",
+          hidden: true,
+        }),
+        defineField({
+          name: "edu2",
+          type: "localeString",
+          title: "Education line 2 (legacy)",
+          description:
+            "Deprecated. Prefer Education documents in the sidebar. Kept for older content only.",
+          hidden: true,
+        }),
+        defineField({
+          name: "experienced",
+          type: "localeString",
+          title: "Skills & tools heading",
+          description: 'Heading above the About highlight chips, e.g. "Skills & tools".',
+        }),
         defineField({
           name: "stats",
           title: "Stats cards",

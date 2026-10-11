@@ -19,5 +19,23 @@ export default defineConfig({
   ],
   schema: {
     types: schemaTypes,
+    templates: (prev) => [
+      ...prev.filter((template) => template.id !== "skill-by-category"),
+      {
+        id: "skill-by-category",
+        title: "Skill",
+        schemaType: "skill",
+        parameters: [
+          { name: "category", type: "string" },
+          { name: "categoryOrder", type: "number" },
+        ],
+        value: (params: { category?: string; categoryOrder?: number }) => ({
+          category: params.category,
+          categoryOrder: params.categoryOrder ?? 0,
+          featured: false,
+          order: 0,
+        }),
+      },
+    ],
   },
 });

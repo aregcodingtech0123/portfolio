@@ -7,10 +7,12 @@
  *        NEXT_PUBLIC_SANITY_DATASET=production
  *        SANITY_API_WRITE_TOKEN=...   (Editor token from sanity.io/manage → API)
  *   2. Run: npm run seed:sanity
- *   3. Open /content-hub, fill every [TODO], then publish.
+ *   3. Open /content-hub, fill empty about paragraphs and project case-study
+ *      fields, then publish.
  *
- * Re-running replaces projects, experience, certificates, skills and skill
- * categories. CTF documents and any site settings you edited are not deleted.
+ * Re-running replaces projects, experience, certificates and skills.
+ * Legacy skillCategory documents are deleted. CTF documents and any site
+ * settings you edited are not deleted.
  */
 
 import { config as loadEnv } from "dotenv";
@@ -76,10 +78,10 @@ async function seed() {
       status: p.status,
       title: p.title,
       description: p.description,
-      problem: p.problem,
-      approach: p.approach,
-      challenge: p.challenge,
-      learned: p.learned,
+      ...(p.problem ? { problem: p.problem } : {}),
+      ...(p.approach ? { approach: p.approach } : {}),
+      ...(p.challenge ? { challenge: p.challenge } : {}),
+      ...(p.learned ? { learned: p.learned } : {}),
       technologies: p.technologies,
       category: p.category,
       ...(p.githubUrl ? { githubUrl: p.githubUrl } : {}),
@@ -98,11 +100,28 @@ async function seed() {
       company: e.company,
       role: e.role,
       period: e.period,
-      detail: e.detail,
+      description: e.description,
       order: e.order,
     });
   }
   console.log(`✓ ${migrationPortfolio.experience.length} experience entries`);
+
+  await deleteByType("education");
+  for (const e of migrationPortfolio.education) {
+    await client.create({
+      _type: "education",
+      _id: e.id,
+      institution: e.institution,
+      degree: e.degree,
+      fieldOfStudy: e.fieldOfStudy,
+      startDate: e.startDate,
+      ...(e.endDate ? { endDate: e.endDate } : {}),
+      isCurrent: Boolean(e.isCurrent),
+      ...(e.description ? { description: e.description } : {}),
+      order: e.order,
+    });
+  }
+  console.log(`✓ ${migrationPortfolio.education.length} education entries`);
 
   await deleteByType("certificate");
   const certificateSets = [
@@ -125,17 +144,8 @@ async function seed() {
   }
   console.log(`✓ ${certOrder} certificates`);
 
+  // Remove legacy category documents from older schema versions.
   await deleteByType("skillCategory");
-  for (const cat of migrationPortfolio.skillCategories) {
-    await client.create({
-      _type: "skillCategory",
-      _id: `skillCategory-${cat.id}`,
-      categoryId: cat.id,
-      label: cat.label,
-      order: cat.order,
-    });
-  }
-  console.log(`✓ ${migrationPortfolio.skillCategories.length} skill categories`);
 
   await deleteByType("skill");
   for (const sk of migrationPortfolio.skills) {
@@ -143,8 +153,11 @@ async function seed() {
       _type: "skill",
       _id: `skill-${slugifyId(sk.name)}`,
       name: sk.name,
-      categoryId: sk.categoryId,
-      tier: sk.tier,
+      category: sk.category,
+      categoryOrder: sk.categoryOrder,
+      order: sk.order,
+      featured: Boolean(sk.featured),
+      ...(sk.tier ? { tier: sk.tier } : {}),
       ...(sk.level ? { level: sk.level } : {}),
       ...(sk.evidenceProjectId
         ? {
@@ -154,13 +167,14 @@ async function seed() {
             },
           }
         : {}),
-      order: sk.order,
     });
   }
   console.log(`✓ ${migrationPortfolio.skills.length} skills`);
 
   console.log("\n✅ Seed complete. CTF documents were not touched.");
-  console.log("→ Visit http://localhost:3000/content-hub and fill every [TODO] before publishing.");
+  console.log(
+    "→ Visit http://localhost:3000/content-hub and fill empty about / case-study fields before publishing.",
+  );
   console.log("→ Refresh your site at /en or /tr\n");
 }
 

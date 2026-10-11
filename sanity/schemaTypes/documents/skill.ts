@@ -20,21 +20,50 @@ export const skill = defineType({
       validation: (rule) => rule.required().max(60),
     }),
     defineField({
-      name: "categoryId",
+      name: "category",
       title: "Category",
       type: "string",
       group: "content",
+      description:
+        "Grouping key for the Skills section. Prefer a listed value; custom strings are allowed.",
       options: {
         list: [
-          { title: "AI", value: "ai" },
-          { title: "Frontend", value: "frontend" },
-          { title: "Backend", value: "backend" },
-          { title: "Security", value: "security" },
+          { title: "AI & Machine Learning", value: "ai" },
+          { title: "Frontend Development", value: "frontend" },
+          { title: "Backend Development", value: "backend" },
+          { title: "Cybersecurity", value: "security" },
           { title: "Languages & Tools", value: "languages" },
         ],
         layout: "dropdown",
       },
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "categoryOrder",
+      title: "Category order",
+      type: "number",
+      group: "content",
+      description:
+        "Sort order for the category column. Use the same value for every skill in a category.",
+      initialValue: 0,
+      validation: (rule) => rule.required().integer().min(0),
+    }),
+    defineField({
+      name: "order",
+      title: "Skill order",
+      type: "number",
+      group: "content",
+      description: "Sort order within the category.",
+      initialValue: 0,
+      validation: (rule) => rule.required().integer().min(0),
+    }),
+    defineField({
+      name: "featured",
+      title: "Featured",
+      type: "boolean",
+      group: "content",
+      description: "Highlight this skill within its category.",
+      initialValue: false,
     }),
     defineField({
       name: "tier",
@@ -49,7 +78,6 @@ export const skill = defineType({
         ],
         layout: "radio",
       },
-      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "level",
@@ -77,28 +105,39 @@ export const skill = defineType({
       to: [{ type: "project" }, { type: "ctf" }],
       options: { disableNew: true },
     }),
-    defineField({
-      name: "order",
-      title: "Display order",
-      type: "number",
-      group: "content",
-      initialValue: 0,
-      validation: (rule) => rule.required().integer().min(0),
-    }),
   ],
   orderings: [
     {
-      title: "Display order",
+      title: "Category then skill order",
+      name: "categoryThenOrder",
+      by: [
+        { field: "categoryOrder", direction: "asc" },
+        { field: "order", direction: "asc" },
+      ],
+    },
+    {
+      title: "Skill order",
       name: "orderAsc",
       by: [{ field: "order", direction: "asc" }],
     },
   ],
   preview: {
-    select: { title: "name", categoryId: "categoryId", tier: "tier", level: "level" },
-    prepare({ title, categoryId, tier, level }) {
+    select: {
+      title: "name",
+      category: "category",
+      featured: "featured",
+      tier: "tier",
+      level: "level",
+    },
+    prepare({ title, category, featured, tier, level }) {
       return {
         title: title || "Untitled skill",
-        subtitle: [categoryId, tier, level ?? "level not set"]
+        subtitle: [
+          category,
+          tier,
+          featured ? "featured" : null,
+          level ?? null,
+        ]
           .filter(Boolean)
           .join(" · "),
       };

@@ -37,11 +37,21 @@ export const experience = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "detail",
-      title: "Detail",
+      name: "description",
+      title: "Description",
       type: "localeText",
       group: "details",
+      description:
+        "Localized role summary shown under the job title. Prefer one or two sentences.",
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "detail",
+      title: "Detail (legacy)",
+      type: "localeText",
+      group: "details",
+      hidden: true,
+      description: "Deprecated. Use Description. Kept so older documents still resolve.",
     }),
     defineField({
       name: "order",
