@@ -21,8 +21,10 @@ test("switching language from the navbar restores the scroll position", async ({
   page,
 }) => {
   await page.goto("/en");
-  // Scroll well down the page, past the hero, before switching.
-  await page.evaluate(() => window.scrollTo(0, 1200));
+  // Scroll well down the page, past the hero, before switching. Instant:
+  // html has scroll-behavior: smooth, so a plain scrollTo animates and the
+  // read below could land mid-animation (seen as 0 under parallel load).
+  await page.evaluate(() => window.scrollTo({ top: 1200, behavior: "instant" }));
   const before = await page.evaluate(() => window.scrollY);
   expect(before).toBeGreaterThan(500);
 
