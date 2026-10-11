@@ -181,7 +181,15 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
               </button>
             </header>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {/* Focusable so a keyboard user can scroll a long case study with
+                the arrow/Page keys (it may hold nothing else focusable).
+                Named by the dialog heading to avoid new copy. */}
+            <div
+              role="region"
+              aria-labelledby={titleId}
+              tabIndex={0}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+            >
               <div className="bg-neutral-100/50 p-2 dark:bg-neutral-800/50 minimal:rounded-none sm:rounded-lg">
                 <div className="relative mx-auto flex max-h-[50vh] w-full items-center justify-center overflow-hidden">
                   {display.imageUrl ? (

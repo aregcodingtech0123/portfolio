@@ -43,6 +43,14 @@ describe("ProjectModal", () => {
     );
   });
 
+  it("exposes the scrollable content as a keyboard-focusable region named by the title", async () => {
+    renderModal();
+    const region = await waitFor(() =>
+      screen.getByRole("region", { name: "Test Project" }),
+    );
+    expect(region).toHaveAttribute("tabindex", "0");
+  });
+
   it("moves focus onto the header close button on open", async () => {
     renderModal();
     const closeButtons = await waitFor(() =>
