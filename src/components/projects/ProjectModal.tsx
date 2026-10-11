@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { buttonClasses } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
+import { useIsClient } from "@/lib/useIsClient";
 import type { ProjectDisplay } from "@/sanity/fetch";
 
 type ProjectModalProps = {
@@ -26,7 +27,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const reduceMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsClient();
   // Frozen on the last non-null project (React's "adjusting state during
   // rendering" pattern) so exit animations keep rendering its content
   // instead of unmounting the instant `project`/`open` flip to null/false.
@@ -34,10 +35,6 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
   if (project && project !== display) {
     setDisplay(project);
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Esc closes; Tab/Shift+Tab is trapped to the dialog's own focusable elements.
   useEffect(() => {
