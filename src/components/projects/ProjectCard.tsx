@@ -15,7 +15,7 @@ const categoryKey = {
 } as const satisfies Record<ProjectCategory, string>;
 
 const PREVIEW_FRAME =
-  "relative aspect-[16/10] w-full cursor-pointer overflow-hidden bg-neutral-100 dark:bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
+  "relative aspect-[16/10] w-full cursor-pointer overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
 
 const PREVIEW_IMAGE =
   "object-contain object-top";
