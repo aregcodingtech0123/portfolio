@@ -22,9 +22,15 @@ const SECRET_READERS: Record<string, string[]> = {
   // Nothing the site runs needs the write token. Only the developer-machine
   // seed script reads it (and env-snapshot, to refuse it in production).
   SANITY_API_WRITE_TOKEN: ["scripts/seed-sanity.ts", "src/lib/env-snapshot.ts"],
+  // The credential that sends mail. It must never be readable by the browser.
+  EMAILJS_PRIVATE_KEY: ["src/lib/contact/email-transport.ts"],
 };
 
-const SERVER_ONLY_MODULES = ["src/lib/turnstile-server.ts", "src/lib/translate/server.ts"];
+const SERVER_ONLY_MODULES = [
+  "src/lib/turnstile-server.ts",
+  "src/lib/translate/server.ts",
+  "src/lib/contact/email-transport.ts",
+];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
@@ -69,7 +75,7 @@ describe("Client Components", () => {
 
   it("never import a server-only module, the env snapshot or instrumentation", () => {
     const forbidden =
-      /from\s+["'](@\/lib\/turnstile-server|@\/lib\/translate\/server|@\/lib\/env-snapshot|@\/instrumentation|\.{1,2}\/[^"']*(turnstile-server|translate\/server|env-snapshot))["']/;
+      /from\s+["'](@\/lib\/turnstile-server|@\/lib\/translate\/server|@\/lib\/contact\/email-transport|@\/lib\/env-snapshot|@\/instrumentation|\.{1,2}\/[^"']*(turnstile-server|translate\/server|email-transport|env-snapshot))["']/;
     const offenders = clientFiles.filter((f) => forbidden.test(read(f)));
     expect(offenders).toEqual([]);
   });
