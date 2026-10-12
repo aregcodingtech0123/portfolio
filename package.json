@@ -16,7 +16,11 @@
     "sanity:types": "sanity schema extract && sanity typegen generate",
     "seed:sanity": "tsx scripts/seed-sanity.ts",
     "check:copy": "node scripts/check-copy.mjs",
-    "check:i18n": "node scripts/check-i18n.mjs"
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "perf": "node scripts/perf/lighthouse.mjs",
+    "perf:observe": "node scripts/perf/observe.mjs",
+    "perf:bundle": "node scripts/perf/bundle.mjs",
+    "perf:inspect": "node scripts/perf/inspect.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -49,6 +53,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "jsdom": "^29.1.1",
+    "lighthouse": "^13.5.0",
+    "puppeteer-core": "^25.13.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5",
