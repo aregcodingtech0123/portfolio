@@ -61,6 +61,10 @@ The 1 critical (`tar`) and 19 high: `@sanity/cli` and its tree (`tar`, `adm-zip`
 
 Next 16.3 changed how a hash-only link click is handled: `/en` to `/en#projects` now runs the full router navigation and, with `prefetch={false}`, fetches the page's RSC payload (`/en?_rsc=...`, about 24 KB) on every click. 16.2.6 scrolled with no request. `e2e/anchor-links.spec.ts` caught it. The in-page links (Hero, Navbar, Footer) are now plain anchors via `src/components/ui/SectionLink.tsx`, which renders the same `/en#projects` hrefs and lets the browser do the same-document scroll natively.
 
+### Later the same day: `@emailjs/browser` removed
+
+The contact email moved to the server ([contact.md](contact.md)), which calls EmailJS's REST API with `fetch`, so the browser SDK was uninstalled (it had no transitive dependencies). The public bundle now holds one fewer third-party package, and the perf budget's forbidden-public-packages rule includes `@emailjs/.*`, so CI fails if any EmailJS package ever reaches the page again.
+
 ## Keeping it triaged
 
 CI runs `npm audit` as a non-blocking report. To re-run this classification: `npm audit --json`, then check each finding against the three evidence sources above before ranking it. A scanner line is not a visitor-facing vulnerability until it is in the browser bundle or a route's server trace.

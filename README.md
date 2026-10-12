@@ -8,7 +8,7 @@ Bilingual (EN/TR) personal portfolio for Arda Ege Tunç, built on Next.js 16 (Ap
 - **next-intl** for EN/TR, locale-prefixed routes (`/en`, `/tr`)
 - **Sanity** — Studio mounted in-app at `/content-hub` (not `/studio`), with a typed fallback dataset so every section degrades gracefully to seed content
 - **Framer Motion** for section/motion transitions
-- **EmailJS** for the contact form
+- **EmailJS** (REST API, called by the server) for the contact form, gated by **Cloudflare Turnstile**
 - **Google Gemini** for an EN→TR translate-assist button inside Sanity Studio
 
 ## Features
@@ -16,7 +16,7 @@ Bilingual (EN/TR) personal portfolio for Arda Ege Tunç, built on Next.js 16 (Ap
 - **Two visual skins** (`terminal`, `minimal`) × **two modes** (`dark`, `light`), switchable at runtime from the navbar and persisted to `localStorage`; an inline boot script sets both before first paint to avoid a flash of the wrong theme
 - **Content-driven sections** (Hero, About, Projects, Experience, Education, Skills, Certificates, CTF write-ups, Contact) that hide themselves — and their nav/footer links — when they have no content (see [`src/config/sections.ts`](src/config/sections.ts))
 - **Shared project case-study modal** used by both skins: keyboard-trapped focus, Esc/backdrop to close, focus returns to the triggering card, and `?project=<code>` deep linking
-- **Contact form** via EmailJS that hides itself behind one honest line instead of a form when no real address is configured
+- **Contact form** sent by the server, only after the Turnstile check passes; the browser holds no email credential. Every failure is visible: a misconfigured server tells the visitor to write directly instead of failing silently ([`docs/security/contact.md`](docs/security/contact.md))
 - **CMS with a safety net**: every field falls back to [`src/data/migration-portfolio.ts`](src/data/migration-portfolio.ts) when Sanity has nothing for it, so the site is never blank
 
 ## Getting started
@@ -85,6 +85,8 @@ A production build on a developer machine or in CI that is not a real deployment
 
 ## Security
 
+- [`docs/security/pre-deploy-checklist.md`](docs/security/pre-deploy-checklist.md): **the manual steps before deploying** (host variables, EmailJS and Turnstile dashboards, WAF rules, the real-email test).
+- [`docs/security/contact.md`](docs/security/contact.md): the contact form's trust model, what the visitor sees for each failure and what is logged, the environment variables, and the manual end-to-end send test.
 - [`docs/security/csp.md`](docs/security/csp.md): the Content-Security-Policy (currently Report-Only), how to read violations, and the checklist for switching it to enforcing.
 - [`docs/security/rate-limiting.md`](docs/security/rate-limiting.md): the host/WAF rules for `/api/translate` and `/api/contact`, and why `/api/translate` is off in production unless `TRANSLATE_ENABLED=true`.
 - [`docs/security/dependency-audit.md`](docs/security/dependency-audit.md): how `npm audit` findings were triaged, and how to tell one that reaches a visitor from one that does not. CI prints an audit summary on every run but never fails on it.

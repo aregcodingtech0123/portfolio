@@ -35,7 +35,7 @@ Optionally, if you edit from a stable IP, add a rule above it: when the path is 
 
 ## `/api/contact`
 
-The route verifies a Turnstile token and returns `{ok:true}`. The email itself is still sent from the browser to EmailJS (reworking that is a separate task), so this rate limit protects the Cloudflare verification call and the route, not the mailbox.
+The route verifies the Turnstile token and then sends the email itself, from the server ([contact.md](contact.md)). The captcha gates every send, so this rate limit is a second layer: it caps how many solved captchas one IP can turn into emails, and how often anyone can make the server call Cloudflare and EmailJS. That protects the mailbox and the EmailJS monthly quota as well as the route.
 
 | Field | Value |
 |---|---|
