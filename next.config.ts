@@ -3,6 +3,7 @@ import path from "node:path";
 import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
+import { CSP_HEADER_NAME, SITE_CSP, STUDIO_CSP } from "./src/lib/csp";
 import { formatIssues, validateEnv } from "./src/lib/env-validation";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -13,6 +14,8 @@ const NEWLINE = "\n";
 const HERO_PORTRAIT = "/images/profilephoto.jpeg";
 
 const nextConfig: NextConfig = {
+  // Do not advertise the framework (X-Powered-By: Next.js).
+  poweredByHeader: false,
   env: {
     // Decided once per build (empty string = no photo, so the hero shows its
     // empty frame). See src/lib/portrait.ts.
@@ -40,18 +43,39 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const baseline = {
+      source: "/:path*",
+      headers: [
+        { key: "X-Frame-Options", value: "DENY" },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        {
+          key: "Permissions-Policy",
+          value: "camera=(), microphone=(), geolocation=()",
+        },
+      ],
+    };
+
+    // The dev server needs 'unsafe-eval' and websockets for HMR, so the policy
+    // is a production-build concern only. Delivery mode (report-only vs
+    // enforce) is CSP_MODE in src/lib/csp.ts; see docs/security/csp.md.
+    if (process.env.NODE_ENV !== "production") return [baseline];
+
     return [
+      baseline,
+      // The site: every document except the Studio. A static page cannot carry
+      // a per-request nonce, which is why this is a config header and not
+      // proxy.ts. Static assets, images and API responses are excluded: a CSP
+      // only governs documents, and on those responses it was ~430 uncompressed
+      // bytes each (measured: +8 KB transferred, slower simulated-mobile LCP).
       {
-        source: "/:path*",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-        ],
+        source: "/((?!content-hub|api/|_next/|images/|favicon\\.ico).*)",
+        headers: [{ key: CSP_HEADER_NAME, value: SITE_CSP }],
+      },
+      // The Studio: only the directives that need no origin list.
+      {
+        source: "/content-hub/:path*",
+        headers: [{ key: CSP_HEADER_NAME, value: STUDIO_CSP }],
       },
     ];
   },
