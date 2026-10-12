@@ -14,6 +14,7 @@ import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
 import { type SectionId, visibleSections } from "@/config/sections";
+import { resolvePortraitSrc } from "@/lib/portrait";
 
 export async function generateMetadata({
   params,
@@ -38,10 +39,14 @@ export async function generateMetadata({
   };
 }
 
-function renderSection(id: SectionId, content: PortfolioContent): ReactNode {
+function renderSection(
+  id: SectionId,
+  content: PortfolioContent,
+  portraitSrc: string | undefined,
+): ReactNode {
   switch (id) {
     case "home":
-      return <Hero />;
+      return <Hero portraitSrc={portraitSrc} />;
     case "about":
       return <About />;
     case "projects":
@@ -73,6 +78,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const content = await getPortfolioContent(locale);
+  const portraitSrc = resolvePortraitSrc();
 
   return (
     <SiteContentProvider value={content}>
@@ -80,7 +86,7 @@ export default async function HomePage({
       <SocialSidebar />
       <main className="relative isolate min-w-0 overflow-x-clip">
         {visibleSections(content).map((section) => (
-          <Fragment key={section.id}>{renderSection(section.id, content)}</Fragment>
+          <Fragment key={section.id}>{renderSection(section.id, content, portraitSrc)}</Fragment>
         ))}
       </main>
       <Footer />

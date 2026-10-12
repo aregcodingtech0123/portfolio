@@ -1,0 +1,67 @@
+import { expect, seedTheme, test, type Skin } from "./fixtures";
+
+// The hero portrait is the mobile LCP element in both skins. It used to mount
+// only after hydration and a client HEAD probe, so it could not start
+// downloading until the page's JavaScript had run. These tests pin the fix:
+// the image is in the first HTML response, needs no JavaScript, is never
+// probed, and does not move anything when it loads.
+
+test("the portrait <img> and its preload are in the server HTML", async ({ request }) => {
+  const html = await (await request.get("/en")).text();
+  // An <img> pointing at the optimized portrait, in the markup itself.
+  expect(html).toMatch(/<img[^>]+src="\/_next\/image\?url=%2Fimages%2Fprofilephoto\.jpeg[^"]*"/);
+  // And a preload the browser can act on before it parses the body.
+  expect(html).toMatch(/<link[^>]+rel="preload"[^>]+as="image"[^>]+profilephoto/);
+});
+
+test.describe("with JavaScript disabled", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("the portrait is visible and loaded", async ({ page }) => {
+    await page.goto("/en");
+    const img = page.locator("figure img").first();
+    await expect(img).toBeVisible();
+    await expect
+      .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0))
+      .toBe(true);
+    const box = await img.boundingBox();
+    expect(box!.height / box!.width).toBeCloseTo(4 / 3, 1);
+  });
+});
+
+for (const skin of ["terminal", "minimal"] as const satisfies Skin[]) {
+  test(`${skin}: portrait loads with no HEAD probe and causes no layout shift`, async ({ page }) => {
+    await seedTheme(page, { skin });
+    await page.addInitScript(() => {
+      const w = window as unknown as { __portraitShifts: number };
+      w.__portraitShifts = 0;
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries() as unknown as {
+          hadRecentInput: boolean;
+          sources?: { node?: Node }[];
+        }[]) {
+          if (entry.hadRecentInput) continue;
+          const hit = (entry.sources ?? []).some(
+            (s) => s.node && (s.node as Element).closest?.("figure"),
+          );
+          if (hit) w.__portraitShifts += 1;
+        }
+      }).observe({ type: "layout-shift", buffered: true });
+    });
+    const heads: string[] = [];
+    page.on("request", (r) => {
+      if (r.method() === "HEAD") heads.push(r.url());
+    });
+
+    await page.goto("/en");
+    const img = page.locator("figure img:visible").first();
+    await expect(img).toBeVisible();
+    await expect
+      .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0))
+      .toBe(true);
+    await page.waitForTimeout(500);
+
+    expect(heads, "the portrait must not be probed with a HEAD request").toEqual([]);
+    expect(await page.evaluate(() => (window as unknown as { __portraitShifts: number }).__portraitShifts)).toBe(0);
+  });
+}

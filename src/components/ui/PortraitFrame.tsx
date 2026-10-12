@@ -1,27 +1,31 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 
-const DEFAULT_SRC = "/images/profilephoto.jpeg";
+/** Intrinsic size of the portrait source; gives the browser its aspect ratio before the file arrives. */
+const PORTRAIT_WIDTH = 1200;
+const PORTRAIT_HEIGHT = 1600;
 
 type PortraitFrameProps = {
-  /** Path under `public/`, e.g. `/images/profilephoto.jpeg`. */
+  /**
+   * Path under `public/`, e.g. `/images/profilephoto.jpeg`. Leave it out when
+   * there is no photo: the frame then renders as an intentional empty slot.
+   * Whether the file exists is decided on the server (see lib/portrait.ts), so
+   * the image can be in the first HTML response instead of waiting on a probe.
+   */
   src?: string;
   className?: string;
 };
 
 /**
- * Skin-aware portrait slot. Renders a configured image when it loads;
- * otherwise keeps an intentional empty frame (surface fill + hairline border).
+ * Skin-aware portrait slot. Renders the photo when one is configured,
+ * otherwise an empty frame (surface fill + hairline border).
  * Uses a 3:4 frame with object-contain so the full photo stays visible.
  */
-export function PortraitFrame({
-  src = DEFAULT_SRC,
-  className = "",
-}: PortraitFrameProps) {
+export function PortraitFrame({ src, className = "" }: PortraitFrameProps) {
   const t = useTranslations("Hero");
   const { hero } = useSiteContent();
 
@@ -37,27 +41,14 @@ export function PortraitFrame({
   );
 }
 
-function PortraitSlot({ src, alt }: { src: string; alt: string }) {
-  /** null = probing, true = file present, false = absent / failed */
-  const [available, setAvailable] = useState<boolean | null>(null);
-  const [ready, setReady] = useState(false);
-  const empty = available !== true || !ready;
-
-  useEffect(() => {
-    let alive = true;
-
-    fetch(src, { method: "HEAD", cache: "no-store" })
-      .then((res) => {
-        if (alive) setAvailable(res.ok);
-      })
-      .catch(() => {
-        if (alive) setAvailable(false);
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [src]);
+function PortraitSlot({ src, alt }: { src?: string; alt: string }) {
+  /**
+   * The file can still fail at runtime (corrupt, deleted after the build).
+   * `onError` only fires if it hydrated before the failure, so a ref callback
+   * also catches an image that already failed while the server HTML was parsed.
+   */
+  const [failed, setFailed] = useState(false);
+  const empty = !src || failed;
 
   return (
     <div
@@ -71,20 +62,18 @@ function PortraitSlot({ src, alt }: { src: string; alt: string }) {
       ].join(" ")}
       {...(empty ? { "aria-hidden": true } : {})}
     >
-      {available === true && (
+      {src && !failed && (
         <Image
           src={src}
-          alt={empty ? "" : alt}
-          fill
-          priority
+          alt={alt}
+          width={PORTRAIT_WIDTH}
+          height={PORTRAIT_HEIGHT}
+          preload
           sizes="(max-width: 768px) 48vw, 288px"
-          className={`object-contain object-center transition-opacity duration-300 motion-reduce:transition-none ${
-            ready ? "opacity-100" : "opacity-0"
-          }`}
-          onLoad={() => setReady(true)}
-          onError={() => {
-            setAvailable(false);
-            setReady(false);
+          className="h-full w-full object-contain object-center"
+          onError={() => setFailed(true)}
+          ref={(img) => {
+            if (img && img.complete && img.naturalWidth === 0) setFailed(true);
           }}
         />
       )}

@@ -14,7 +14,7 @@ function delay(seconds: number): CSSProperties {
   return { "--reveal-delay": `${seconds}s` } as CSSProperties;
 }
 
-export function Hero() {
+export function Hero({ portraitSrc }: { portraitSrc?: string }) {
   const { hero } = useSiteContent();
 
   return (
@@ -67,7 +67,7 @@ export function Hero() {
           style={delay(0.12)}
           className="reveal-load-rise flex min-w-0 justify-center md:justify-end"
         >
-          <PortraitFrame src="/images/profilephoto.jpeg" />
+          <PortraitFrame src={portraitSrc} />
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export function Hero() {
           style={delay(0.2)}
           className="reveal-load flex min-w-0 justify-center md:justify-end"
         >
-          <PortraitFrame src="/images/profilephoto.jpeg" />
+          <PortraitFrame src={portraitSrc} />
         </div>
       </div>
     </div>
