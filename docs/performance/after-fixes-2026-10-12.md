@@ -1,8 +1,10 @@
 # Performance after the three fixes, 2026-10-12
 
-Written for: the site owner, to see what each fix measured and what the enforced budget is.
+Written for: the site owner. This is the single authoritative record of the performance phase: what each change measured, the experimental flags in use, and the enforced budget.
 
 Follows [baseline-2026-10-12.md](baseline-2026-10-12.md). Every number below was measured on a production build with `scripts/perf` after each commit (en, dark mode, both skins; Lighthouse medians of 5, observer medians of 3). Nothing is an estimate.
+
+> **Status: phase closed.** Sections up to "Cleanups" were written before the close-out round (inlineCss, anchor prefetch, budget tightening) and show the numbers at that point. The final state, the experimental flags and the final budget are in "Close-out round" and after.
 
 ## Two ways of measuring mobile, and why they disagree
 
@@ -75,31 +77,132 @@ Applied-throttling mobile: LCP 2204 -> **1464 ms** (terminal), 2224 -> **1460 ms
 | desktop score, simulated | 97 / 97 | 98 / 99 |
 | first-load JS gzip | 237.6 KB | 238.6 KB (unchanged) |
 
-## The budget (`scripts/perf/budget.json`, enforced by `npm run perf:budget`, two CI steps)
+## Close-out round
 
-| check | measured | limit | notes |
+Three changes, each its own commit, each measured with the same harness (`npm run perf`, 5 runs per configuration, `median (min-max)`; "applied" rows use `--throttling devtools`).
+
+### inlineCss on (commit d9fb0a1)
+
+The 12.6 KB stylesheet was a render-blocking request, one more round trip before first paint. `experimental.inlineCss` puts it in the HTML. The build runs with both experimental flags and prints no warnings.
+
+**Mobile, Lighthouse applied throttling (real Slow 4G + 4x CPU), before -> after inlineCss:**
+
+| config | score before | score after | FCP before | FCP after | LCP before | LCP after | KB before | KB after | CLS after |
+|---|---|---|---|---|---|---|---|---|---|
+| en-terminal-dark | 90 (89-90) | 93 (89-93) | 2013 (1901-2027) | 1283 (1251-1295) | 2196 (2168-2360) | 1871 (1862-1919) | 557 | 581 | 0.0027 |
+| en-terminal-light | 90 (88-90) | 92 (91-93) | 2003 (1906-2022) | 1275 (1245-1330) | 2198 (2173-2439) | 1892 (1863-1931) | 557 | 581 | 0.0027 |
+| en-minimal-dark | 92 (91-92) | 94 (93-95) | 1860 (1852-2038) | 1272 (1240-1276) | 2169 (2120-2381) | 1878 (1874-1924) | 527 | 550 | 0.0001 |
+| en-minimal-light | 91 (89-92) | 95 (92-95) | 2020 (1838-2030) | 1275 (1263-1292) | 2381 (2122-2437) | 1892 (1880-1926) | 527 | 550 | 0.0001 |
+| tr-terminal-dark | 88 (87-90) | 90 (90-91) | 1884 (1834-1990) | 1219 (1212-1254) | 2184 (2135-2423) | 1880 (1849-1905) | 593 | 616 | 0.0026 |
+| tr-terminal-light | 87 (86-89) | 91 (90-91) | 1961 (1878-1998) | 1251 (1220-1270) | 2395 (2179-2451) | 1889 (1837-1904) | 593 | 616 | 0.0026 |
+| tr-minimal-dark | 89 (88-90) | 94 (93-94) | 1834 (1771-2071) | 1218 (1204-1269) | 2201 (2138-2408) | 1902 (1888-1920) | 570 | 593 | 0.0001 |
+| tr-minimal-light | 90 (89-91) | 94 (93-95) | 1960 (1778-2047) | 1209 (1198-1226) | 2364 (2162-2410) | 1882 (1875-1944) | 570 | 593 | 0.0003 |
+
+**Mobile, Lighthouse simulated, before -> after:**
+
+| config | score before | score after | FCP before | FCP after | LCP before | LCP after | KB before | KB after | CLS after |
+|---|---|---|---|---|---|---|---|---|---|
+| en-terminal-dark | 80 (80-85) | 80 (79-81) | 1507 (1506-1517) | 1505 (1504-1512) | 5142 (4304-5218) | 5210 (4990-5359) | 558 | 581 | 0.0006 |
+| en-terminal-light | 80 (79-85) | 80 (80-85) | 1508 (1506-1511) | 1504 (1504-1507) | 5173 (4285-5209) | 5193 (4377-5202) | 558 (557-558) | 581 | 0.0001 |
+| en-minimal-dark | 82 (82-88) | 86 (81-88) | 1207 (1206-1210) | 1205 (1204-1207) | 4839 (3844-4843) | 4137 (3933-4976) | 527 | 550 | 0.0000 |
+| en-minimal-light | 82 | 87 (81-88) | 1208 (1207-1209) | 1205 (1204-1206) | 4842 (4822-4850) | 3989 (3937-4978) | 527 | 550 | 0.0001 |
+| tr-terminal-dark | 78 (78-80) | 78 (78-84) | 1808 (1807-1810) | 1805 (1804-1806) | 5507 (5064-5526) | 5514 (4430-5587) | 593 | 616 | 0.0007 |
+| tr-terminal-light | 78 (77-79) | 78 (78-84) | 1807 (1807-1809) | 1804 (1804-1807) | 5502 (5429-5550) | 5512 (4429-5583) | 593 | 616 | 0.0007 |
+| tr-minimal-dark | 86 (85-86) | 85 (85-86) | 1507 (1506-1509) | 1504 (1504-1506) | 4141 (4137-4304) | 4362 (4141-4385) | 570 | 593 | 0.0002 |
+| tr-minimal-light | 86 | 85 (84-86) | 1507 (1507-1509) | 1505 (1504-1506) | 4137 (4136-4140) | 4234 (4137-4393) | 570 | 593 | 0.0005 |
+
+**Desktop, simulated, before -> after:**
+
+| config | score before | score after | FCP before | FCP after | LCP before | LCP after | KB before | KB after | CLS after |
+|---|---|---|---|---|---|---|---|---|---|
+| en-terminal-dark | 98 (98-99) | 98 | 407 (406-409) | 404 (365-406) | 1077 (833-1081) | 1097 (1058-1101) | 558 (557-558) | 581 (581-594) | 0.0002 |
+| en-terminal-light | 98 | 98 | 407 (407-411) | 405 (404-406) | 1077 (1077-1085) | 1100 (1097-1101) | 558 (557-558) | 581 | 0.0002 |
+| en-minimal-dark | 99 | 98 (98-99) | 328 (326-329) | 325 (324-326) | 1038 (1034-1039) | 1071 (1005-1078) | 527 | 550 | 0.0001 |
+| en-minimal-light | 99 (98-99) | 98 | 329 (327-332) | 324 (324-326) | 1038 (1037-1046) | 1071 (1062-1076) | 527 | 550 | 0.0001 |
+| tr-terminal-dark | 98 | 98 | 448 (446-448) | 445 (444-446) | 1119 (1117-1127) | 1155 (1153-1158) | 593 | 616 | 0.0003 |
+| tr-terminal-light | 98 | 98 | 448 (447-448) | 445 | 1120 (1060-1122) | 1160 (1154-1163) | 593 | 616 | 0.0003 |
+| tr-minimal-dark | 98 (98-99) | 99 (98-99) | 407 (406-409) | 405 (404-405) | 1076 (831-1078) | 878 (873-1118) | 570 | 593 | 0.0020 |
+| tr-minimal-light | 98 (98-99) | 99 (98-99) | 407 (407-409) | 405 (404-406) | 1077 (835-1082) | 874 (872-1120) | 570 | 593 | 0.0020 |
+
+(KB "after" includes inlineCss's +23 KB; the anchor-prefetch change below takes it back.) Observer, real throttling, en dark: mobile FCP 1072 -> **744 ms** and LCP 1484 -> **1028 ms** (terminal); 1020 -> 732 and 1476 -> 1008 ms (minimal); long tasks 192 -> 146 ms.
+
+- **The terminal score now clears the floor with margin.** Applied, en dark, terminal: 90 (89-90) -> 93 (89-93). Over a later 15-run sample, single runs are 91-93 (median 92), where before they were 86-90 across 20 runs. The remaining spread is why the gate uses the median of 5.
+- **Simulated mode does not move at all** (terminal score 80 -> 80, FCP 1507 -> 1505 ms, LCP unchanged within its bimodal spread). The gain exists only under real throttling, which is why the budget gates on that.
+- **Are the font-change regressions absorbed?** Measured with a 2x2 experiment on terminal, mobile, 5 runs each (fonts preloaded or not, inlineCss off or on). Simulated FCP: preloaded 907 ms, not preloaded 1507 ms, and inlineCss changes neither (1024 with preloaded fonts, 1505 without). So the simulated FCP "regression" is **not** absorbed: it is the price of not preloading, a modelling effect of the fonts starting after the CSS. Under applied throttling there never was an FCP regression: 2102 ms with fonts preloaded and 2013 ms without, and inlineCss takes both to about 1280 ms (-0.8 s). **CLS is not absorbed either**: applied terminal CLS is 0.0027 with or without preloading and with or without inlineCss, so it was not caused by the font change; it stays well inside the 0.005 limit. The font change itself is worth about +8 score points under applied throttling (fonts preloaded 82-84, not preloaded 90-93).
+- **Nothing visible broke.** `e2e/inline-css.spec.ts` (new): the HTML carries its CSS and links no stylesheet; in all four skin and mode combinations the page is styled at first paint with every script and font held back for 3 s (background follows the mode, heading at the CSS's size). I also looked at the first-paint screenshots of terminal/dark and minimal/light. The existing no-JS and reduced-motion visibility specs and the theme-boot spec (no flash of the wrong theme) all pass: 72 e2e passed before the new spec was fixed, 76 with it and the anchor spec.
+- **Costs:** +23 KB transferred (the CSS is inlined once in the HTML and again inside each RSC payload), and a second experimental flag.
+
+### In-page anchor prefetch off (commit eb653f8)
+
+The hero, nav and footer links (`/#projects`, `/#contact`, `/`) point into the current route, so `next/link` prefetched the page you were on: **4 RSC requests, 23.4 KB** per page view (12 KB before inlineCss). Measured with them off, en, 5 runs:
+
+| | prefetch on | prefetch off |
+|---|---|---|
+| RSC requests / KB | 4 / 23.4 | **0 / 0** |
+| transferred, terminal / minimal | 581 / 550 KB | **558 / 527 KB** (-4%) |
+| applied terminal: FCP, LCP, TBT | 1283, 1871, 318 ms | 1302, 1886, 346 ms |
+| applied minimal: FCP, LCP, TBT | 1272, 1878, 268 ms | 1257, 1876, 257 ms |
+| simulated mobile terminal: score, FCP | 80, 1505 ms | 80, 1506 ms |
+
+Verdict: applied, because it removes a deterministic 23 KB and 4 requests with no cost to navigation. It does not speed anything up: the timing differences are inside run-to-run noise. `e2e/anchor-links.spec.ts` pins that there is no `_rsc` request on load and that clicking an in-page link scrolls to the section and fetches nothing, in both skins.
+
+### Budget tightened (commit bb4c2a4)
+
+See "The budget" below.
+
+## Final state
+
+| mobile, applied throttling, en dark (15 runs) | terminal | minimal |
+|---|---|---|
+| score | 92 (91-93) | 94 (93-95) |
+| LCP | 1.87 s (1.83-1.92) | 1.89 s (1.85-1.97) |
+| FCP | 1.29 s (1.27-1.32) | 1.27 s (1.23-1.30) |
+| TBT | 328 ms (303-358) | 269 ms (244-279) |
+| CLS | 0.0027 | 0.0001 |
+| transferred | 558 KB | 527 KB |
+
+Baseline in this mode: score 66 / 69, LCP 7.58 s, 871 KB. Observer (real throttling, browser's own LCP): about 1.0 s. Lighthouse simulated, which the budget only tracks: terminal 79-80 (LCP 5.2 s), minimal about 87 (LCP 4.0 s); desktop 98, LCP 1.07 s. First-load JS 238.6 KB gzip, unchanged by this phase.
+
+## Experimental flags in use
+
+| flag | why | what removing it costs |
+|---|---|---|
+| `experimental.globalNotFound` | the site and the Studio are separate root layouts (no `app/layout.tsx`), which is what lets `/en` and `/tr` be static; Next then needs `app/global-not-found.tsx` for unmatched URLs | the build fails (no layout to compose a 404 from), or the pages go back to dynamic |
+| `experimental.inlineCss` | removes the render-blocking stylesheet request: applied mobile FCP about -0.7 s, LCP about -0.3 s, score +2 to +3 | applied terminal score falls to 88-90 and the budget fails, including a dedicated check that the CSS is inline |
+
+Both carry upgrade risk on a Next version bump; `perf:budget`, `e2e/not-found.spec.ts` and `e2e/inline-css.spec.ts` are what would show a change in behavior.
+
+## The budget (`scripts/perf/budget.json`, `npm run perf:budget`, two CI steps)
+
+Assumes: the production build with both flags above on, hero/nav/footer anchors not prefetched, only Inter preloaded, and `/en` and `/tr` static.
+
+| check | measured | limit | headroom |
 |---|---|---|---|
-| first-load JS gzip, `/en`, `/tr` | 238.6 KB | **245 KB** | floor was 250; tightened to the measured value + ~3% |
-| not-found first-load JS gzip | 143.8 KB | 150 KB | |
-| first-load JS raw, `/en` | 810.8 KB | 830 KB | |
-| preloaded fonts | 130.6 KB | 140 KB | catches a re-preloaded family |
-| Studio / `@sanity/*` / `next-sanity` / `@google/genai` in public chunks | none | none | module-level, `/[locale]` and not-found |
-| `/en` cacheable | `s-maxage=600` | not `no-store` | catches a slide back to dynamic |
-| mobile (applied) score | 90 / 91 | **>= 90** | at the floor, see below |
-| mobile (applied) LCP | 2.15-2.47 s | **2.8 s** | floor was 3.0 s |
-| mobile (applied) FCP / TBT / CLS | 1.9-2.0 s / 260-325 ms / <= 0.003 | 2.4 s / 350 ms / 0.01 | |
-| mobile transferred | 558 / 527 KB | **590 KB** | floor was 650 |
-| largest image | 24.6 KB | 40 KB | |
-| desktop minimal (simulated) | score 99, LCP 1.04 s | >= 95, 1.4 s | |
-| mobile terminal (simulated) tripwire | score 80, LCP 4.9-5.2 s | >= 74, 5.8 s | wide on purpose; not the floors |
+| mobile (applied) score | terminal 91-93, minimal 93-95 | **>= 91** | one point under the terminal median; a median of 5 never fell below 91 in 20,000 resamples of the 15 runs, and the build without inlineCss scores 88-90, so removing it fails |
+| mobile (applied) LCP | 1.83-1.97 s | **<= 2.1 s** | about +10% over the worst run; without inlineCss 2.2 s fails |
+| mobile (applied) FCP | 1.23-1.32 s | **<= 1.6 s** | +20%; without inlineCss 1.9 s fails |
+| mobile (applied) TBT | terminal 303-358 ms | <= 350 ms | none to spare, **not tightened**: CPU-bound and already at the noise limit; the score check carries it |
+| mobile CLS | 0.0027 / 0.0001 | **<= 0.005** | deterministic |
+| mobile transferred | 558 / 527 KB | **<= 575 KB** | deterministic, +3% |
+| largest image | 24.6 KB | <= 30 KB | |
+| preloaded fonts | 130.6 KB | <= 135 KB | |
+| first-load JS gzip, `/en` and `/tr` / not-found | 238.6 / 143.8 KB | <= 242 / 150 KB | +1.4% |
+| first-load JS raw, `/en` | 810.9 KB | <= 830 KB | |
+| `/en` cacheable | `s-maxage=600` | not `no-store` | |
+| assumption: inlineCss is on | 0 linked stylesheets, 68 KB inline | 0 linked | |
+| Studio / `@sanity/*` / `next-sanity` / `@google/genai` in public chunks | none | none | |
+| desktop minimal (simulated) | score 98, LCP 1.07 s, FCP 0.32 s, TBT 0 | >= 97, <= 1.25 s, <= 0.5 s, <= 30 ms | |
+| mobile terminal (simulated) tripwire | score 79-80, LCP 4.4-5.2 s, FCP 1.505 s | >= 77, <= 5.6 s, <= 1.7 s | wide on purpose: its LCP is bimodal |
 
-**Cheap vs slow:** the bundle step (about a minute, no timing, deterministic) runs on every push as its own step. The Lighthouse step (about four minutes) also runs on every push but on a reduced matrix: mobile in both skins, desktop in the minimal skin (the only place the portrait can be the desktop LCP), and one simulated config. Locale and colour mode are left out because the baseline showed them within noise of each other. The Lighthouse stage uses medians of 5, calibrates the CPU slowdown only on a clearly slower host, and re-measures once before failing on a timing-only breach.
+The brief's floors (score 90, LCP 3.0 s, 250 KB JS, 650 KB transferred) are all beaten by these limits; no limit was loosened in this round. How the headroom was chosen: the byte and CLS checks are deterministic, so they sit 3% over; the timing checks move by about one score point and 5% under applied throttling, which a median of 5 plus one automatic re-measure absorbs, so the limits sit a point or about 10% beyond what was seen. Ordinary variance passes; a regression the size of one of the flags above does not.
 
-**Proof it bites:** a tightened copy of the budget (`/en` JS 200 KB, a forbidden-package pattern that matches `motion-dom`, mobile LCP 1.5 s, score 97) exited 1 with exactly those rows failing (`first-load JS gzip, /en: 238.6 KB > 200`, `public chunks: motion-dom`, score, LCP; plus TBT 359 ms > 350 on that single noisy run). The real budget then passed on the fixed build: `Performance budget passed: 7 checks` (bundle) and `28 checks` (Lighthouse).
+**Proof it bites:** a tightened copy of the budget exited 1 on exactly the tightened rows (JS 238.6 > 200 KB; score 91 and 94 < 96; LCP 1.85 and 1.87 s > 1.5 s). A real build with `inlineCss` removed failed 9 checks: the assumption row, terminal score 88 and minimal 90 (< 91), LCP 2.22 and 2.17 s, FCP 1.93 and 1.89 s, TBT 387 ms, and simulated transfer 583 KB. The real budget passes on the final build: 8 bundle checks and 28 Lighthouse checks.
 
-## Open decisions and what is still weak
+**Cheap vs slow in CI** (unchanged): the bundle step (about a minute, deterministic) and the Lighthouse step (about four minutes, median of 5 on a reduced matrix, CPU slowdown calibrated only for a clearly slower host, one automatic re-measure for timing-only breaches) are separate steps after e2e.
 
-1. **Terminal mobile score sits at the floor.** Applied-throttling single runs were 87-91 (medians of 5: 90.0, 90.0, 91.0), so the `>= 90` gate will occasionally fail even with the retry. Measured option, not applied: `experimental.inlineCss: true` took the applied score to 92/93, FCP 2.0 -> 1.27 s and LCP 2.2 -> 1.9 s, for +23 KB transfer and a second experimental flag. The alternative is to lower the gate to 88. Both are your call; I did neither.
-2. **The PageSpeed-style (simulated) basis fails the floors** (80-88, 3.8-5.1 s), as explained at the top. Closing that gap means sending fewer bytes before the LCP, i.e. the marginal items the baseline said not to do.
-3. **Four RSC prefetches instead of one** now run after load (about 12 KB, low priority, off the LCP path): the in-page `#projects` / `#contact` links prefetch the now-static route. `prefetch={false}` on those links would remove them; not done.
-4. **The Lighthouse step has not run on a GitHub runner.** It was written to calibrate for a slower host and to disable Chromium's sandbox there (`CI`), but both are untested; expect to adjust `referenceBenchmarkIndex` or TBT after the first CI run.
+## Still open
+
+- **The simulated (PageSpeed-style) basis does not meet the original floors** (terminal 79-80 / LCP 5.2 s; minimal about 87 / 4.0 s). Under real throttling the site is at 92-94 and 1.9 s. Closing the simulated gap needs fewer bytes before the LCP, which is the excluded work.
+- **The Lighthouse CI step has not run on a GitHub runner**; the CPU calibration and the CI-only sandbox flags are untested. Expect to adjust `referenceBenchmarkIndex` or the TBT limit after the first CI run.
+- **Terminal TBT (about 330 ms) is the main drag on the terminal score**; it is hydration work, outside this phase.
+- Desktop minimal CLS read 0.0027 in the observer after inlineCss (0.0001 before): still inside the 0.005 limit, 3 runs, not investigated.
