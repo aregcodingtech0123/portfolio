@@ -35,7 +35,7 @@ See [`.env.example`](.env.example) for the full, commented list. Summary:
 
 | Variable | Required for | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_EMAILJS_SERVICE_ID` / `_TEMPLATE_ID` / `_PUBLIC_KEY` | Contact form | Without these the form renders disabled with a dev-only notice |
+| `EMAILJS_SERVICE_ID` / `_TEMPLATE_ID` / `_PUBLIC_KEY` / `_PRIVATE_KEY` | Contact form (sent by the server) | Server-only, all four or none. Without them the form tells visitors it is unavailable and shows your email and LinkedIn instead |
 | `NEXT_PUBLIC_SITE_URL` | Metadata, canonical and hreflang URLs | Defaults to `http://localhost:3000`; a production build requires an `https://` URL that is not localhost |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Contact form captcha | Both or neither; a production build requires both. The secret is server-only |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` / `_DATASET` / `_API_VERSION` | Sanity Studio + content fetch | Without a project ID the site runs entirely on the fallback dataset |

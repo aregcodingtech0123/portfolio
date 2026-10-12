@@ -23,7 +23,7 @@ const SECRET_READERS: Record<string, string[]> = {
   // seed script reads it (and env-snapshot, to refuse it in production).
   SANITY_API_WRITE_TOKEN: ["scripts/seed-sanity.ts", "src/lib/env-snapshot.ts"],
   // The credential that sends mail. It must never be readable by the browser.
-  EMAILJS_PRIVATE_KEY: ["src/lib/contact/email-transport.ts"],
+  EMAILJS_PRIVATE_KEY: ["src/lib/contact/email-transport.ts", "src/lib/env-snapshot.ts"],
 };
 
 const SERVER_ONLY_MODULES = [

@@ -11,11 +11,11 @@ import { MOCK_EMAILJS_ORIGIN } from "./mock-emailjs/constants";
  * E2E flow here calls /api/translate, which is the only thing that reaches
  * it, and that route itself runs server-side too.
  *
- * api.emailjs.com is blocked by default (abort) so a test that never means
- * to touch EmailJS can't accidentally send real mail; a test that exercises
- * the contact form registers its own, more specific route for that host
- * AFTER this fixture applies, which Playwright matches first, overriding
- * the default abort with a controlled mocked response.
+ * api.emailjs.com: the browser must never contact EmailJS at all. The contact
+ * email is sent by the server (/api/contact), after Turnstile verification,
+ * to a local stand-in during this run (e2e/mock-emailjs/server.mjs). Any
+ * browser request to EmailJS is recorded here and fails the test: that is the
+ * acceptance criterion of moving the send server-side, checked on every spec.
  *
  * challenges.cloudflare.com is deliberately NOT in this list: Cloudflare
  * publishes fixed Turnstile test keys designed to be used against the real
@@ -141,20 +141,6 @@ export async function installThemeMutationLog(page: Page) {
 export async function readThemeLog(page: Page): Promise<ThemeLogEntry[]> {
   return page.evaluate(
     () => (window as unknown as { __themeLog: ThemeLogEntry[] }).__themeLog,
-  );
-}
-
-/** Intercepts EmailJS's send call with a fulfilled success response. */
-export async function mockEmailJsSuccess(page: Page) {
-  await page.route("**/api.emailjs.com/**", (route) =>
-    route.fulfill({ status: 200, body: "OK" }),
-  );
-}
-
-/** Intercepts EmailJS's send call with a failure response. */
-export async function mockEmailJsFailure(page: Page) {
-  await page.route("**/api.emailjs.com/**", (route) =>
-    route.fulfill({ status: 422, body: "Unprocessable" }),
   );
 }
 

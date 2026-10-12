@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
 import { CSP_HEADER_NAME, SITE_CSP, STUDIO_CSP } from "./src/lib/csp";
-import { formatIssues, validateEnv } from "./src/lib/env-validation";
+import { formatIssues, isContactSendConfigured, validateEnv } from "./src/lib/env-validation";
 import { sanityImageRemotePatterns } from "./src/sanity/image-patterns";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
     HERO_PORTRAIT_SRC: existsSync(path.join(process.cwd(), "public", HERO_PORTRAIT))
       ? HERO_PORTRAIT
       : "",
+    // "1" when the server has every EmailJS value it needs to send the
+    // contact email (src/lib/contact/client-config.ts). A boolean, never a
+    // value: the credentials themselves stay server-only.
+    CONTACT_SEND_CONFIGURED: isContactSendConfigured(process.env) ? "1" : "",
   },
   experimental: {
     // The site and the Studio are separate root layouts (no app/layout.tsx), so

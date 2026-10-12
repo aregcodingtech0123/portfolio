@@ -43,7 +43,19 @@ const CLOUDFLARE_TEST_KEY_PATTERN = /^[123]x/;
 const SANITY_API_VERSION_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "0.0.0.0", "[::1]", "::1"]);
 
+/**
+ * The contact email is sent by the server (/api/contact), so every EmailJS
+ * value is server-only. None is NEXT_PUBLIC_: the browser never sends mail.
+ */
 export const EMAILJS_VARS = [
+  "EMAILJS_SERVICE_ID",
+  "EMAILJS_TEMPLATE_ID",
+  "EMAILJS_PUBLIC_KEY",
+  "EMAILJS_PRIVATE_KEY",
+] as const;
+
+/** The browser-side names used before the send moved to the server. */
+export const RETIRED_EMAILJS_VARS = [
   "NEXT_PUBLIC_EMAILJS_SERVICE_ID",
   "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID",
   "NEXT_PUBLIC_EMAILJS_PUBLIC_KEY",
@@ -52,6 +64,15 @@ export const EMAILJS_VARS = [
 /** Empty and whitespace-only values count as unset, like the code that reads them. */
 function value(env: EnvInput, name: string): string {
   return env[name]?.trim() ?? "";
+}
+
+/**
+ * Whether the server has everything it needs to send the contact email. The
+ * build bakes this boolean (never a value) into the page, so the form can say
+ * "unavailable" up front instead of failing at submit.
+ */
+export function isContactSendConfigured(env: EnvInput): boolean {
+  return EMAILJS_VARS.every((name) => value(env, name) !== "");
 }
 
 export function resolveProfile(env: EnvInput): { profile: Profile; unknown?: string } {
@@ -124,7 +145,7 @@ export function validateEnv(env: EnvInput, { production }: ValidateOptions): Env
     }
   }
 
-  // --- EmailJS: all or none; required in production ------------------------
+  // --- EmailJS (server-side send): all or none; required in production -----
   const emailjsSet = EMAILJS_VARS.filter((name) => value(env, name));
   const emailjsMissing = EMAILJS_VARS.filter((name) => !value(env, name));
   if (emailjsSet.length > 0 && emailjsMissing.length > 0) {
@@ -132,14 +153,56 @@ export function validateEnv(env: EnvInput, { production }: ValidateOptions): Env
       "error",
       "emailjs-partial",
       emailjsMissing,
-      `EmailJS is half configured. Set all three of ${EMAILJS_VARS.join(", ")} or none. Missing: ${emailjsMissing.join(", ")}. With any one missing the contact form stays disabled.`,
+      `EmailJS is half configured. Set all four of ${EMAILJS_VARS.join(", ")} or none. Missing: ${emailjsMissing.join(", ")}. With any one missing the contact form shows "unavailable" and nothing is sent.`,
     );
   } else if (production && emailjsSet.length === 0) {
     add(
       "error",
       "emailjs-missing",
       EMAILJS_VARS,
-      `EmailJS is not configured. In production the contact form would be disabled with no visible reason. Set ${EMAILJS_VARS.join(", ")}.`,
+      `EmailJS is not configured. In production the contact form could not send anything. Set ${EMAILJS_VARS.join(", ")} (server-only).`,
+    );
+  }
+  if (
+    value(env, "EMAILJS_PRIVATE_KEY") &&
+    value(env, "EMAILJS_PRIVATE_KEY") === value(env, "EMAILJS_PUBLIC_KEY")
+  ) {
+    add(
+      "error",
+      "emailjs-keys-identical",
+      ["EMAILJS_PUBLIC_KEY", "EMAILJS_PRIVATE_KEY"],
+      "EMAILJS_PUBLIC_KEY and EMAILJS_PRIVATE_KEY have the same value. They are two different keys (EmailJS dashboard, Account, API keys).",
+    );
+  }
+  const retired = RETIRED_EMAILJS_VARS.filter((name) => value(env, name));
+  if (retired.length > 0) {
+    add(
+      "warning",
+      "emailjs-retired-vars",
+      retired,
+      `${retired.join(", ")} ${retired.length > 1 ? "are" : "is"} no longer used: the email is sent from the server now. Remove ${retired.length > 1 ? "them" : "it"} and set ${EMAILJS_VARS.join(", ")} instead.`,
+    );
+  }
+  // The mock-transport override exists only for the Playwright run.
+  if (production && profile === "production" && value(env, "EMAILJS_API_ORIGIN")) {
+    add(
+      "error",
+      "emailjs-origin-override",
+      ["EMAILJS_API_ORIGIN"],
+      "EMAILJS_API_ORIGIN is a test-only override (it points the send at a local mock) and is ignored outside APP_ENV=test. Remove it from this environment.",
+    );
+  }
+
+  // --- Nothing secret may be NEXT_PUBLIC_ (it would be inlined into the page) --
+  const publicSecrets = Object.keys(env).filter(
+    (name) => name.startsWith("NEXT_PUBLIC_") && /SECRET|PRIVATE|TOKEN|PASSWORD/.test(name) && value(env, name),
+  );
+  if (publicSecrets.length > 0) {
+    add(
+      "error",
+      "public-secret",
+      publicSecrets,
+      `${publicSecrets.join(", ")} looks like a secret but has the NEXT_PUBLIC_ prefix, so its value would be copied into the JavaScript every visitor downloads. Rename it without the prefix.`,
     );
   }
 

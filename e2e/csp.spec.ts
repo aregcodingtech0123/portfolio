@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { CSP_HEADER_NAME, CSP_MODE, SITE_CSP, STUDIO_CSP } from "../src/lib/csp";
-import { expect, mockEmailJsSuccess, seedTheme, test, type Mode, type Skin } from "./fixtures";
+import { expect, seedTheme, test, type Mode, type Skin } from "./fixtures";
 
 /*
  * The Content-Security-Policy ships as Report-Only (src/lib/csp.ts). That is
@@ -12,9 +12,10 @@ import { expect, mockEmailJsSuccess, seedTheme, test, type Mode, type Skin } fro
  * challenges.cloudflare.com, because the policy has to be proved against the
  * real script, iframe and requests (script-src, frame-src, connect-src). That
  * is the one sanctioned exception to "no real network" in this suite and it is
- * confined to this file. Everything else stays mocked: /api/contact is
- * fulfilled here (so the server never calls Cloudflare's siteverify from this
- * spec) and EmailJS is fulfilled by the shared fixture. Violations inside the
+ * confined to this file. /api/contact is fulfilled here, so this spec stays
+ * about the browser's policy (the server-side send and its siteverify call are
+ * covered by contact-form.spec.ts). The browser no longer contacts EmailJS at
+ * all; the shared fixture fails the test if it ever does. Violations inside the
  * Turnstile iframe belong to Cloudflare's own document and policy, not ours.
  *
  * If a violation shows up, the fix is in the policy (src/lib/csp.ts), not in
@@ -160,9 +161,8 @@ for (const { skin, mode } of COMBOS) {
         // Fulfilled here so the server never reaches Cloudflare's siteverify
         // from this spec. The widget itself (browser to Cloudflare) is real.
         await page.route("**/api/contact", (route) =>
-          route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
+          route.fulfill({ status: 200, contentType: "application/json", body: '{"outcome":"sent"}' }),
         );
-        await mockEmailJsSuccess(page);
 
         await page.goto(path);
         await expect(page.locator("main")).toBeVisible();
@@ -187,10 +187,10 @@ for (const { skin, mode } of COMBOS) {
         await expect(dialog).toBeHidden();
 
         // The contact form: the real Turnstile script and iframe, then a send
-        // (EmailJS request, mocked response).
+        // (the same-origin POST to /api/contact, answered above).
         await page.locator("#contact").scrollIntoViewIfNeeded();
-        await page.locator('input[name="from_name"]:visible').fill("CSP Visitor");
-        await page.locator('input[name="reply_to"]:visible').fill("visitor@example.com");
+        await page.locator('input[name="name"]:visible').fill("CSP Visitor");
+        await page.locator('input[name="email"]:visible').fill("visitor@example.com");
         await page.locator('input[name="subject"]:visible').fill("Policy check");
         await page.locator('textarea[name="message"]:visible').fill("Checking the policy.");
         await waitForTurnstileToken(page, copy.send);

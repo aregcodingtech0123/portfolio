@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatIssues,
+  isContactSendConfigured,
   isTranslateEnabled,
   resolveProfile,
   validateEnv,
@@ -10,9 +11,10 @@ import {
 /** A complete, correct production environment. Each case below breaks one thing. */
 const GOOD: Record<string, string> = {
   NEXT_PUBLIC_SITE_URL: "https://portfolio.example.dev",
-  NEXT_PUBLIC_EMAILJS_SERVICE_ID: "service_abc",
-  NEXT_PUBLIC_EMAILJS_TEMPLATE_ID: "template_abc",
-  NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: "pk_abc",
+  EMAILJS_SERVICE_ID: "service_abc",
+  EMAILJS_TEMPLATE_ID: "template_abc",
+  EMAILJS_PUBLIC_KEY: "pk_abc",
+  EMAILJS_PRIVATE_KEY: "private_abc",
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAAAkg0s2VIOD34y5",
   TURNSTILE_SECRET_KEY: "0x4AAAAAAAAkg0s2VIOD34y5_secret_value",
   NEXT_PUBLIC_SANITY_PROJECT_ID: "abc123xy",
@@ -61,11 +63,12 @@ describe("NEXT_PUBLIC_SITE_URL", () => {
   });
 });
 
-describe("EmailJS: all three or none, required in production", () => {
+describe("EmailJS (server-side send): all four or none, required in production", () => {
   const vars = [
-    "NEXT_PUBLIC_EMAILJS_SERVICE_ID",
-    "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID",
-    "NEXT_PUBLIC_EMAILJS_PUBLIC_KEY",
+    "EMAILJS_SERVICE_ID",
+    "EMAILJS_TEMPLATE_ID",
+    "EMAILJS_PUBLIC_KEY",
+    "EMAILJS_PRIVATE_KEY",
   ];
 
   it.each(vars)("is a half-configured error when only %s is missing", (missing) => {
@@ -76,10 +79,10 @@ describe("EmailJS: all three or none, required in production", () => {
   });
 
   it("treats a whitespace-only value as missing", () => {
-    expect(errorCodes(env({ NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: "  " }))).toContain("emailjs-partial");
+    expect(errorCodes(env({ EMAILJS_PRIVATE_KEY: "  " }))).toContain("emailjs-partial");
   });
 
-  it("errors in production when none of the three are set", () => {
+  it("errors in production when none of the four are set", () => {
     const e = env({ ...Object.fromEntries(vars.map((v) => [v, undefined])) });
     expect(errorCodes(e)).toContain("emailjs-missing");
   });
@@ -87,9 +90,74 @@ describe("EmailJS: all three or none, required in production", () => {
   it("allows none outside production, but a half-set state is still an error", () => {
     const none = env({ ...Object.fromEntries(vars.map((v) => [v, undefined])) });
     expect(errorCodes(none, false)).toEqual([]);
-    expect(errorCodes(env({ NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: undefined }), false)).toContain(
+    expect(errorCodes(env({ EMAILJS_PRIVATE_KEY: undefined }), false)).toContain(
       "emailjs-partial",
     );
+  });
+
+  it("a public key without the private key is half-configured (the private key is what closes the bypass)", () => {
+    const issues = validateEnv(env({ EMAILJS_PRIVATE_KEY: undefined }), { production: true });
+    expect(issues.find((i) => i.code === "emailjs-partial")?.vars).toEqual(["EMAILJS_PRIVATE_KEY"]);
+  });
+
+  it("errors when the public and private keys are the same value", () => {
+    expect(errorCodes(env({ EMAILJS_PRIVATE_KEY: "same", EMAILJS_PUBLIC_KEY: "same" }))).toContain(
+      "emailjs-keys-identical",
+    );
+  });
+
+  it.each(["NEXT_PUBLIC_EMAILJS_SERVICE_ID", "NEXT_PUBLIC_EMAILJS_TEMPLATE_ID", "NEXT_PUBLIC_EMAILJS_PUBLIC_KEY"])(
+    "warns that the retired browser-side %s is no longer used",
+    (retired) => {
+      const issues = validateEnv(env({ [retired]: "old" }), { production: true });
+      const issue = issues.find((i) => i.code === "emailjs-retired-vars");
+      expect(issue?.severity).toBe("warning");
+      expect(issue?.vars).toEqual([retired]);
+    },
+  );
+
+  it("rejects the test-only send override in production", () => {
+    expect(errorCodes(env({ EMAILJS_API_ORIGIN: "http://127.0.0.1:3199" }))).toContain("emailjs-origin-override");
+  });
+
+  it("allows the send override under APP_ENV=test", () => {
+    expect(errorCodes(env({ APP_ENV: "test", EMAILJS_API_ORIGIN: "http://127.0.0.1:3199" }))).not.toContain(
+      "emailjs-origin-override",
+    );
+  });
+});
+
+describe("isContactSendConfigured", () => {
+  it("is true only with all four server-side values", () => {
+    expect(isContactSendConfigured(env())).toBe(true);
+    for (const name of ["EMAILJS_SERVICE_ID", "EMAILJS_TEMPLATE_ID", "EMAILJS_PUBLIC_KEY", "EMAILJS_PRIVATE_KEY"]) {
+      expect(isContactSendConfigured(env({ [name]: " " }))).toBe(false);
+    }
+  });
+
+  it("ignores the retired browser-side names", () => {
+    expect(
+      isContactSendConfigured({
+        NEXT_PUBLIC_EMAILJS_SERVICE_ID: "s",
+        NEXT_PUBLIC_EMAILJS_TEMPLATE_ID: "t",
+        NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: "p",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("nothing secret may carry the NEXT_PUBLIC_ prefix", () => {
+  it.each(["NEXT_PUBLIC_EMAILJS_PRIVATE_KEY", "NEXT_PUBLIC_TURNSTILE_SECRET_KEY", "NEXT_PUBLIC_SANITY_API_WRITE_TOKEN"])(
+    "%s is an error in any environment",
+    (name) => {
+      expect(errorCodes(env({ [name]: "value" }))).toContain("public-secret");
+      expect(errorCodes(env({ [name]: "value" }), false)).toContain("public-secret");
+    },
+  );
+
+  it("ignores an empty one, and public keys that are meant to be public", () => {
+    expect(errorCodes(env({ NEXT_PUBLIC_EMAILJS_PRIVATE_KEY: "" }))).not.toContain("public-secret");
+    expect(errorCodes(env())).not.toContain("public-secret");
   });
 });
 
@@ -254,7 +322,7 @@ describe("the test profile (APP_ENV=test)", () => {
   it.each([
     ["Turnstile site key without secret", { TURNSTILE_SECRET_KEY: undefined }, "turnstile-site-key-without-secret"],
     ["Turnstile secret without site key", { NEXT_PUBLIC_TURNSTILE_SITE_KEY: undefined }, "turnstile-secret-without-site-key"],
-    ["a half-set EmailJS config", { NEXT_PUBLIC_EMAILJS_PUBLIC_KEY: undefined }, "emailjs-partial"],
+    ["a half-set EmailJS config", { EMAILJS_PRIVATE_KEY: undefined }, "emailjs-partial"],
     ["a half-set Sanity config", { NEXT_PUBLIC_SANITY_PROJECT_ID: "abc123xy" }, "sanity-partial"],
   ])("still fails on %s", (_label, override, code) => {
     expect(errorCodes({ ...TEST_PROFILE, ...override })).toContain(code);

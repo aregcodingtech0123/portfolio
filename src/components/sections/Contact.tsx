@@ -1,6 +1,5 @@
 "use client";
 
-import emailjs, { EmailJSResponseStatus } from "@emailjs/browser";
 import {
   Turnstile,
   type TurnstileInstance,
@@ -12,11 +11,17 @@ import { Section } from "@/components/ui/Section";
 import { buttonClasses } from "@/components/ui/Button";
 import { isValidMailbox } from "@/lib/mailto";
 import {
-  emailjsConfig,
-  emailjsConfigured,
-  emailjsMissing,
-  reportEmailjsMissing,
-} from "@/lib/emailjs";
+  CONTACT_SEND_VARS,
+  contactSendConfigured,
+  reportContactSendMissing,
+} from "@/lib/contact/client-config";
+import {
+  CONTACT_LIMITS,
+  HONEYPOT_FIELD,
+  TURNSTILE_ACTION,
+  validateFields,
+  type ContactOutcome,
+} from "@/lib/contact/rules";
 import {
   reportTurnstileMissing,
   turnstileConfigured,
@@ -31,6 +36,34 @@ type FieldErrors = Partial<
 >;
 
 type SubmitStatus = "idle" | "loading" | "success" | "error";
+
+/** Why the last attempt did not send: one of the server's answers, or the captcha not done yet. */
+type Notice = Exclude<ContactOutcome, "sent"> | "captchaRequired";
+
+const OUTCOMES: readonly ContactOutcome[] = [
+  "sent",
+  "invalid",
+  "rejected",
+  "captcha_failed",
+  "send_failed",
+  "unavailable",
+];
+
+/**
+ * The server's answer. A body that is not one of the known outcomes (a proxy
+ * error page, a crash) is not trusted: 503 means unavailable, anything else
+ * is a failed send worth retrying.
+ */
+async function readOutcome(res: Response): Promise<ContactOutcome> {
+  try {
+    const body = (await res.json()) as { outcome?: unknown };
+    const outcome = body?.outcome as ContactOutcome;
+    if (OUTCOMES.includes(outcome) && (outcome !== "sent" || res.ok)) return outcome;
+  } catch {
+    // not JSON
+  }
+  return res.status === 503 ? "unavailable" : "send_failed";
+}
 
 type CopyKey = "email" | "github" | "linkedin" | null;
 
@@ -120,25 +153,36 @@ export function Contact() {
   const { contact, social } = useSiteContent();
   const formRef = useRef<HTMLFormElement>(null);
   const turnstileRef = useRef<TurnstileInstance | null>(null);
+  // When the form became usable. The server refuses a submission that comes
+  // implausibly fast (MIN_FILL_MS); this is cheap friction for naive bots.
+  const openedAt = useRef(0);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [turnstileToken, setTurnstileToken] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<SubmitStatus>("idle");
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const [copied, setCopied] = useState<CopyKey>(null);
   const copyTimer = useRef<number | null>(null);
 
   const github = social.github || socialLinks.github;
   const linkedin = social.linkedin || socialLinks.linkedin;
   const hasEmail = Boolean(contact.email);
-  // CAPTCHA is required only when a site key is present; otherwise the form still works.
+  const mailtoHref = hasEmail && isValidMailbox(contact.email) ? `mailto:${contact.email.trim()}` : undefined;
+  // The server requires the captcha in production, so a production build
+  // without a site key cannot accept a submission; development without keys can.
+  const formAvailable =
+    contactSendConfigured &&
+    (turnstileConfigured || process.env.NODE_ENV !== "production");
+  // Shown instead of a form that cannot work: up front when the build already
+  // knows, or after the server answers "unavailable". No retry loop either way.
+  const unavailable = !formAvailable || notice === "unavailable";
   const captchaReady = !turnstileConfigured || Boolean(turnstileToken);
-  const canSubmit =
-    emailjsConfigured && captchaReady && status !== "loading";
+  const canSubmit = !unavailable && captchaReady && status !== "loading";
 
   const handleCopy = useCallback(
     async (key: Exclude<CopyKey, null>, text: string) => {
@@ -161,13 +205,32 @@ export function Contact() {
   }, []);
 
   useEffect(() => {
-    reportEmailjsMissing();
+    openedAt.current = performance.now();
+    reportContactSendMissing();
     reportTurnstileMissing();
   }, []);
 
   function dismissFeedback() {
     setStatus((s) => (s === "error" || s === "success" ? "idle" : s));
-    setStatusMessage(null);
+    // "unavailable" stays: editing a field does not make the server work.
+    setNotice((n) => (n === "unavailable" ? n : null));
+  }
+
+  function noticeText(n: Notice): string {
+    switch (n) {
+      case "captchaRequired":
+        return t("captchaRequired");
+      case "captcha_failed":
+        return t("captchaError");
+      case "rejected":
+        return t("rejected");
+      case "invalid":
+        return t("invalid");
+      case "send_failed":
+        return t("sendFailed");
+      case "unavailable":
+        return t("unavailable");
+    }
   }
 
   function resetTurnstile() {
@@ -176,89 +239,75 @@ export function Contact() {
   }
 
   function validate(): boolean {
+    const found = validateFields({ name, email, subject, message });
     const next: FieldErrors = {};
-    if (!name.trim()) next.name = t("validation.required");
-    else if (name.length > 200) next.name = t("validation.maxLength");
-    if (!email.trim()) next.email = t("validation.required");
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      next.email = t("validation.email");
-    if (!subject.trim()) next.subject = t("validation.required");
-    else if (subject.length > 200) next.subject = t("validation.maxLength");
-    if (!message.trim()) next.message = t("validation.required");
-    else if (message.length > 4000) next.message = t("validation.maxLength");
+    for (const [key, error] of Object.entries(found) as [keyof FieldErrors, string][]) {
+      next[key] =
+        error === "required"
+          ? t("validation.required")
+          : error === "email"
+            ? t("validation.email")
+            : t("validation.maxLength");
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
-  async function verifyTurnstile(token: string): Promise<boolean> {
-    const res = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!res.ok) {
-      setStatus("error");
-      setStatusMessage(t("captchaError"));
-      resetTurnstile();
-      return false;
-    }
-    return true;
-  }
-
+  /**
+   * The browser's only part in sending: post the form and the Turnstile token
+   * to /api/contact. The server verifies the token and sends the email; no
+   * email credential exists in this file or in the page.
+   */
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!emailjsConfigured) return;
+    if (unavailable) return;
     if (!validate()) return;
 
     if (turnstileConfigured && !turnstileToken) {
       setStatus("error");
-      setStatusMessage(t("captchaRequired"));
-      return;
-    }
-
-    const form = formRef.current;
-    if (!form) {
-      setStatus("error");
-      setStatusMessage(t("error"));
+      setNotice("captchaRequired");
       return;
     }
 
     setStatus("loading");
-    setStatusMessage(null);
+    setNotice(null);
 
+    let outcome: ContactOutcome;
     try {
-      if (turnstileConfigured) {
-        const verified = await verifyTurnstile(turnstileToken);
-        if (!verified) return;
-      }
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          subject,
+          message,
+          token: turnstileToken,
+          [HONEYPOT_FIELD]: honeypot,
+          elapsedMs: Math.round(performance.now() - openedAt.current),
+        }),
+      });
+      outcome = await readOutcome(res);
+    } catch {
+      // Offline, or the request never reached the server.
+      outcome = "send_failed";
+    }
 
-      await emailjs.sendForm(
-        emailjsConfig.serviceId,
-        emailjsConfig.templateId,
-        form,
-        { publicKey: emailjsConfig.publicKey },
-      );
+    // A Turnstile token is single-use: whatever happened, this one is spent.
+    resetTurnstile();
 
+    if (outcome === "sent") {
       setStatus("success");
-      setStatusMessage(t("success"));
       setName("");
       setEmail("");
       setSubject("");
       setMessage("");
       setErrors({});
-      form.reset();
-      resetTurnstile();
-    } catch (err) {
-      setStatus("error");
-      setStatusMessage(t("error"));
-      resetTurnstile();
-      if (err instanceof EmailJSResponseStatus) {
-        console.error("EmailJS:", err.status, err.text);
-      } else {
-        console.error(err);
-      }
+      formRef.current?.reset();
+      return;
     }
+    setStatus("error");
+    setNotice(outcome);
   }
 
   const contactLines = (
@@ -379,7 +428,7 @@ export function Contact() {
               <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
                 <span className={labelClass}>{t("name")}</span>
                 <input
-                  name="from_name"
+                  name="name"
                   type="text"
                   value={name}
                   onChange={(e) => {
@@ -389,7 +438,7 @@ export function Contact() {
                   placeholder={t("placeholders.name")}
                   autoComplete="name"
                   required
-                  maxLength={200}
+                  maxLength={CONTACT_LIMITS.name}
                   className={fieldClass}
                 />
                 {errors.name && (
@@ -401,7 +450,7 @@ export function Contact() {
               <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
                 <span className={labelClass}>{t("email")}</span>
                 <input
-                  name="reply_to"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => {
@@ -411,7 +460,7 @@ export function Contact() {
                   placeholder={t("placeholders.email")}
                   autoComplete="email"
                   required
-                  maxLength={254}
+                  maxLength={CONTACT_LIMITS.email}
                   className={fieldClass}
                 />
                 {errors.email && (
@@ -434,7 +483,7 @@ export function Contact() {
                 }}
                 placeholder={t("placeholders.subject")}
                 required
-                maxLength={200}
+                maxLength={CONTACT_LIMITS.subject}
                 className={fieldClass}
               />
               {errors.subject && (
@@ -456,7 +505,7 @@ export function Contact() {
                 placeholder={t("placeholders.message")}
                 required
                 rows={4}
-                maxLength={4000}
+                maxLength={CONTACT_LIMITS.message}
                 className={`${fieldClass} resize-y`}
               />
               {errors.message && (
@@ -465,6 +514,27 @@ export function Contact() {
                 </span>
               )}
             </label>
+
+            {/* Honeypot. Off-screen, inert, hidden from assistive technology and
+                out of the tab order: no person reaches it, a form-filling bot
+                does. The server refuses the message if it is not empty. */}
+            <div
+              aria-hidden="true"
+              inert
+              className="pointer-events-none absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
+            >
+              <label>
+                {t("honeypotLabel")}
+                <input
+                  type="text"
+                  name={HONEYPOT_FIELD}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </label>
+            </div>
 
             {turnstileConfigured ? (
               <div className="mt-5 overflow-x-auto">
@@ -479,9 +549,10 @@ export function Contact() {
                   onError={() => {
                     setTurnstileToken("");
                     setStatus("error");
-                    setStatusMessage(t("captchaError"));
+                    setNotice("captcha_failed");
                   }}
                   options={{
+                    action: TURNSTILE_ACTION,
                     theme: turnstileTheme,
                     size: "flexible",
                     language: locale.startsWith("tr") ? "tr" : "en",
@@ -498,11 +569,39 @@ export function Contact() {
               )
             )}
 
-            {!emailjsConfigured && process.env.NODE_ENV !== "production" && (
+            {!contactSendConfigured && process.env.NODE_ENV !== "production" && (
               <p className="mt-4 font-mono text-xs text-warning minimal:font-body">
-                [DEV] Contact form disabled. Set {emailjsMissing.join(", ")} in
-                .env.local.
+                [DEV] Contact form disabled: the server cannot send. Set{" "}
+                {CONTACT_SEND_VARS.join(", ")} (server-only) in .env.local.
               </p>
+            )}
+
+            {unavailable && (
+              <div
+                role={notice === "unavailable" ? "alert" : undefined}
+                className="mt-5 border border-border bg-background/60 p-4 text-sm leading-relaxed text-foreground minimal:border-0 minimal:border-l-2 minimal:border-border minimal:bg-transparent minimal:py-1 minimal:pl-4 minimal:pr-0 minimal:text-base"
+              >
+                <p>{t("unavailable")}</p>
+                <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+                  {mailtoHref && (
+                    <li>
+                      <a href={mailtoHref} className="essay-link font-mono text-sm minimal:font-body minimal:text-base">
+                        {contact.email.trim()}
+                      </a>
+                    </li>
+                  )}
+                  <li>
+                    <a
+                      href={linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="essay-link font-mono text-sm minimal:font-body minimal:text-base"
+                    >
+                      LinkedIn
+                    </a>
+                  </li>
+                </ul>
+              </div>
             )}
 
             <div className="mt-6 flex flex-wrap items-center gap-4 minimal:mt-6 minimal:pt-1">
@@ -534,20 +633,20 @@ export function Contact() {
                   t("send")
                 )}
               </button>
-              {status === "success" && statusMessage && (
+              {status === "success" && (
                 <span
                   role="status"
                   className="font-mono text-xs text-accent minimal:font-body minimal:text-sm minimal:text-muted"
                 >
-                  {statusMessage}
+                  {t("success")}
                 </span>
               )}
-              {status === "error" && statusMessage && (
+              {status === "error" && notice && notice !== "unavailable" && (
                 <span
                   role="alert"
                   className="font-mono text-xs text-danger minimal:font-body minimal:text-sm"
                 >
-                  {statusMessage}
+                  {noticeText(notice)}
                 </span>
               )}
             </div>
