@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
     // The site and the Studio are separate root layouts (no app/layout.tsx), so
     // unmatched URLs are served from app/global-not-found.tsx.
     globalNotFound: true,
+    // Inline the (render-blocking) stylesheet into the HTML instead of linking it,
+    // which removes one network round trip from the critical path. Measured
+    // effect: scripts/perf, docs/performance/after-fixes-2026-10-12.md. The
+    // performance budget assumes this is on.
+    inlineCss: true,
   },
   transpilePackages: ["next-sanity", "sanity"],
   images: {
