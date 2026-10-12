@@ -1,0 +1,77 @@
+{
+  "bundle": {
+    "firstLoadGzipKB": {
+      "/en": 245,
+      "/tr": 245,
+      "/en/this-route-does-not-exist": 150
+    },
+    "firstLoadRawKB": 830,
+    "preloadedFontsKB": 140,
+    "forbiddenPublicPackages": "^(sanity|next-sanity|@sanity/.*|@google/genai|styled-components)$",
+    "pagesMustBeCacheable": true
+  },
+  "lighthouse": {
+    "runs": 5,
+    "referenceBenchmarkIndex": 2800,
+    "configs": [
+      {
+        "form": "mobile",
+        "locale": "en",
+        "skin": "terminal",
+        "mode": "dark",
+        "throttling": "devtools"
+      },
+      {
+        "form": "mobile",
+        "locale": "en",
+        "skin": "minimal",
+        "mode": "dark",
+        "throttling": "devtools"
+      },
+      {
+        "form": "desktop",
+        "locale": "en",
+        "skin": "minimal",
+        "mode": "dark",
+        "throttling": "simulate"
+      },
+      {
+        "form": "mobile",
+        "locale": "en",
+        "skin": "terminal",
+        "mode": "dark",
+        "throttling": "simulate",
+        "limits": "mobileSimulated"
+      }
+    ],
+    "limits": {
+      "mobile": {
+        "score": 90,
+        "lcpMs": 2800,
+        "fcpMs": 2400,
+        "tbtMs": 350,
+        "cls": 0.01,
+        "transferKB": 590,
+        "maxImageKB": 40
+      },
+      "desktop": {
+        "score": 95,
+        "lcpMs": 1400,
+        "fcpMs": 600,
+        "tbtMs": 50,
+        "cls": 0.01,
+        "transferKB": 590,
+        "maxImageKB": 40
+      },
+      "mobileSimulated": {
+        "score": 74,
+        "lcpMs": 5800,
+        "fcpMs": 1900,
+        "tbtMs": 200,
+        "cls": 0.01,
+        "transferKB": 590,
+        "maxImageKB": 40
+      }
+    }
+  }
+}

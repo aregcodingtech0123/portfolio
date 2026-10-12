@@ -20,7 +20,8 @@
     "perf": "node scripts/perf/lighthouse.mjs",
     "perf:observe": "node scripts/perf/observe.mjs",
     "perf:bundle": "node scripts/perf/bundle.mjs",
-    "perf:inspect": "node scripts/perf/inspect.mjs"
+    "perf:inspect": "node scripts/perf/inspect.mjs",
+    "perf:budget": "node scripts/perf/budget.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

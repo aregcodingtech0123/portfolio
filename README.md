@@ -66,6 +66,7 @@ See [`.env.example`](.env.example) for the full, commented list. Summary:
 | `npm run sanity:types` | Regenerate Sanity schema/types |
 | `npm run seed:sanity` | Seed Sanity from the fallback dataset |
 | `npm run perf` | Lighthouse baseline against a production build (also `perf:bundle`, `perf:observe`, `perf:inspect`; see [scripts/perf/README.md](scripts/perf/README.md)) |
+| `npm run perf:budget` | Fails if the build breaks the performance budget in `scripts/perf/budget.json`; runs in CI |
 
 ## Deploy
 

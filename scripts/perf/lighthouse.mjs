@@ -23,6 +23,7 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
 import puppeteer from "puppeteer-core";
 import lighthouse from "lighthouse";
@@ -57,7 +58,7 @@ for (const form of FORMS)
       for (const mode of MODES)
         configs.push({ id: `${form}-${locale}-${skin}-${mode}`, form, locale, skin, mode });
 
-async function runOnce(cfg) {
+export async function runOnce(cfg, extraFlags = {}) {
   const browser = await puppeteer.launch({
     executablePath: chromium.executablePath(),
     headless: true,
@@ -67,6 +68,12 @@ async function runOnce(cfg) {
       "--no-default-browser-check",
       "--disable-extensions",
       "--disable-background-networking",
+      // Hosted CI runners (Ubuntu 24.04) block the unprivileged user namespaces
+      // Chromium's sandbox needs; Playwright's own launcher drops the sandbox
+      // there too. Never set locally.
+      ...(process.env.CI ? ["--no-sandbox", "--disable-dev-shm-usage"] : []),
+      // Experiments only (e.g. --force-prefers-reduced-motion to see what the entrance animations cost).
+      ...(process.env.PERF_CHROME_ARGS ? process.env.PERF_CHROME_ARGS.split(" ") : []),
     ],
   });
   try {
@@ -94,6 +101,7 @@ async function runOnce(cfg) {
       logLevel: "error",
       output: "json",
       onlyCategories: ["performance"],
+      ...extraFlags,
     };
     const result = await lighthouse(
       url,
@@ -167,7 +175,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

@@ -33,3 +33,12 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
       - run: npm run test:e2e
+      # The performance budget (scripts/perf/budget.json) reuses the production
+      # build the e2e step just made (--skip-build) and starts its own server on
+      # port 3200; it only ever talks to localhost. The bundle check is
+      # deterministic and takes about a minute; the Lighthouse check is timing
+      # based, so it runs a reduced matrix (see scripts/perf/README.md).
+      - name: Performance budget, bundle size and public-chunk leak check
+        run: npm run perf:budget -- --only bundle --skip-build
+      - name: Performance budget, Lighthouse (reduced matrix)
+        run: npm run perf:budget -- --only lighthouse --skip-build

@@ -108,7 +108,24 @@ async function composition(routeDir) {
 
 /** Initial JS of a route as the browser requests it: <script src> in the HTML. */
 async function firstLoad(urlPath) {
-  const html = await (await fetch(`${BASE_URL}${urlPath}`)).text();
+  const res = await fetch(`${BASE_URL}${urlPath}`);
+  const html = await res.text();
+  // Preloaded fonts arrive as <link> tags and/or an HTTP Link header, depending on how the page was rendered.
+  const preloadSources = [
+    ...[...html.matchAll(/<link[^>]*>/g)].map((m) => m[0]).filter((t) => /rel="preload"/.test(t) && /as="font"/.test(t)),
+    ...(res.headers.get("link") ?? "").split(/,\s*(?=<)/).filter((p) => /rel="?preload"?/.test(p) && /as="?font"?/.test(p)),
+  ];
+  const fontHrefs = [
+    ...new Set(
+      preloadSources.map((p) => (p.match(/href="([^"]+)"/) ?? p.match(/<([^>]+)>/))?.[1]).filter(Boolean),
+    ),
+  ];
+  const preloadedFonts = [];
+  for (const href of fontHrefs)
+    preloadedFonts.push({
+      href,
+      bytes: (await stat(path.join(".next", new URL(href, BASE_URL).pathname.replace("/_next/", "")))).size,
+    });
   const tags = [...html.matchAll(/<script([^>]*?)\ssrc="([^"]+)"([^>]*)>/g)].map((m) => ({
     src: m[2],
     noModule: /nomodule/i.test(m[1] + m[3]),
@@ -129,7 +146,7 @@ async function firstLoad(urlPath) {
     });
   }
   const sum = (k) => files.reduce((a, f) => a + f[k], 0);
-  return { urlPath, htmlBytes: Buffer.byteLength(html), skippedNoModule: skipped, files, raw: sum("raw"), gz: sum("gz"), br: sum("br") };
+  return { urlPath, htmlBytes: Buffer.byteLength(html), skippedNoModule: skipped, preloadedFonts, cacheControl: res.headers.get("cache-control"), files, raw: sum("raw"), gz: sum("gz"), br: sum("br") };
 }
 
 /** Match analyzer chunk -> real chunk by minified size (within 1.5%). */
@@ -173,6 +190,7 @@ async function main() {
 
     const pub = await composition("[locale]");
     const hub = await composition("content-hub/[[...tool]]");
+    const notFound = await composition("_not-found");
     const realMap = await matchReal(pub.chunks);
     const publicReal = new Set(loads[0].files.map((f) => f.src.split("/").pop()));
     // Only chunks the HTML actually requests count as first-load; the rest are lazy.
@@ -262,6 +280,7 @@ async function main() {
           publicPackages: Object.fromEntries(
             [...pub.byPkg].map(([k, v]) => [k, { raw: v.raw, gz: v.gz, chunks: [...v.chunks] }]),
           ),
+          notFoundPackages: Object.fromEntries([...notFound.byPkg].map(([k, v]) => [k, { raw: v.raw, gz: v.gz }])),
           hubPackages: Object.fromEntries([...hub.byPkg].map(([k, v]) => [k, { raw: v.raw, gz: v.gz }])),
         },
         null,
