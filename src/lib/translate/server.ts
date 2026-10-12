@@ -1,3 +1,6 @@
+// Reads GEMINI_API_KEY. The build fails if a Client Component graph imports
+// this file (client.ts, next to it, is the browser-safe half).
+import "server-only";
 import { GoogleGenAI } from "@google/genai";
 
 export type TranslateInput = {

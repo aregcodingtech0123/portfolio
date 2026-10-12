@@ -1,4 +1,5 @@
 import { migrationPortfolio } from "@/data/migration-portfolio";
+import { isSafeExternalHref } from "@/lib/mailto";
 import { getSanityClient } from "@/sanity/client";
 import { getImageUrl } from "@/sanity/image";
 import { portfolioContentQuery } from "@/sanity/queries";
@@ -101,6 +102,24 @@ function optionalCopy(value: string): string | undefined {
   return usable || undefined;
 }
 
+/**
+ * Links from Sanity end up as <a href> on the public page. The Studio only
+ * enforces "https" in its own form; a write made through the API (or with a
+ * leaked token) skips that, so the page cannot rely on it. Anything that is
+ * not an absolute http(s) URL (javascript:, data:, a relative or
+ * protocol-relative path, garbage) is dropped here, before it reaches a
+ * component, and the field behaves as if it were empty.
+ */
+function safeHref(raw: string | null | undefined, field: string): string | undefined {
+  const href = raw?.trim();
+  if (!href) return undefined;
+  if (isSafeExternalHref(href)) return href;
+  console.warn(
+    `[Sanity] Dropped an unsafe link in ${field}: not an absolute http(s) URL (${JSON.stringify(href.slice(0, 60))}).`,
+  );
+  return undefined;
+}
+
 /** Shape shared by Sanity projects and fallback seeds. `id` is the slug or the seed id. */
 type ProjectSource = Omit<SanityProject, "_id" | "slug" | "image"> & {
   id: string;
@@ -121,8 +140,8 @@ function toProjectDisplay(p: ProjectSource, locale: string): ProjectDisplay {
     learned: optionalCopy(pickLocale(p.learned, locale)),
     technologies: p.technologies ?? [],
     category: p.category,
-    githubUrl: p.githubUrl,
-    liveUrl: p.liveUrl,
+    githubUrl: safeHref(p.githubUrl, `project ${p.id} githubUrl`),
+    liveUrl: safeHref(p.liveUrl, `project ${p.id} liveUrl`),
     imageUrl: p.image ? getImageUrl(p.image, 960, 600) : undefined,
     imageAlt: p.image?.alt || title || "Project preview",
     featured: p.featured !== false,
@@ -227,22 +246,25 @@ function splitCertificates(
 }
 
 function mapCtfs(items: SanityCtf[] | undefined): CtfDisplay[] {
-  return (items ?? []).map((item) => ({
-    id: item.slug || item._id,
-    slug: item.slug,
-    title: item.title,
-    platform: item.platform,
-    difficulty: item.difficulty,
-    dateSolved: item.dateSolved,
-    eventName: item.eventName || undefined,
-    category: item.category || undefined,
-    placement: item.placement || undefined,
-    writeupUrl: item.writeupUrl || undefined,
-    tools: item.tools ?? [],
-    imageUrl: item.coverImage ? getImageUrl(item.coverImage, 640, 400) : undefined,
-    imageAlt: item.coverImage?.alt || item.title,
-    hasWriteup: Boolean(item.writeupUrl) || (Array.isArray(item.writeup) && item.writeup.length > 0),
-  }));
+  return (items ?? []).map((item) => {
+    const writeupUrl = safeHref(item.writeupUrl, `CTF ${item.slug || item._id} writeupUrl`);
+    return {
+      id: item.slug || item._id,
+      slug: item.slug,
+      title: item.title,
+      platform: item.platform,
+      difficulty: item.difficulty,
+      dateSolved: item.dateSolved,
+      eventName: item.eventName || undefined,
+      category: item.category || undefined,
+      placement: item.placement || undefined,
+      writeupUrl,
+      tools: item.tools ?? [],
+      imageUrl: item.coverImage ? getImageUrl(item.coverImage, 640, 400) : undefined,
+      imageAlt: item.coverImage?.alt || item.title,
+      hasWriteup: Boolean(writeupUrl) || (Array.isArray(item.writeup) && item.writeup.length > 0),
+    };
+  });
 }
 
 /** Skill evidence anchors point at the section that lists the evidence. */
@@ -473,8 +495,11 @@ function mapContact(
 
 function mapSocial(settings: SanitySiteSettings | null | undefined): SocialLinksDisplay {
   return {
-    github: settings?.githubUrl ?? fallback.siteSettings.githubUrl,
-    linkedin: settings?.linkedinUrl ?? fallback.siteSettings.linkedinUrl,
+    github:
+      safeHref(settings?.githubUrl, "siteSettings githubUrl") ?? fallback.siteSettings.githubUrl,
+    linkedin:
+      safeHref(settings?.linkedinUrl, "siteSettings linkedinUrl") ??
+      fallback.siteSettings.linkedinUrl,
   };
 }
 

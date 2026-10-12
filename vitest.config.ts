@@ -8,6 +8,8 @@ export default defineConfig({
     alias: {
       // Mirrors tsconfig.json's "@/*" -> "./src/*" path alias.
       "@": path.resolve(__dirname, "./src"),
+      // Next aliases this itself in a build; plain Node has no such package.
+      "server-only": path.resolve(__dirname, "./vitest.server-only-stub.ts"),
     },
   },
   test: {

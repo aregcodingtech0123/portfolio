@@ -2,10 +2,13 @@
  * Seeds portfolio content into Sanity from src/data/migration-portfolio.ts.
  *
  * Usage:
- *   1. Set in `.env` or `.env.local`:
+ *   1. Set in `.env.seed` (recommended for the token), `.env.local` or `.env`:
  *        NEXT_PUBLIC_SANITY_PROJECT_ID=...
  *        NEXT_PUBLIC_SANITY_DATASET=production
  *        SANITY_API_WRITE_TOKEN=...   (Editor token from sanity.io/manage → API)
+ *      Next.js loads `.env` and `.env.local` into every dev, build and start
+ *      process, so a write token kept there is readable by all of them (and by
+ *      every dependency they run). `.env.seed` is read only by this script.
  *   2. Run: npm run seed:sanity
  *   3. Open /content-hub, fill empty about paragraphs and project case-study
  *      fields, then publish.
@@ -23,7 +26,10 @@ import {
   slugifyId,
 } from "../src/data/migration-portfolio";
 
-// Next.js loads these automatically; standalone tsx does not.
+// Next.js loads .env and .env.local automatically; standalone tsx does not.
+// .env.seed comes first (dotenv never overrides a value that is already set),
+// and Next.js never reads it, so the write token can live there alone.
+loadEnv({ path: resolve(process.cwd(), ".env.seed") });
 loadEnv({ path: resolve(process.cwd(), ".env.local") });
 loadEnv({ path: resolve(process.cwd(), ".env") });
 
@@ -36,7 +42,7 @@ if (!projectId || !token) {
     "Missing NEXT_PUBLIC_SANITY_PROJECT_ID or SANITY_API_WRITE_TOKEN.",
   );
   console.error(
-    "Add them to .env or .env.local in the project root, then rerun npm run seed:sanity.",
+    "Add them to .env.seed (or .env.local / .env) in the project root, then rerun npm run seed:sanity.",
   );
   process.exit(1);
 }

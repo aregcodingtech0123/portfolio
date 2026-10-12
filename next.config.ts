@@ -5,6 +5,7 @@ import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants
 import createNextIntlPlugin from "next-intl/plugin";
 import { CSP_HEADER_NAME, SITE_CSP, STUDIO_CSP } from "./src/lib/csp";
 import { formatIssues, validateEnv } from "./src/lib/env-validation";
+import { sanityImageRemotePatterns } from "./src/sanity/image-patterns";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -35,12 +36,9 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["next-sanity", "sanity"],
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.sanity.io",
-      },
-    ],
+    // Scoped to this Sanity project's images (see src/sanity/image-patterns.ts):
+    // a hostname-only pattern is an open image resizer for every Sanity project.
+    remotePatterns: sanityImageRemotePatterns(process.env.NEXT_PUBLIC_SANITY_PROJECT_ID),
   },
   async headers() {
     const baseline = {

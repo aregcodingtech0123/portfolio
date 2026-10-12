@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { migrationPortfolio } from "@/data/migration-portfolio";
 import type { SanityCtf, SanityProject, SanitySiteSettings } from "@/sanity/types";
 
@@ -174,5 +174,126 @@ describe("getPortfolioContent branch matrix", () => {
     );
 
     warnSpy.mockRestore();
+  });
+});
+
+describe("external links from Sanity are only passed through when they are http(s) URLs", () => {
+  const UNSAFE = [
+    "javascript:alert(1)",
+    "JaVaScRiPt:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "vbscript:msgbox(1)",
+    "//evil.example/x",
+    "/relative/path",
+    "ftp://example.com/file",
+    "not a url",
+  ];
+
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it.each(UNSAFE)("drops %s from a project's links and warns", async (bad) => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        projects: [sanityProject({ githubUrl: bad, liveUrl: bad })],
+      },
+    });
+    const [project] = (await getPortfolioContent("en")).projects;
+
+    expect(project.githubUrl).toBeUndefined();
+    expect(project.liveUrl).toBeUndefined();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("Dropped an unsafe link"));
+  });
+
+  it("keeps good links, trimmed, and only drops the bad one", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        projects: [
+          sanityProject({
+            githubUrl: "  https://github.com/example/repo  ",
+            liveUrl: "javascript:alert(1)",
+          }),
+        ],
+      },
+    });
+    const [project] = (await getPortfolioContent("en")).projects;
+
+    expect(project.githubUrl).toBe("https://github.com/example/repo");
+    expect(project.liveUrl).toBeUndefined();
+  });
+
+  it("accepts http as well as https (the shared helper's rule)", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: { projects: [sanityProject({ liveUrl: "http://demo.example.com" })] },
+    });
+    expect((await getPortfolioContent("en")).projects[0].liveUrl).toBe("http://demo.example.com");
+  });
+
+  it("drops an unsafe CTF write-up link, and no longer reports a write-up that does not exist", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        projects: [sanityProject()],
+        ctfs: [sanityCtf({ writeupUrl: "javascript:alert(1)" })],
+      },
+    });
+    const [ctf] = (await getPortfolioContent("en")).ctfs;
+
+    expect(ctf.writeupUrl).toBeUndefined();
+    expect(ctf.hasWriteup).toBe(false);
+  });
+
+  it("still reports a write-up when the CTF has a body even though its link was dropped", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        projects: [sanityProject()],
+        ctfs: [sanityCtf({ writeupUrl: "javascript:alert(1)", writeup: [{ _type: "block" }] })],
+      },
+    });
+    const [ctf] = (await getPortfolioContent("en")).ctfs;
+
+    expect(ctf.writeupUrl).toBeUndefined();
+    expect(ctf.hasWriteup).toBe(true);
+  });
+
+  it("keeps a good CTF write-up link", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        projects: [sanityProject()],
+        ctfs: [sanityCtf({ writeupUrl: "https://blog.example.com/writeup" })],
+      },
+    });
+    const [ctf] = (await getPortfolioContent("en")).ctfs;
+
+    expect(ctf.writeupUrl).toBe("https://blog.example.com/writeup");
+    expect(ctf.hasWriteup).toBe(true);
+  });
+
+  it("replaces an unsafe social link with the built-in one instead of rendering it", async () => {
+    const siteSettings: SanitySiteSettings = {
+      siteName: "Site",
+      githubUrl: "javascript:alert(1)",
+      linkedinUrl: "https://www.linkedin.com/in/someone",
+      email: "",
+      location: { en: "Here", tr: "Burada" },
+    };
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: { siteSettings },
+    });
+    const { social } = await getPortfolioContent("en");
+
+    expect(social.github).toBe(migrationPortfolio.siteSettings.githubUrl);
+    expect(social.linkedin).toBe("https://www.linkedin.com/in/someone");
   });
 });

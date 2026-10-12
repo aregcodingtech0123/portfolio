@@ -1,6 +1,7 @@
 /**
  * Server-only Turnstile verification. Do not import from Client Components.
  */
+import "server-only";
 
 const turnstileSecretKey = process.env.TURNSTILE_SECRET_KEY?.trim() ?? "";
 
