@@ -55,7 +55,7 @@ export function summarize(runs) {
   out.push(`# Lighthouse baseline\n`);
   out.push(
     `${ok.length} successful runs (${failed} failed, ${unverified} with an unverified skin/mode). ` +
-      `Cells are \`median (min-max)\`. Lighthouse ${ok[0]?.lhVersion ?? "?"}, ${ok[0]?.userAgent ?? ""}.\n`,
+      `Cells are \`median (min-max)\`. Lighthouse ${ok[0]?.lhVersion ?? "?"} (${ok[0]?.throttlingMethod ?? "?"} throttling), ${ok[0]?.userAgent ?? ""}.\n`,
   );
   const groups = groupRuns(ok);
   for (const form of ["mobile", "desktop"]) {

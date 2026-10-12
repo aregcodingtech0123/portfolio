@@ -50,6 +50,8 @@ const LOCALES = list(arg("locale", "en,tr"));
 const SKINS = list(arg("skin", "terminal,minimal"));
 const MODES = list(arg("mode", "dark,light"));
 const OUT_DIR = path.resolve(arg("out", "perf-results"));
+// "simulate" (Lighthouse default, models Slow 4G) or "devtools" (applies the throttling to the real load).
+const THROTTLING = arg("throttling", undefined);
 
 const configs = [];
 for (const form of FORMS)
@@ -144,7 +146,7 @@ async function main() {
         const t0 = Date.now();
         let slim;
         try {
-          const { lhr, verified, applied } = await runOnce(cfg);
+          const { lhr, verified, applied } = await runOnce(cfg, THROTTLING ? { throttlingMethod: THROTTLING } : {});
           await writeFile(
             path.join(OUT_DIR, "raw", `${cfg.id}-${rep}.json`),
             JSON.stringify(lhr),

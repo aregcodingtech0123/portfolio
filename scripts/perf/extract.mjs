@@ -80,5 +80,6 @@ export function slimRun(lhr) {
     runWarnings: lhr.runWarnings,
     lhVersion: lhr.lighthouseVersion,
     userAgent: lhr.environment?.hostUserAgent,
+    throttlingMethod: lhr.configSettings?.throttlingMethod,
   };
 }
