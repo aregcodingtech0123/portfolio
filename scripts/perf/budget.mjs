@@ -99,7 +99,7 @@ async function bundleStage(budget) {
   const leaks = new Set();
   for (const set of [data.publicPackages, data.notFoundPackages])
     for (const pkg of Object.keys(set)) if (forbidden.test(pkg)) leaks.add(pkg);
-  checkNone("bundle", "Studio / Gemini / Sanity code in public chunks", [...leaks]);
+  checkNone("bundle", "Studio / Gemini / Sanity / EmailJS code in public chunks", [...leaks]);
 
   if (b.pagesMustBeCacheable) {
     const cc = load("/en").cacheControl ?? "";

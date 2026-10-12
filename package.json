@@ -24,7 +24,6 @@
     "perf:budget": "node scripts/perf/budget.mjs"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@google/genai": "^2.28.0",
     "@marsidev/react-turnstile": "^1.6.1",
     "@sanity/icons": "^3.7.4",

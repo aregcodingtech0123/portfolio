@@ -7,7 +7,7 @@
     },
     "firstLoadRawKB": 830,
     "preloadedFontsKB": 135,
-    "forbiddenPublicPackages": "^(sanity|next-sanity|@sanity/.*|@google/genai|styled-components)$",
+    "forbiddenPublicPackages": "^(sanity|next-sanity|@sanity/.*|@google/genai|@emailjs/.*|styled-components)$",
     "pagesMustBeCacheable": true,
     "assumeInlineCss": true
   },
