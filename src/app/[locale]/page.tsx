@@ -1,3 +1,4 @@
+import { setRequestLocale } from "next-intl/server";
 import { Fragment, type ReactNode } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -14,7 +15,13 @@ import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
 import { type SectionId, visibleSections } from "@/config/sections";
-import { resolvePortraitSrc } from "@/lib/portrait";
+import { heroPortraitSrc } from "@/lib/portrait";
+
+/**
+ * Generated at build time for /en and /tr, then regenerated in the background
+ * at most every 10 minutes so Sanity edits appear without a redeploy.
+ */
+export const revalidate = 600;
 
 export async function generateMetadata({
   params,
@@ -77,8 +84,9 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  setRequestLocale(locale);
   const content = await getPortfolioContent(locale);
-  const portraitSrc = resolvePortraitSrc();
+  const portraitSrc = heroPortraitSrc();
 
   return (
     <SiteContentProvider value={content}>

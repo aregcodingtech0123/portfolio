@@ -5,9 +5,18 @@ import {
   JetBrains_Mono,
   Source_Serif_4,
 } from "next/font/google";
-import { getLocale } from "next-intl/server";
 import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
+
+/*
+ * Shared document shell. There is deliberately no app/layout.tsx: the site
+ * (app/[locale]/layout.tsx) and the Studio (app/content-hub/.../layout.tsx)
+ * are separate root layouts that each render this shell. A single root layout
+ * above [locale] cannot know the locale without reading request headers, which
+ * forces every page below it to render per request. With the <html> element
+ * owned by [locale]/layout.tsx, the locale comes from the route param and the
+ * page can be generated at build time and revalidated.
+ */
 
 /*
  * Font preloading. The active skin comes from localStorage via the boot
@@ -48,13 +57,13 @@ const jetbrains = JetBrains_Mono({
   preload: false,
 });
 
-export const viewport = {
+export const siteViewport = {
   width: "device-width" as const,
   initialScale: 1,
   themeColor: "#0A0C0F",
 };
 
-export const metadata: Metadata = {
+export const siteMetadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
@@ -70,16 +79,16 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default async function RootLayout({
+export function RootShell({
+  lang,
   children,
 }: Readonly<{
+  lang: string;
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-
   return (
     <html
-      lang={locale}
+      lang={lang}
       data-scroll-behavior="smooth"
       className={`${bricolage.variable} ${inter.variable} ${sourceSerif.variable} ${jetbrains.variable} min-h-dvh antialiased`}
       suppressHydrationWarning

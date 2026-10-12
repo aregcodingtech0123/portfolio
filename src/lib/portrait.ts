@@ -1,24 +1,13 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
-
-/** Where the hero portrait lives, relative to `public/`. */
-export const PORTRAIT_SRC = "/images/profilephoto.jpeg";
-
 /**
- * The portrait path if the file is actually in `public/`, otherwise
- * `undefined` so the hero renders its intentional empty frame.
+ * The hero portrait path, or `undefined` when no photo file exists.
  *
- * This runs on the server while the page is rendered (at build time for a
- * statically generated page), replacing a per-visit client `HEAD` request.
- * That request was the only thing deciding whether to render the image, so
- * the image could not be in the first HTML response. Server-only: imports `fs`.
+ * Whether the file is in `public/` is decided once, at build time, in
+ * next.config.ts (it sets HERO_PORTRAIT_SRC), not per visit. It used to be a
+ * client-side HEAD request, which kept the image out of the first HTML; and a
+ * filesystem check while rendering would break on hosts whose server bundle
+ * does not contain `public/`, silently dropping the photo on every
+ * revalidation of a statically generated page.
  */
-export function resolvePortraitSrc(): string | undefined {
-  try {
-    return existsSync(path.join(process.cwd(), "public", PORTRAIT_SRC))
-      ? PORTRAIT_SRC
-      : undefined;
-  } catch {
-    return undefined;
-  }
+export function heroPortraitSrc(): string | undefined {
+  return process.env.HERO_PORTRAIT_SRC || undefined;
 }

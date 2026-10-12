@@ -10,7 +10,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
-import { usePathname, useRouter } from "@/i18n/navigation";
 import { Section } from "@/components/ui/Section";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectModal } from "@/components/projects/ProjectModal";
@@ -18,6 +17,25 @@ import type { ProjectDisplay } from "@/sanity/fetch";
 import type { ProjectCategory } from "@/sanity/types";
 
 const PROJECT_QUERY_KEY = "project";
+
+/**
+ * Rewrites the query string in place, without a navigation.
+ *
+ * The page is statically generated. On such a page router.replace() back to
+ * the bare pathname does nothing when the visitor arrived through a
+ * `?project=` link (the router treats it as the route it is already on), so
+ * a deep-linked modal could not be closed. The History API is the supported
+ * alternative: the App Router syncs replaceState into useSearchParams, which is
+ * what drives the modal.
+ */
+function replaceQuery(params: URLSearchParams) {
+  const qs = params.toString();
+  window.history.replaceState(
+    null,
+    "",
+    qs ? `${window.location.pathname}?${qs}` : window.location.pathname,
+  );
+}
 
 function projectQueryValue(project: ProjectDisplay): string {
   // Prefer slug/id: Sanity docs may omit `code`, and empty strings are falsy.
@@ -209,8 +227,6 @@ function ProjectsView({
  * modal immediately re-opens (or closes) after a click.
  */
 function ProjectsWithQuery({ projects }: ProjectsProps) {
-  const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const triggerRef = useRef<HTMLElement | null>(null);
 
@@ -228,9 +244,9 @@ function ProjectsWithQuery({ projects }: ProjectsProps) {
           : null;
       const params = new URLSearchParams(searchParams.toString());
       params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      replaceQuery(params);
     },
-    [pathname, router, searchParams],
+    [searchParams],
   );
 
   const closeProject = useCallback(() => {
@@ -239,9 +255,8 @@ function ProjectsWithQuery({ projects }: ProjectsProps) {
     const params = new URLSearchParams(searchParams.toString());
     if (!params.has(PROJECT_QUERY_KEY)) return;
     params.delete(PROJECT_QUERY_KEY);
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+    replaceQuery(params);
+  }, [searchParams]);
 
   return (
     <ProjectsView
