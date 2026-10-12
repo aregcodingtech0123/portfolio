@@ -9,10 +9,22 @@ import { getLocale } from "next-intl/server";
 import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
 
+/*
+ * Font preloading. The active skin comes from localStorage via the boot
+ * script, so the server cannot know which skin's fonts a visitor needs, and
+ * preloading every family sent each visitor the other skin's fonts for
+ * nothing (about 93 KB for terminal, 116 KB for minimal). Only Inter, which
+ * both skins use for body text, is preloaded. The skin-specific families keep
+ * their @font-face rules and display: "swap", so the browser fetches one when
+ * the active skin's CSS first uses it (a runtime skin switch fetches the other
+ * skin's family then), with text visible in the metric-matched fallback until
+ * it arrives.
+ */
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin", "latin-ext"],
   display: "swap",
+  preload: false,
 });
 
 const inter = Inter({
@@ -26,12 +38,14 @@ const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin", "latin-ext"],
   display: "swap",
+  preload: false,
 });
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin", "latin-ext"],
   display: "swap",
+  preload: false,
 });
 
 export const viewport = {
