@@ -1,5 +1,6 @@
 import { test as base, expect, type Page } from "@playwright/test";
 import { MODE_KEY, SKIN_KEY, type Mode, type Skin } from "../src/lib/theme";
+import { MOCK_EMAILJS_ORIGIN } from "./mock-emailjs/constants";
 
 /**
  * Hostnames this suite never allows a real request to reach. Sanity is
@@ -158,3 +159,17 @@ export async function mockEmailJsFailure(page: Page) {
 }
 
 export type { Mode, Skin };
+
+/**
+ * The contact emails the EmailJS stand-in accepted whose subject contains
+ * `subjectMarker` (e2e/mock-emailjs/server.mjs). Give every test a unique
+ * marker: the mock is shared by parallel workers.
+ */
+export async function sentEmails(
+  request: import("@playwright/test").APIRequestContext,
+  subjectMarker: string,
+): Promise<Array<{ template_params: Record<string, string>; receivedAt: number }>> {
+  const res = await request.get(`${MOCK_EMAILJS_ORIGIN}/__sent?subject=${encodeURIComponent(subjectMarker)}`);
+  expect(res.ok(), "the EmailJS stand-in is not reachable").toBe(true);
+  return res.json();
+}
