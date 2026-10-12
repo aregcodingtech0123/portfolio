@@ -146,7 +146,10 @@ async function firstLoad(urlPath) {
     });
   }
   const sum = (k) => files.reduce((a, f) => a + f[k], 0);
-  return { urlPath, htmlBytes: Buffer.byteLength(html), skippedNoModule: skipped, preloadedFonts, cacheControl: res.headers.get("cache-control"), files, raw: sum("raw"), gz: sum("gz"), br: sum("br") };
+  // CSS delivery: experimental.inlineCss puts the stylesheet in <style> tags; without it there is a render-blocking <link rel="stylesheet">.
+  const stylesheetLinks = (html.match(/<link[^>]+rel="stylesheet"[^>]*>/g) ?? []).length;
+  const inlineStyleBytes = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].reduce((n, m) => n + Buffer.byteLength(m[1]), 0);
+  return { urlPath, htmlBytes: Buffer.byteLength(html), stylesheetLinks, inlineStyleBytes, skippedNoModule: skipped, preloadedFonts, cacheControl: res.headers.get("cache-control"), files, raw: sum("raw"), gz: sum("gz"), br: sum("br") };
 }
 
 /** Match analyzer chunk -> real chunk by minified size (within 1.5%). */

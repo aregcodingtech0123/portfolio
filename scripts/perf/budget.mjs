@@ -79,6 +79,22 @@ async function bundleStage(budget) {
     "KB",
   );
 
+  if (b.assumeInlineCss) {
+    // The mobile score limits were set with experimental.inlineCss on (it is worth
+    // about 2-3 score points and ~0.7 s of FCP under applied throttling). Fail
+    // here, with the reason, if it has been switched off, instead of letting a
+    // later score failure look unexplained.
+    const l = load("/en");
+    rows.push({
+      group: "bundle",
+      name: "assumption: experimental.inlineCss is on (CSS inline, no <link rel=stylesheet>)",
+      value: `${l.stylesheetLinks} linked stylesheet(s), ${Math.round(kb(l.inlineStyleBytes))} KB inline`,
+      limit: "0 linked, CSS inline",
+      unit: "",
+      pass: l.stylesheetLinks === 0 && l.inlineStyleBytes > 20000,
+    });
+  }
+
   const forbidden = new RegExp(b.forbiddenPublicPackages);
   const leaks = new Set();
   for (const set of [data.publicPackages, data.notFoundPackages])
