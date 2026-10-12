@@ -123,7 +123,10 @@ export function Navbar() {
                       : "text-muted hover:text-foreground"
                   }`}
                 >
-                  <span className="decor mr-1 hidden text-accent-subtle 2xl:inline">
+                  <span
+                    aria-hidden="true"
+                    className="decor mr-1 hidden text-accent-subtle 2xl:inline"
+                  >
                     {num}
                   </span>
                   <span>{t(key)}</span>

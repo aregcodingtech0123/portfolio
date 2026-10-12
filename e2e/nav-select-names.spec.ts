@@ -87,3 +87,29 @@ for (const locale of ["en", "tr"] as const) {
     });
   }
 }
+
+// The section links carry a decorative number ("01" etc., shown from 2xl).
+// It is aria-hidden, so it must not land in the link's accessible name --
+// the name is the label alone ("Home", not "01 Home"). Exact-name matching
+// goes through the accessible name, so these only pass if the number is
+// excluded. Run at 2xl, where the number is actually rendered.
+const navLinkNames = {
+  en: ["Home", "About", "Contact"],
+  tr: ["Ana Sayfa", "Hakkımda", "İletişim"],
+} as const;
+
+for (const locale of ["en", "tr"] as const) {
+  test(`desktop nav links are named by their label alone in /${locale}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await seedTheme(page, { skin: "terminal", mode: "dark" });
+    await page.goto(`/${locale}`);
+
+    const nav = page.locator("header nav");
+    // The decorative number renders at this width...
+    await expect(nav.locator('a[href*="#"] span.decor').first()).toBeVisible();
+    // ...but is not part of any link's accessible name.
+    for (const name of navLinkNames[locale]) {
+      await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+    }
+  });
+}
