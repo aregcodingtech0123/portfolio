@@ -88,7 +88,7 @@ export function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 min-w-0 transition-colors duration-200 ${
         scrolled
-          ? "border-b border-border bg-surface/90 minimal:hairline-b minimal:border-border minimal:bg-background/95"
+          ? "border-b border-border bg-surface minimal:hairline-b minimal:border-border minimal:bg-background"
           : "border-b border-border/60 bg-background/80 minimal:hairline-b minimal:border-border/80 minimal:bg-background/90"
       }`}
     >
