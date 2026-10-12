@@ -17,7 +17,7 @@ describe("site CSP", () => {
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self'",
         "font-src 'self'",
-        "connect-src 'self' https://api.emailjs.com https://challenges.cloudflare.com",
+        "connect-src 'self' https://challenges.cloudflare.com",
         "frame-src https://challenges.cloudflare.com",
         "object-src 'none'",
         "base-uri 'self'",
@@ -41,12 +41,13 @@ describe("site CSP", () => {
     }
   });
 
-  it("names only the two third-party origins the browser contacts", () => {
+  it("names only the one third-party origin the browser contacts (Turnstile)", () => {
     const origins = new Set(SITE_CSP.match(/https:\/\/[a-z.]+/g));
-    expect([...origins].sort()).toEqual([
-      "https://api.emailjs.com",
-      "https://challenges.cloudflare.com",
-    ]);
+    expect([...origins].sort()).toEqual(["https://challenges.cloudflare.com"]);
+  });
+
+  it("does not let the browser contact EmailJS (the send is server-side)", () => {
+    expect(SITE_CSP).not.toContain("emailjs");
   });
 });
 

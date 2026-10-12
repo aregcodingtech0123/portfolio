@@ -4,7 +4,7 @@
  * Delivery mode is a single switch, CSP_MODE. It ships as "report-only": the
  * browser evaluates the whole policy and reports violations (DevTools console,
  * and the `securitypolicyviolation` event the e2e spec listens to) but blocks
- * nothing, so a policy that is wrong for Turnstile, EmailJS or the inline
+ * nothing, so a policy that is wrong for Turnstile or the inline
  * styles cannot break the site. Flip it to "enforce" only after the checklist
  * in docs/security/csp.md has been completed on a preview deploy.
  *
@@ -20,11 +20,13 @@
  * (connect-src, form-action), which origins may script or frame it, and
  * forbids <object>, <base> hijacking and being framed.
  *
- * Third-party origins, enumerated from the code (the only two the browser
+ * Third-party origins, enumerated from the code (the only one the browser
  * contacts):
  * - https://challenges.cloudflare.com: the Turnstile script (script-src), its
  *   iframe (frame-src) and its requests (connect-src).
- * - https://api.emailjs.com: @emailjs/browser's send request (connect-src).
+ * The contact email is sent by the server (/api/contact), so the browser
+ * never contacts EmailJS and https://api.emailjs.com is not allowed: a
+ * script that tried would be reported (and blocked once enforced).
  * Everything else is same-origin: fonts are self-hosted by next/font, Sanity
  * images are fetched by the server through /_next/image, and Sanity content is
  * fetched on the server.
@@ -44,7 +46,6 @@ export const CSP_HEADER_NAME =
     : "Content-Security-Policy-Report-Only";
 
 const TURNSTILE = "https://challenges.cloudflare.com";
-const EMAILJS = "https://api.emailjs.com";
 
 export type CspDirectives = Readonly<Record<string, readonly string[]>>;
 
@@ -54,7 +55,7 @@ export const SITE_CSP_DIRECTIVES: CspDirectives = {
   "style-src": ["'self'", "'unsafe-inline'"],
   "img-src": ["'self'"],
   "font-src": ["'self'"],
-  "connect-src": ["'self'", EMAILJS, TURNSTILE],
+  "connect-src": ["'self'", TURNSTILE],
   "frame-src": [TURNSTILE],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],
