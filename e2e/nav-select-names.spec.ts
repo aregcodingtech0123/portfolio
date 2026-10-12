@@ -5,16 +5,16 @@ import { expect, seedTheme, test } from "./fixtures";
 // Playwright's accessible-name implementation, so precedence between
 // aria-labelledby / aria-label is whatever the browser really does.
 //
-// Each trigger must be named "<visible label> <current value>": the label
-// a sighted (or speech-input) user sees comes first (WCAG 2.5.3 Label in
-// Name), then the value, per the ARIA APG listbox-button pattern. The
-// compact (<lg) controls hide the label visually but must be named the
-// same way.
+// Each trigger must be named "<visible label> <current value>": the single
+// localized label a sighted (or speech-input) user sees comes first (WCAG
+// 2.5.3 Label in Name), then the value, per the ARIA APG listbox-button
+// pattern. The compact (<lg) controls hide the label visually but must be
+// named the same way.
 //
-// Compared case-insensitively: Chromium folds CSS text-transform into the
-// names it exposes (the terminal skin uppercases labels and values, and
-// under lang="tr" "Skin" becomes "SKİN"), while other engines don't. Case is
-// presentation, and WCAG 2.5.3 matching is case-insensitive too.
+// Compared exactly, not case-insensitively: these controls no longer
+// uppercase their text with CSS, so there is no transform for Chromium to
+// fold into the name (and no "SKİN" from uppercasing "Skin" under lang=tr).
+// The name is exactly what the catalog and the chosen value spell.
 
 type AXNode = {
   ignored: boolean;
@@ -45,11 +45,19 @@ async function switcherNames(page: import("@playwright/test").Page) {
 }
 
 const expected = {
-  en: { language: "Dil / Language English EN", mode: "Tema / Mode Dark", skin: "Görünüm / Skin Terminal" },
-  tr: { language: "Dil / Language Türkçe TR", mode: "Tema / Mode Koyu", skin: "Görünüm / Skin Terminal" },
+  en: {
+    language: "Language English EN",
+    mode: "Mode Dark",
+    skin: "Skin Terminal",
+    listboxes: ["Language", "Mode", "Skin", "Language"],
+  },
+  tr: {
+    language: "Dil Türkçe TR",
+    mode: "Tema Koyu",
+    skin: "Görünüm Terminal",
+    listboxes: ["Dil", "Tema", "Görünüm", "Dil"],
+  },
 } as const;
-
-const listboxNames = ["Dil / Language", "Tema / Mode", "Görünüm / Skin", "Dil / Language"];
 
 for (const locale of ["en", "tr"] as const) {
   for (const { layout, viewport } of [
@@ -68,18 +76,13 @@ for (const locale of ["en", "tr"] as const) {
         page.locator('button[aria-haspopup="listbox"]:visible:disabled'),
       ).toHaveCount(0);
 
-      const fold = (names: (string | undefined)[]) =>
-        names.map((name) => name?.toLocaleLowerCase(locale));
-      const { language, mode, skin } = expected[locale];
+      const { language, mode, skin, listboxes: listboxNames } = expected[locale];
       // Header switchers, then the footer's language switcher.
       await expect
-        .poll(async () => {
-          const { triggers, listboxes } = await switcherNames(page);
-          return { triggers: fold(triggers), listboxes: fold(listboxes) };
-        })
+        .poll(async () => await switcherNames(page))
         .toEqual({
-          triggers: fold([language, mode, skin, language]),
-          listboxes: fold(listboxNames),
+          triggers: [language, mode, skin, language],
+          listboxes: listboxNames,
         });
     });
   }

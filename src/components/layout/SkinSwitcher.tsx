@@ -29,7 +29,7 @@ export function SkinSwitcher({ showLabel = true }: SkinSwitcherProps) {
 
   return (
     <NavSelect
-      label={t("toggleStyle")}
+      label={t("skin")}
       value={value}
       disabled={!mounted}
       showLabel={showLabel}

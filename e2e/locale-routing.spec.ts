@@ -30,7 +30,7 @@ test("switching language from the navbar restores the scroll position", async ({
 
   // The trigger's name is its visible label plus its current value. It
   // also renders in the footer, so this picks the first match (the navbar's).
-  await page.getByRole("button", { name: "Dil / Language English EN", exact: true }).first().click();
+  await page.getByRole("button", { name: "Language English EN", exact: true }).first().click();
   // The option's accessible name includes the flag icon's title text, so
   // it's "Türkçe TR", not just "TR".
   await page.getByRole("option", { name: "Türkçe TR", exact: true }).first().click();

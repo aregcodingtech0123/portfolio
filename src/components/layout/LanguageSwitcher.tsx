@@ -42,7 +42,7 @@ export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
 
   return (
     <NavSelect
-      label={t("toggleLang")}
+      label={t("language")}
       value={locale}
       disabled={pending}
       showLabel={showLabel}

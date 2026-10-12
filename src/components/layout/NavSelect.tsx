@@ -109,11 +109,13 @@ export function NavSelect<T extends string>({
       } ${className}`.trim()}
     >
       {/* The visible label is the only source of the accessible name, so
-          what a speech-input user sees is what they can say (WCAG 2.5.3). */}
+          what a speech-input user sees is what they can say (WCAG 2.5.3).
+          Sentence case, not CSS uppercase: the label reads as written in
+          each locale -- no "SKİN" from uppercasing "Skin" under lang="tr". */}
       <span
         className={
           showLabel
-            ? "truncate text-[9px] font-medium uppercase tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
+            ? "truncate text-[9px] font-medium tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
             : "sr-only"
         }
         id={labelId}
@@ -136,7 +138,7 @@ export function NavSelect<T extends string>({
         onKeyDown={onTriggerKeyDown}
         className={[
           "inline-flex h-8 min-w-0 touch-manipulation items-center justify-between gap-1.5 rounded-sm border border-border bg-surface px-2",
-          "font-mono text-[10px] font-medium tracking-wide text-foreground uppercase",
+          "font-mono text-[10px] font-medium tracking-wide text-foreground",
           "transition-colors duration-150",
           "hover:border-accent hover:text-accent",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
@@ -185,7 +187,7 @@ export function NavSelect<T extends string>({
                   onClick={() => commit(option.value)}
                   className={[
                     "flex w-full touch-manipulation items-center gap-2 px-2.5 py-1.5 text-left",
-                    "font-mono text-[10px] font-medium tracking-wide uppercase",
+                    "font-mono text-[10px] font-medium tracking-wide",
                     "transition-colors duration-150",
                     active
                       ? "bg-accent/15 text-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.18em]"
