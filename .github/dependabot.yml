@@ -1,0 +1,40 @@
+# Dependency and action updates, scoped so they stay reviewable.
+#
+# - Weekly, a small number of open PRs, minor and patch updates grouped by
+#   concern so related packages move together (next with its ESLint config;
+#   the Sanity family) instead of arriving as ten separate PRs.
+# - Major versions are never grouped: each is its own PR and needs a human.
+# - Security updates are a separate GitHub feature (repository settings,
+#   "Dependabot security updates"); enable it so an advisory opens a PR
+#   outside this schedule. Triage it with docs/security/dependency-audit.md:
+#   the scanner flags many dev and CLI packages that never reach a visitor.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      next:
+        patterns: ["next", "eslint-config-next", "@next/*"]
+      sanity:
+        patterns: ["sanity", "next-sanity", "@sanity/*"]
+      testing:
+        patterns: ["vitest", "@vitejs/*", "@playwright/*", "@axe-core/*", "@testing-library/*", "jsdom", "lighthouse", "puppeteer-core"]
+        update-types: ["minor", "patch"]
+      everything-else:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Keeps the SHA pins in .github/workflows fresh (a pin does not update itself).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci(deps)"

@@ -4,16 +4,34 @@ on:
   push:
   pull_request:
 
+# The workflow only reads the repository. Nothing here pushes, comments or
+# publishes, so the token gets no write scope (the default can be broader).
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
       - run: npm ci
+      # Report only: it never fails the build. Most findings are Sanity CLI,
+      # ESLint and test tooling that never run on the host or reach a visitor
+      # (docs/security/dependency-audit.md explains how to triage one), so a
+      # blocking gate would just train people to ignore a red build. Read the
+      # summary on the run page; a finding that is in the browser bundle or a
+      # route's server trace is the kind to act on.
+      - name: npm audit (report only, never fails)
+        continue-on-error: true
+        run: |
+          npm audit --json > audit.json || true
+          node scripts/audit-summary.mjs audit.json
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -22,7 +40,7 @@ jobs:
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}

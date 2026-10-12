@@ -83,6 +83,13 @@ A production build on a developer machine or in CI that is not a real deployment
 | `npm run perf` | Lighthouse baseline against a production build (also `perf:bundle`, `perf:observe`, `perf:inspect`; see [scripts/perf/README.md](scripts/perf/README.md)) |
 | `npm run perf:budget` | Fails if the build breaks the performance budget in `scripts/perf/budget.json`; runs in CI |
 
+## Security
+
+- [`docs/security/csp.md`](docs/security/csp.md): the Content-Security-Policy (currently Report-Only), how to read violations, and the checklist for switching it to enforcing.
+- [`docs/security/rate-limiting.md`](docs/security/rate-limiting.md): the host/WAF rules for `/api/translate` and `/api/contact`, and why `/api/translate` is off in production unless `TRANSLATE_ENABLED=true`.
+- [`docs/security/dependency-audit.md`](docs/security/dependency-audit.md): how `npm audit` findings were triaged, and how to tell one that reaches a visitor from one that does not. CI prints an audit summary on every run but never fails on it.
+- Environment validation: see above. Dependabot keeps dependencies and the pinned GitHub Actions current ([`.github/dependabot.yml`](.github/dependabot.yml)).
+
 ## Deploy
 
 Deploy like any Next.js app — e.g. the [Vercel Platform](https://vercel.com/new). Set the environment variables above in your hosting provider; without the Sanity ones the site still builds and serves the fallback content.

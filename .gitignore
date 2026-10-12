@@ -47,3 +47,4 @@ next-env.d.ts
 
 # perf measurement output (scripts/perf)
 /perf-results/
+/audit.json
