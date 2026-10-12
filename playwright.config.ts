@@ -46,6 +46,9 @@ export default defineConfig({
       // even as an empty string). Mirrors scripts/perf/env.mjs.
       GEMINI_API_KEY: "",
       SANITY_API_WRITE_TOKEN: "",
+      // Unset, so /api/translate is off, as it is on a real deployment
+      // (e2e/api-translate.spec.ts). A developer's .env cannot flip it.
+      TRANSLATE_ENABLED: "",
       // sanityConfigured=false: every request deterministically serves the
       // real fallback dataset (src/data/migration-portfolio.ts), with no
       // server-side network call for Sanity's content fetch to make at all.
