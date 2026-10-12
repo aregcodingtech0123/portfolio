@@ -42,7 +42,10 @@ test("terminal: the About photo is optimized, small and never fetched as the raw
     .toBe(true);
 
   expect(urls.filter((u) => new URL(u).pathname === RAW_PHOTO), "raw original must not be requested").toEqual([]);
-  expect(urls.length).toBeGreaterThanOrEqual(2); // hero portrait + About photo
+  // The browser may serve the About photo from the hero portrait's already loaded
+  // variant, so the number of distinct optimized URLs is 1 or 2; what matters is
+  // that none is the original and each is small.
+  expect(urls.length).toBeGreaterThanOrEqual(1);
   // Far below the 197 KB original, for every optimized variant requested.
   expect(Math.max(...sizes)).toBeLessThan(60_000);
 });
