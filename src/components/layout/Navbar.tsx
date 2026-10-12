@@ -96,6 +96,7 @@ export function Navbar() {
         {/* Left: brand */}
         <Link
           href="/"
+          prefetch={false}
           className="group flex shrink-0 items-center gap-1.5 font-mono text-xs tracking-wide text-muted transition-colors hover:text-accent minimal:font-heading minimal:text-base minimal:font-normal minimal:tracking-tight minimal:text-foreground minimal:hover:text-foreground"
         >
           <span className="decor text-accent">~/</span>
@@ -117,6 +118,7 @@ export function Navbar() {
                 <Link
                   key={id}
                   href={`/#${id}`}
+                  prefetch={false}
                   className={`relative shrink-0 whitespace-nowrap px-0.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
                     isActive
                       ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
@@ -217,6 +219,7 @@ export function Navbar() {
                   <Link
                     key={id}
                     href={`/#${id}`}
+                    prefetch={false}
                     onClick={() => setOpen(false)}
                     className={`flex touch-manipulation items-center gap-3 border-b border-border/60 px-1 py-3 font-mono text-sm last:border-b-0 minimal:border-border/40 minimal:px-0 minimal:py-3 minimal:font-body minimal:text-base ${
                       isActive

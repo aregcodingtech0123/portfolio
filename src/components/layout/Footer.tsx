@@ -41,6 +41,7 @@ export function Footer() {
               <li key={id}>
                 <Link
                   href={`/#${id}`}
+                  prefetch={false}
                   className="text-sm text-muted transition hover:text-accent minimal:essay-link minimal:text-foreground"
                 >
                   {n(key)}
