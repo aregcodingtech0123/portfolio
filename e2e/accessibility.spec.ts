@@ -21,24 +21,25 @@ const COMBOS: Array<{ skin: Skin; mode: Mode }> = [
 test.use({ reducedMotion: "reduce" });
 
 /**
- * Splits violations by severity. Moderate/minor are logged as a warning,
- * never failing the suite. Serious/critical are returned for the caller to
- * assert against directly -- never filtered or suppressed here, including
- * known, already-reported, out-of-scope ones (see the module doc comment
- * at the bottom of this file): a violation that's real doesn't stop being
- * real because it was already found once.
+ * Splits violations by severity and returns the ones that fail the suite.
+ * The threshold is critical + serious + MODERATE: it was raised to include
+ * moderate once the only moderate findings (the project modal's duplicate
+ * banner/contentinfo landmarks) were fixed, so a future moderate regression
+ * now fails CI. Only minor is logged as a non-failing warning. Nothing is
+ * filtered or suppressed, including known or out-of-scope findings: a real
+ * violation does not stop being real because it was found before.
  */
-function splitBySeverity(violations: Result[]) {
-  const serious = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
-  const moderateOrMinor = violations.filter(
-    (v) => v.impact === "moderate" || v.impact === "minor",
+function failingViolations(violations: Result[]) {
+  const failing = violations.filter(
+    (v) => v.impact === "critical" || v.impact === "serious" || v.impact === "moderate",
   );
-  if (moderateOrMinor.length) {
+  const minor = violations.filter((v) => v.impact === "minor");
+  if (minor.length) {
     console.warn(
-      `[axe, not failing] ${moderateOrMinor.map((v) => `${v.id} (${v.impact}, ${v.nodes.length} node(s))`).join("; ")}`,
+      `[axe, not failing] ${minor.map((v) => `${v.id} (${v.impact}, ${v.nodes.length} node(s))`).join("; ")}`,
     );
   }
-  return serious;
+  return failing;
 }
 
 function describeViolations(violations: Result[]): string {
@@ -87,7 +88,7 @@ async function settlePage(page: import("@playwright/test").Page) {
 
 for (const locale of ["en", "tr"] as const) {
   for (const { skin, mode } of COMBOS) {
-    test(`axe: full page has no serious/critical violations (${locale} ${skin}/${mode})`, async ({
+    test(`axe: full page has no critical, serious or moderate violations (${locale} ${skin}/${mode})`, async ({
       page,
     }) => {
       await seedTheme(page, { skin, mode });
@@ -95,15 +96,15 @@ for (const locale of ["en", "tr"] as const) {
       await settlePage(page);
 
       const results = await new AxeBuilder({ page }).analyze();
-      const serious = splitBySeverity(results.violations);
+      const failing = failingViolations(results.violations);
 
-      expect(serious, describeViolations(serious)).toEqual([]);
+      expect(failing, describeViolations(failing)).toEqual([]);
     });
   }
 }
 
 for (const skin of ["terminal", "minimal"] as const) {
-  test(`axe: the open project modal has no serious/critical violations (${skin})`, async ({
+  test(`axe: the open project modal has no critical, serious or moderate violations (${skin})`, async ({
     page,
   }) => {
     await seedTheme(page, { skin });
@@ -116,9 +117,9 @@ for (const skin of ["terminal", "minimal"] as const) {
     // scans above already cover (and report) the rest of the chrome
     // behind it, and scoping keeps this check specific to the modal.
     const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
-    const serious = splitBySeverity(results.violations);
+    const failing = failingViolations(results.violations);
 
-    expect(serious, describeViolations(serious)).toEqual([]);
+    expect(failing, describeViolations(failing)).toEqual([]);
   });
 }
 
@@ -135,8 +136,10 @@ for (const skin of ["terminal", "minimal"] as const) {
  *        could not be reached by keyboard. It is now a focusable,
  *        labelled region.
  *
- * Still reported at moderate (logged, not failing, per the threshold
- * above): landmark-no-duplicate-banner / -contentinfo in the project
- * modal, whose <header>/<footer> are not inside a sectioning element and
- * so are exposed as a second banner/contentinfo next to the page's own.
+ * Later, the project modal's only moderate findings --
+ * landmark-no-duplicate-banner / -contentinfo, from its <header>/<footer>
+ * being exposed as a second banner/contentinfo beside the page's own --
+ * were fixed by making those plain <div>s. With moderate then at zero, the
+ * failure threshold was raised to include moderate (see failingViolations),
+ * so a future moderate regression fails CI rather than only being logged.
  */

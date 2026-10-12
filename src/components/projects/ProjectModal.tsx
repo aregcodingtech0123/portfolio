@@ -156,7 +156,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
             transition={{ duration: reduceMotion ? 0.01 : 0.22 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <header className="hairline-b flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6 minimal:px-6 minimal:py-5 sm:minimal:px-8 sm:minimal:py-6">
+            <div className="hairline-b flex shrink-0 items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6 minimal:px-6 minimal:py-5 sm:minimal:px-8 sm:minimal:py-6">
               <h2
                 id={titleId}
                 className="min-w-0 font-heading text-xl font-semibold tracking-tight break-words text-foreground sm:text-2xl minimal:text-2xl minimal:font-normal sm:minimal:text-3xl"
@@ -179,7 +179,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
                 </span>
                 <span className="hidden minimal:inline">{t("close")}</span>
               </button>
-            </header>
+            </div>
 
             {/* Focusable so a keyboard user can scroll a long case study with
                 the arrow/Page keys (it may hold nothing else focusable).
@@ -269,7 +269,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
               </div>
             </div>
 
-            <footer className="hairline-t flex shrink-0 flex-wrap items-center gap-3 border-t border-border px-5 py-4 sm:px-6 minimal:gap-x-6 minimal:gap-y-3 minimal:px-6 minimal:py-5 sm:minimal:px-8">
+            <div className="hairline-t flex shrink-0 flex-wrap items-center gap-3 border-t border-border px-5 py-4 sm:px-6 minimal:gap-x-6 minimal:gap-y-3 minimal:px-6 minimal:py-5 sm:minimal:px-8">
               {display.liveUrl && (
                 <>
                   <a
@@ -321,7 +321,7 @@ export function ProjectModal({ project, open, onClose }: ProjectModalProps) {
               >
                 {t("close")}
               </button>
-            </footer>
+            </div>
           </motion.div>
         </motion.div>
       ) : null}
