@@ -1,9 +1,13 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants";
 import createNextIntlPlugin from "next-intl/plugin";
+import { formatIssues, validateEnv } from "./src/lib/env-validation";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+const NEWLINE = "\n";
 
 /** Hero portrait, relative to public/. Keep in step with the file you ship. */
 const HERO_PORTRAIT = "/images/profilephoto.jpeg";
@@ -53,4 +57,42 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+/**
+ * Configuration as a function so the build phase is known. A production build
+ * with a missing or inconsistent environment fails here, before anything is
+ * compiled, instead of shipping a site whose contact form silently blocks
+ * visitors. Rules and rationale: src/lib/env-validation.ts. Dev only warns;
+ * the running production server is checked in src/instrumentation.ts, which
+ * logs and never throws.
+ */
+export default function config(phase: string): NextConfig {
+  if (phase === PHASE_PRODUCTION_BUILD || phase === PHASE_DEVELOPMENT_SERVER) {
+    const production = phase === PHASE_PRODUCTION_BUILD;
+    const issues = validateEnv(process.env, { production });
+    const errors = issues.filter((i) => i.severity === "error");
+    if (issues.length > 0) {
+      const report = formatIssues(issues);
+      if (production && errors.length > 0) {
+        throw new Error(
+          [
+            "",
+            `Environment validation failed (${errors.length} error(s)). Refusing to build a site that would break in front of visitors:`,
+            report,
+            "",
+            "Local or CI build that is not a real deployment? Set APP_ENV=test (see src/lib/env-validation.ts).",
+            "",
+          ].join(NEWLINE),
+        );
+      }
+      // Next loads this file in several processes per build; the marker is
+      // inherited by the children, so the warnings print once.
+      if (!process.env.ENV_VALIDATION_REPORTED) {
+        process.env.ENV_VALIDATION_REPORTED = "1";
+        console.warn(
+          ["", `[env] ${issues.length} configuration issue(s):`, report, ""].join(NEWLINE),
+        );
+      }
+    }
+  }
+  return withNextIntl(nextConfig);
+}

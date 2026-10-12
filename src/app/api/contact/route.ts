@@ -20,6 +20,12 @@ type Body = {
  */
 export async function POST(request: Request) {
   if (!isTurnstileSecretConfigured()) {
+    // The one signal the site owner gets: the visitor only sees a generic
+    // "security check failed", so without this line a missing secret blocks
+    // every submission with nothing in the logs.
+    console.error(
+      "[api/contact] TURNSTILE_SECRET_KEY is not set on the server, so every contact submission is being rejected with 503. Set it in the host's runtime environment.",
+    );
     return NextResponse.json(
       { error: "Turnstile is not configured on the server" },
       { status: 503 },

@@ -36,10 +36,25 @@ See [`.env.example`](.env.example) for the full, commented list. Summary:
 | Variable | Required for | Notes |
 |---|---|---|
 | `NEXT_PUBLIC_EMAILJS_SERVICE_ID` / `_TEMPLATE_ID` / `_PUBLIC_KEY` | Contact form | Without these the form renders disabled with a dev-only notice |
-| `NEXT_PUBLIC_SITE_URL` | Metadata, Sanity preview links | Defaults to `http://localhost:3000` |
+| `NEXT_PUBLIC_SITE_URL` | Metadata, canonical and hreflang URLs | Defaults to `http://localhost:3000`; a production build requires an `https://` URL that is not localhost |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Contact form captcha | Both or neither; a production build requires both. The secret is server-only |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID` / `_DATASET` / `_API_VERSION` | Sanity Studio + content fetch | Without a project ID the site runs entirely on the fallback dataset |
 | `SANITY_API_WRITE_TOKEN` | `npm run seed:sanity` only | Server-only, never prefix with `NEXT_PUBLIC_` |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | `/api/translate` (Studio's EN→TR button) | Server-only; optional if you don't need auto-translate |
+| `TRANSLATE_ENABLED` | `/api/translate` | `true` / `false`. On in development, **off in production** unless set to `true` |
+| `APP_ENV` | Automated test builds only | `test` relaxes the localhost-URL and Cloudflare-test-key rules; see below. Never set it on a real deployment |
+
+### Environment validation
+
+[`src/lib/env-validation.ts`](src/lib/env-validation.ts) encodes which variables are required, which must come as a pair, and which combinations are dangerous. It runs in three places:
+
+- **`next build`** ([`next.config.ts`](next.config.ts)): a production build with an invalid environment **fails** and lists every problem. The classic case it catches: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` set but `TURNSTILE_SECRET_KEY` missing, which would otherwise reject every contact submission with no visible sign. `NEXT_PUBLIC_*` values are baked in at build time, so set every variable the build needs in the host's **build** environment too, not only at runtime.
+- **Server boot** ([`src/instrumentation.ts`](src/instrumentation.ts)): logs errors and warnings, never throws, so a runtime environment that differs from the build environment is visible in the host's logs without taking the site down.
+- **`next dev`**: warnings only.
+
+The write token (`SANITY_API_WRITE_TOKEN`) is rejected in a production build: it is for `npm run seed:sanity` on a developer machine only.
+
+A production build on a developer machine or in CI that is not a real deployment (localhost URL, Cloudflare's test Turnstile keys) needs `APP_ENV=test`. That is what the Playwright and performance profiles set. It relaxes only those rules; the pairing rules still apply.
 
 ## Content model & Sanity Studio
 

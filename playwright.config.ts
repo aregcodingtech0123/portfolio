@@ -36,6 +36,16 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
     env: {
+      // This is a production build served from http://localhost with
+      // Cloudflare's test keys, which the production env rules would reject
+      // (src/lib/env-validation.ts). The test profile relaxes only those
+      // rules; the pairing rules still apply to everything below.
+      APP_ENV: "test",
+      // Blanked so a developer's real .env values can never be loaded into a
+      // test build (Next never overrides a variable that is already defined,
+      // even as an empty string). Mirrors scripts/perf/env.mjs.
+      GEMINI_API_KEY: "",
+      SANITY_API_WRITE_TOKEN: "",
       // sanityConfigured=false: every request deterministically serves the
       // real fallback dataset (src/data/migration-portfolio.ts), with no
       // server-side network call for Sanity's content fetch to make at all.

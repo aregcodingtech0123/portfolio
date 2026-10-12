@@ -25,6 +25,7 @@ afterEach(() => {
 
 describe("POST /api/contact: server not configured", () => {
   it("returns 503 and never calls verifyTurnstileToken", async () => {
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
     isTurnstileSecretConfiguredMock.mockReturnValue(false);
     const res = await POST(postRequest({ token: "abc" }));
     expect(res.status).toBe(503);
@@ -32,6 +33,16 @@ describe("POST /api/contact: server not configured", () => {
       error: "Turnstile is not configured on the server",
     });
     expect(verifyTurnstileTokenMock).not.toHaveBeenCalled();
+    errorLog.mockRestore();
+  });
+
+  it("leaves a server-log trace naming the missing variable, so the block is not silent", async () => {
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    isTurnstileSecretConfiguredMock.mockReturnValue(false);
+    await POST(postRequest({ token: "abc" }));
+    expect(errorLog).toHaveBeenCalledTimes(1);
+    expect(String(errorLog.mock.calls[0][0])).toContain("TURNSTILE_SECRET_KEY");
+    errorLog.mockRestore();
   });
 });
 

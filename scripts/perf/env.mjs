@@ -17,6 +17,10 @@ export const PORT = Number(process.env.PERF_PORT ?? 3200);
 export const BASE_URL = `http://localhost:${PORT}`;
 
 export const perfEnv = {
+  // Production build on localhost with Cloudflare test keys: the test profile
+  // of src/lib/env-validation.ts, which relaxes only the localhost-URL and
+  // test-key rules. The pairing rules still apply.
+  APP_ENV: "test",
   NEXT_PUBLIC_SANITY_PROJECT_ID: "",
   NEXT_PUBLIC_SANITY_DATASET: "",
   SANITY_API_WRITE_TOKEN: "",
