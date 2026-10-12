@@ -11,9 +11,10 @@ type LocaleCode = (typeof routing.locales)[number];
 
 type LanguageSwitcherProps = {
   showLabel?: boolean;
+  labelFromXl?: boolean;
 };
 
-export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ showLabel = true, labelFromXl = false }: LanguageSwitcherProps) {
   const locale = useLocale() as LocaleCode;
   const router = useRouter();
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export function LanguageSwitcher({ showLabel = true }: LanguageSwitcherProps) {
       value={locale}
       disabled={pending}
       showLabel={showLabel}
+      labelFromXl={labelFromXl}
       onChange={switchTo}
       options={[
         {

@@ -92,7 +92,7 @@ export function Navbar() {
           : "border-b border-border/60 bg-background/80 minimal:hairline-b minimal:border-border/80 minimal:bg-background/90"
       }`}
     >
-      <nav className="mx-auto flex min-h-[5.75rem] w-full max-w-full items-center justify-between gap-4 px-5 py-3.5 sm:gap-6 sm:px-6 lg:gap-8 lg:px-8 xl:px-10 minimal:min-h-[4.5rem] minimal:py-3">
+      <nav className="mx-auto flex min-h-[5.75rem] w-full max-w-full items-center justify-between gap-4 px-5 py-3.5 sm:gap-6 sm:px-6 lg:gap-3 lg:px-6 xl:gap-4 xl:px-8 minimal:min-h-[4.5rem] minimal:py-3">
         {/* Left: brand */}
         <Link
           href="/"
@@ -105,22 +105,25 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Center: section links (desktop) */}
-        <div className="hidden min-w-0 flex-1 items-center justify-center overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">
-          <div className="flex flex-nowrap items-center justify-center gap-2 xl:gap-3 2xl:gap-4">
+        {/* Center: section links (desktop). justify-center-safe falls back to
+            start alignment when the links overflow, so neither the first nor
+            the last is pushed out of the (hidden-scrollbar) scrollport and
+            clipped -- the bug plain justify-center caused. */}
+        <div className="hidden min-w-0 flex-1 items-center justify-center-safe overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-nowrap items-center justify-center-safe gap-1 xl:gap-2 2xl:gap-3">
             {navSections.map(({ id, key, num }) => {
               const isActive = active === id;
               return (
                 <Link
                   key={id}
                   href={`/#${id}`}
-                  className={`relative shrink-0 whitespace-nowrap px-1 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
+                  className={`relative shrink-0 whitespace-nowrap px-0.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
                     isActive
                       ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
-                  <span className="decor mr-1 hidden text-accent-subtle xl:inline">
+                  <span className="decor mr-1 hidden text-accent-subtle 2xl:inline">
                     {num}
                   </span>
                   <span>{t(key)}</span>
@@ -137,11 +140,13 @@ export function Navbar() {
         </div>
 
         {/* Right: selectors + social (desktop) */}
-        <div className="hidden shrink-0 items-center gap-3 lg:flex xl:gap-3.5">
-          <div className="flex items-end gap-2.5 xl:gap-3">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <SkinSwitcher />
+        <div className="hidden shrink-0 items-center gap-2 lg:flex xl:gap-2.5">
+          {/* Micro-labels from xl up; below that the controls are compact so
+              the dense nav fits narrower desktop widths without clipping. */}
+          <div className="flex items-end gap-1 xl:gap-2">
+            <LanguageSwitcher labelFromXl />
+            <ThemeToggle labelFromXl />
+            <SkinSwitcher labelFromXl />
           </div>
 
           <SocialExternalLinks

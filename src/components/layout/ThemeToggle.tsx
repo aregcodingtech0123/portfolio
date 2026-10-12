@@ -8,9 +8,10 @@ import { NavSelect } from "./NavSelect";
 
 type ThemeToggleProps = {
   showLabel?: boolean;
+  labelFromXl?: boolean;
 };
 
-export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
+export function ThemeToggle({ showLabel = true, labelFromXl = false }: ThemeToggleProps) {
   const { mode, setMode } = useTheme();
   const [mounted, setMounted] = useState(false);
   const t = useTranslations("Nav");
@@ -27,6 +28,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
       value={value}
       disabled={!mounted}
       showLabel={showLabel}
+      labelFromXl={labelFromXl}
       onChange={setMode}
       options={[
         { value: "dark", label: t("themeOptionDark") },

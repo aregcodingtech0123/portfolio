@@ -26,6 +26,13 @@ type NavSelectProps<T extends string> = {
    * in the DOM as sr-only, so the accessible name is the same either way.
    */
   showLabel?: boolean;
+  /**
+   * When `showLabel` is set, reveal the micro-label only from the xl
+   * breakpoint up; below it the control is compact (label sr-only). Lets a
+   * dense navbar fit narrower desktop widths without dropping the label's
+   * accessible name. No effect when `showLabel` is false.
+   */
+  labelFromXl?: boolean;
   className?: string;
 };
 
@@ -39,6 +46,7 @@ export function NavSelect<T extends string>({
   onChange,
   disabled = false,
   showLabel = true,
+  labelFromXl = false,
   className = "",
 }: NavSelectProps<T>) {
   const listId = useId();
@@ -101,23 +109,33 @@ export function NavSelect<T extends string>({
     }
   }
 
+  // The label is always in the DOM for the accessible name; `labelFromXl`
+  // only changes whether it is painted below the xl breakpoint, and sizes
+  // the control to match (compact until then).
+  const widthClass = !showLabel
+    ? "min-w-0"
+    : labelFromXl
+      ? "min-w-0 xl:w-[6rem]"
+      : "w-[5.75rem] xl:w-[6rem]";
+  const labelVisual =
+    "truncate text-[9px] font-medium tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]";
+  const labelClass = !showLabel
+    ? "sr-only"
+    : labelFromXl
+      ? "sr-only xl:not-sr-only xl:truncate xl:text-[10px] xl:font-medium xl:tracking-wider xl:text-subtle xl:minimal:font-body xl:minimal:tracking-[0.12em]"
+      : labelVisual;
+
   return (
     <div
       ref={rootRef}
-      className={`relative flex shrink-0 flex-col items-stretch gap-0.5 ${
-        showLabel ? "w-[7.25rem] xl:w-[7.75rem]" : "min-w-0"
-      } ${className}`.trim()}
+      className={`relative flex shrink-0 flex-col items-stretch gap-0.5 ${widthClass} ${className}`.trim()}
     >
       {/* The visible label is the only source of the accessible name, so
           what a speech-input user sees is what they can say (WCAG 2.5.3).
           Sentence case, not CSS uppercase: the label reads as written in
           each locale -- no "SKİN" from uppercasing "Skin" under lang="tr". */}
       <span
-        className={
-          showLabel
-            ? "truncate text-[9px] font-medium tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]"
-            : "sr-only"
-        }
+        className={labelClass}
         id={labelId}
         title={showLabel ? label : undefined}
       >
