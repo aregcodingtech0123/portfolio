@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { SectionLink } from "@/components/ui/SectionLink";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import {
   SocialExternalLinks,
@@ -39,13 +39,12 @@ export function Footer() {
           <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 minimal:flex-col minimal:gap-y-2">
             {links.map(({ id, key }) => (
               <li key={id}>
-                <Link
-                  href={`/#${id}`}
-                  prefetch={false}
+                <SectionLink
+                  section={id}
                   className="text-sm text-muted transition hover:text-accent minimal:essay-link minimal:text-foreground"
                 >
                   {n(key)}
-                </Link>
+                </SectionLink>
               </li>
             ))}
           </ul>

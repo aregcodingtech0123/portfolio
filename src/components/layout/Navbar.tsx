@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
+import { SectionLink } from "@/components/ui/SectionLink";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 import { sections as sectionConfig } from "@/config/sections";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -115,10 +116,9 @@ export function Navbar() {
             {navSections.map(({ id, key, num }) => {
               const isActive = active === id;
               return (
-                <Link
+                <SectionLink
                   key={id}
-                  href={`/#${id}`}
-                  prefetch={false}
+                  section={id}
                   className={`relative shrink-0 whitespace-nowrap px-0.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
                     isActive
                       ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
@@ -138,7 +138,7 @@ export function Navbar() {
                       aria-hidden
                     />
                   )}
-                </Link>
+                </SectionLink>
               );
             })}
           </div>
@@ -216,10 +216,9 @@ export function Navbar() {
               {navSections.map(({ id, key, num }) => {
                 const isActive = active === id;
                 return (
-                  <Link
+                  <SectionLink
                     key={id}
-                    href={`/#${id}`}
-                    prefetch={false}
+                    section={id}
                     onClick={() => setOpen(false)}
                     className={`flex touch-manipulation items-center gap-3 border-b border-border/60 px-1 py-3 font-mono text-sm last:border-b-0 minimal:border-border/40 minimal:px-0 minimal:py-3 minimal:font-body minimal:text-base ${
                       isActive
@@ -229,7 +228,7 @@ export function Navbar() {
                   >
                     <span className="decor w-6 text-[11px] text-muted">{num}</span>
                     <span>{t(key)}</span>
-                  </Link>
+                  </SectionLink>
                 );
               })}
               <div className="mt-3 flex items-center gap-3 border-t border-border pt-3 minimal:border-border/40">

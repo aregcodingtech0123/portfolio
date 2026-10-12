@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { Link } from "@/i18n/navigation";
+import { SectionLink } from "@/components/ui/SectionLink";
 import { useSiteContent } from "@/components/providers/SiteContentProvider";
 import { buttonClasses } from "@/components/ui/Button";
 import { PortraitFrame } from "@/components/ui/PortraitFrame";
@@ -54,12 +54,12 @@ export function Hero({ portraitSrc }: { portraitSrc?: string }) {
           </p>
 
           <div style={delay(0.18)} className="reveal-load-rise mt-8 flex flex-wrap gap-3">
-            <Link href="/#projects" prefetch={false} className={buttonClasses("primary")}>
+            <SectionLink section="projects" className={buttonClasses("primary")}>
               {hero.ctaProjects}
-            </Link>
-            <Link href="/#contact" prefetch={false} className={buttonClasses("ghost")}>
+            </SectionLink>
+            <SectionLink section="contact" className={buttonClasses("ghost")}>
               {hero.ctaContact}
-            </Link>
+            </SectionLink>
           </div>
         </div>
 
@@ -99,12 +99,12 @@ export function Hero({ portraitSrc }: { portraitSrc?: string }) {
             style={delay(0.34)}
             className="reveal-load mt-8 flex flex-wrap gap-x-6 gap-y-3"
           >
-            <Link href="/#projects" prefetch={false} className="essay-link text-base text-foreground">
+            <SectionLink section="projects" className="essay-link text-base text-foreground">
               {hero.ctaProjects}
-            </Link>
-            <Link href="/#contact" prefetch={false} className="essay-link text-base text-foreground">
+            </SectionLink>
+            <SectionLink section="contact" className="essay-link text-base text-foreground">
               {hero.ctaContact}
-            </Link>
+            </SectionLink>
           </div>
         </div>
 
