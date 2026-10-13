@@ -18,7 +18,7 @@ import { type SectionId, sectionNumbers, visibleSections } from "@/config/sectio
 import { heroPortraitSrc } from "@/lib/portrait";
 import { OWNER_IDENTITY } from "@/lib/seo/identity";
 import { buildJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
-import { homeLanguageAlternates, OG_LOCALE, siteUrl, type SiteLocale } from "@/lib/seo/site";
+import { homeLanguageAlternates, OG_IMAGE, OG_LOCALE, siteUrl, type SiteLocale } from "@/lib/seo/site";
 import { routing } from "@/i18n/routing";
 import { SectionNumbersProvider } from "@/components/ui/SectionMark";
 
@@ -38,6 +38,8 @@ export async function generateMetadata({
   const content = await getPortfolioContent(locale);
   const title = `${content.siteName} | ${OWNER_IDENTITY.jobTitle[siteLocale]}`;
   const description = content.seoDescription;
+  // One locale-neutral preview image (scripts/og/generate-og-image.ts).
+  const image = { url: OG_IMAGE.path, width: OG_IMAGE.width, height: OG_IMAGE.height, alt: title };
 
   return {
     title: {
@@ -54,11 +56,13 @@ export async function generateMetadata({
       alternateLocale: routing.locales
         .filter((other) => other !== locale)
         .map((other) => OG_LOCALE[other]),
+      images: [image],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
+      images: [image],
     },
     alternates: {
       canonical: `/${locale}`,

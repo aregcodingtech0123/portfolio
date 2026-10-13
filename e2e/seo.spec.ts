@@ -288,3 +288,25 @@ test.describe("icons", () => {
     }
   });
 });
+
+test.describe("preview image", () => {
+  for (const locale of LOCALES) {
+    test(`/${locale}: og:image and twitter:image are the absolute 1200x630 PNG, large card`, async ({ request, baseURL }) => {
+      const origin = site(baseURL);
+      const html = await (await request.get(`/${locale}`)).text();
+      const url = `${origin}/images/og-image.png`;
+
+      expect(metas(html, "og:image")).toEqual([url]);
+      expect(metas(html, "og:image:width")).toEqual(["1200"]);
+      expect(metas(html, "og:image:height")).toEqual(["630"]);
+      expect(metas(html, "og:image:alt")).toEqual([EXPECTED[locale].title]);
+      expect(metas(html, "twitter:card")).toEqual(["summary_large_image"]);
+      expect(metas(html, "twitter:image")).toEqual([url]);
+
+      const res = await request.get("/images/og-image.png");
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toBe("image/png");
+      expect(pngSize(await res.body())).toEqual({ width: 1200, height: 630 });
+    });
+  }
+});
