@@ -112,3 +112,52 @@ test.describe("hreflang", () => {
     expect(en).toEqual(tr);
   });
 });
+
+test.describe("robots.txt", () => {
+  test("is served directly (not redirected by the locale proxy), allows everything and names the absolute sitemap", async ({
+    request,
+    baseURL,
+  }) => {
+    const origin = site(baseURL);
+    const res = await request.get("/robots.txt", { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toMatch(/^text\/plain/);
+    const lines = (await res.text()).split("\n").map((l) => l.trim()).filter(Boolean);
+    expect(lines).toEqual(["User-Agent: *", "Allow: /", `Sitemap: ${origin}/sitemap.xml`]);
+    // The Studio is not blocked here: its noindex must stay visible to crawlers.
+    expect(lines.join("\n")).not.toMatch(/disallow/i);
+  });
+
+  test("the Studio keeps its noindex", async ({ request }) => {
+    const html = await (await request.get("/content-hub")).text();
+    expect(metas(html, "robots")).toEqual(["noindex, nofollow"]);
+  });
+});
+
+test.describe("sitemap.xml", () => {
+  test("lists /en and /tr with en, tr and x-default alternates, no lastmod and no ?project= URLs", async ({
+    request,
+    baseURL,
+  }) => {
+    const origin = site(baseURL);
+    const res = await request.get("/sitemap.xml", { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toMatch(/xml/);
+    const xml = await res.text();
+
+    const locs = [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map(([, loc]) => loc);
+    expect(locs).toEqual([`${origin}/en`, `${origin}/tr`]);
+
+    const urls = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, body]) => body);
+    for (const body of urls) {
+      const alternates = Object.fromEntries(
+        [...body.matchAll(/<xhtml:link rel="alternate" hreflang="([^"]+)" href="([^"]+)"\s*\/>/g)].map(
+          ([, lang, href]) => [lang, new URL(href).toString()],
+        ),
+      );
+      expect(alternates).toEqual({ en: `${origin}/en`, tr: `${origin}/tr`, "x-default": `${origin}/` });
+    }
+    expect(xml).not.toContain("<lastmod>");
+    expect(xml).not.toContain("project=");
+  });
+});
