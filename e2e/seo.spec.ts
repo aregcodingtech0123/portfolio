@@ -329,3 +329,28 @@ test.describe("locale hygiene", () => {
     await expect(page.locator("#skills")).toContainText("3 entries listed");
   });
 });
+
+test.describe("crawlable language links", () => {
+  for (const [locale, other] of [
+    ["en", "tr"],
+    ["tr", "en"],
+  ] as const) {
+    test(`/${locale} links to /${other} with a real <a href hreflang> in the HTML`, async ({ request }) => {
+      const html = await (await request.get(`/${locale}`)).text();
+      const links = tags(html, "a").filter((a) => a.href === `/${other}`);
+      expect(links.length).toBeGreaterThan(0);
+      for (const link of links) {
+        expect(link.hreflang).toBe(other);
+        expect(link.role).toBe("option");
+      }
+    });
+  }
+
+  test("a plain click still switches in place and keeps the hash", async ({ page }) => {
+    await page.goto("/en#skills");
+    await page.getByRole("button", { name: "Language English EN", exact: true }).first().click();
+    await page.getByRole("option", { name: "Türkçe TR", exact: true }).first().click();
+    await expect(page).toHaveURL(/\/tr#skills$/);
+    await expect(page.locator("html")).toHaveAttribute("lang", "tr");
+  });
+});

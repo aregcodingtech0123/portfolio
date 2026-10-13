@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useLayoutEffect, useRef, useTransition } from "react";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { FlagGB, FlagTR } from "@/components/ui/flags";
 import { NavSelect } from "./NavSelect";
@@ -51,6 +51,13 @@ export function LanguageSwitcher({ showLabel = true, labelFromXl = false, classN
       labelFromXl={labelFromXl}
       className={className}
       onChange={switchTo}
+      // Real links to each locale, so crawlers can follow them (hrefLang is
+      // set by next-intl). A plain click is handled by switchTo, which keeps
+      // the hash and the scroll position. No prefetch: these links sit in
+      // every header and footer, and would otherwise fetch on page load.
+      renderOptionLink={(value, props) => (
+        <Link {...props} href={pathname} locale={value} prefetch={false} />
+      )}
       options={[
         {
           value: "tr",
