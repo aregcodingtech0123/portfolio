@@ -16,6 +16,7 @@ import { SiteContentProvider } from "@/components/providers/SiteContentProvider"
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
 import { type SectionId, sectionNumbers, visibleSections } from "@/config/sections";
 import { heroPortraitSrc } from "@/lib/portrait";
+import { homeLanguageAlternates } from "@/lib/seo/site";
 import { SectionNumbersProvider } from "@/components/ui/SectionMark";
 
 /**
@@ -39,10 +40,8 @@ export async function generateMetadata({
     description: content.seoDescription,
     alternates: {
       canonical: `/${locale}`,
-      languages: {
-        en: "/en",
-        tr: "/tr",
-      },
+      // The only hreflang source (next-intl's Link header is off).
+      languages: homeLanguageAlternates(),
     },
   };
 }
