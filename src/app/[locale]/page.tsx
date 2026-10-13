@@ -17,7 +17,8 @@ import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
 import { type SectionId, sectionNumbers, visibleSections } from "@/config/sections";
 import { heroPortraitSrc } from "@/lib/portrait";
 import { OWNER_IDENTITY } from "@/lib/seo/identity";
-import { homeLanguageAlternates, OG_LOCALE, type SiteLocale } from "@/lib/seo/site";
+import { buildJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
+import { homeLanguageAlternates, OG_LOCALE, siteUrl, type SiteLocale } from "@/lib/seo/site";
 import { routing } from "@/i18n/routing";
 import { SectionNumbersProvider } from "@/components/ui/SectionMark";
 
@@ -112,9 +113,21 @@ export default async function HomePage({
   // Simple skin only: "01 / About" numbers follow the config order, over the
   // sections that are actually rendered (home has no header).
   const numbers = sectionNumbers(content);
+  // Structured data, built and serialized here in the server component: it
+  // is part of the static HTML and adds no client JavaScript.
+  const jsonLd = serializeJsonLd(
+    buildJsonLd({
+      locale: locale as SiteLocale,
+      base: siteUrl(),
+      content,
+      identity: OWNER_IDENTITY,
+      portraitSrc,
+    }),
+  );
 
   return (
     <SiteContentProvider value={content}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Navbar />
       <SocialSidebar />
       <main

@@ -161,3 +161,94 @@ test.describe("sitemap.xml", () => {
     expect(xml).not.toContain("project=");
   });
 });
+
+type GraphNode = Record<string, unknown> & { "@type": string };
+
+function jsonLdBlocks(html: string): string[] {
+  return [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map(([, body]) => body);
+}
+
+function personOf(blocks: string[]): GraphNode {
+  const graph = (JSON.parse(blocks[0]) as { "@graph": GraphNode[] })["@graph"];
+  const person = graph.find((node) => node["@type"] === "Person");
+  if (!person) throw new Error("no Person in the JSON-LD graph");
+  return person;
+}
+
+test.describe("structured data (JSON-LD)", () => {
+  for (const locale of LOCALES) {
+    test(`/${locale}: exactly one escaped, valid block with WebSite, ProfilePage and Person`, async ({ request, baseURL }) => {
+      const origin = site(baseURL);
+      const html = await (await request.get(`/${locale}`)).text();
+      const blocks = jsonLdBlocks(html);
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]).not.toContain("<");
+
+      const data = JSON.parse(blocks[0]) as { "@context": string; "@graph": GraphNode[] };
+      expect(data["@context"]).toBe("https://schema.org");
+      expect(data["@graph"].map((node) => node["@type"])).toEqual(["WebSite", "ProfilePage", "Person"]);
+
+      const person = personOf(blocks);
+      expect(person.jobTitle).toBe(EXPECTED[locale].title.split(" | ")[1]);
+      expect(person.url).toBe(`${origin}/`);
+      expect(person.image).toBe(`${origin}/images/profilephoto.jpeg`);
+      for (const forbidden of ["worksFor", "email", "telephone", "birthDate"]) {
+        expect(person).not.toHaveProperty(forbidden);
+      }
+      for (const forbidden of ["FAQPage", "Review", "AggregateRating", "SearchAction", "Event", "SoftwareSourceCode"]) {
+        expect(blocks[0]).not.toContain(`"${forbidden}"`);
+      }
+    });
+
+    test(`/${locale}: the Person matches what the page visibly shows, with no CSP violation`, async ({ page }) => {
+      await page.addInitScript(() => {
+        const w = window as unknown as { __cspViolations: string[] };
+        w.__cspViolations = [];
+        document.addEventListener("securitypolicyviolation", (e) => {
+          w.__cspViolations.push(`${e.effectiveDirective} ${e.blockedURI}`);
+        });
+      });
+      const res = await page.goto(`/${locale}`);
+      const blocks = jsonLdBlocks(await res!.text());
+      const person = personOf(blocks);
+
+      // Name = the visible h1 (one per skin; the other skin's is hidden).
+      await expect(page.locator("h1:visible")).toHaveText(person.name as string);
+
+      // sameAs: only links the visitor can see on the page.
+      const visibleHrefs = await page
+        .locator("a[href^='http']:visible")
+        .evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).href));
+      for (const url of person.sameAs as string[]) {
+        expect(visibleHrefs).toContain(url);
+      }
+
+      // description, location, alumniOf and knowsAbout: visible text, the
+      // project dialogs included (the full technology list is shown there).
+      let text = await page.locator("body").innerText();
+      const titles = page.locator("#projects h3 button:visible");
+      const count = await titles.count();
+      expect(count).toBeGreaterThan(0);
+      for (let i = 0; i < count; i++) {
+        await titles.nth(i).click();
+        const dialog = page.getByRole("dialog");
+        await expect(dialog).toBeVisible();
+        text += `\n${await dialog.innerText()}`;
+        await page.keyboard.press("Escape");
+        await expect(dialog).toHaveCount(0);
+      }
+      const visible = text.replace(/\s+/g, " ");
+      expect(visible).toContain(person.description as string);
+      expect(visible).toContain((person.homeLocation as { name: string }).name);
+      for (const school of person.alumniOf as { name: string }[]) {
+        expect(visible).toContain(school.name);
+      }
+      for (const topic of person.knowsAbout as string[]) {
+        expect(visible, `knowsAbout "${topic}" is not visible on the page`).toContain(topic);
+      }
+
+      const violations = await page.evaluate(() => (window as unknown as { __cspViolations: string[] }).__cspViolations);
+      expect(violations).toEqual([]);
+    });
+  }
+});
