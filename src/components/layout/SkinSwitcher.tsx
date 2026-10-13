@@ -14,9 +14,10 @@ const labelKey = {
 type SkinSwitcherProps = {
   showLabel?: boolean;
   labelFromXl?: boolean;
+  className?: string;
 };
 
-export function SkinSwitcher({ showLabel = true, labelFromXl = false }: SkinSwitcherProps) {
+export function SkinSwitcher({ showLabel = true, labelFromXl = false, className }: SkinSwitcherProps) {
   const { skin, setSkin } = useTheme();
   const t = useTranslations("Nav");
   const [mounted, setMounted] = useState(false);
@@ -35,6 +36,7 @@ export function SkinSwitcher({ showLabel = true, labelFromXl = false }: SkinSwit
       disabled={!mounted}
       showLabel={showLabel}
       labelFromXl={labelFromXl}
+      className={className}
       onChange={setSkin}
       options={SKINS.map((option) => ({
         value: option,

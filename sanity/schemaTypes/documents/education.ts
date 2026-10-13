@@ -23,6 +23,14 @@ export const education = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "location",
+      title: "Location",
+      type: "localeString",
+      group: "program",
+      description:
+        "City and country, or Remote. Shown next to the company or institution.",
+    }),
+    defineField({
       name: "degree",
       title: "Degree",
       type: "localeString",
@@ -99,14 +107,15 @@ export const education = defineType({
       startDate: "startDate",
       endDate: "endDate",
       isCurrent: "isCurrent",
+      location: "location.en",
     },
-    prepare({ institution, degree, field, startDate, endDate, isCurrent }) {
+    prepare({ institution, degree, field, startDate, endDate, isCurrent, location }) {
       const period = isCurrent
         ? `${startDate || "?"} – Present`
         : [startDate, endDate].filter(Boolean).join(" – ");
       return {
         title: institution || "Institution",
-        subtitle: [[degree, field].filter(Boolean).join(" · "), period]
+        subtitle: [[degree, field].filter(Boolean).join(" · "), location, period]
           .filter(Boolean)
           .join(" · "),
         media: BlockContentIcon,

@@ -26,6 +26,8 @@ export type SkillCategoryId =
   | "backend"
   | "security"
   | "languages"
+  | "programming-languages"
+  | "databases"
   | (string & {});
 export type SkillTierId = "expertise" | "comfortable" | "learning";
 export type SkillLevel = "daily" | "used-in-project" | "learning";
@@ -57,6 +59,8 @@ export type SanityExperience = {
   company: LocaleField;
   role: LocaleField;
   period: LocaleField;
+  /** City and country, or Remote. Omitted when the editor left it blank. */
+  location?: LocaleField;
   /** Localized role summary. GROQ may coalesce legacy `detail` into this. */
   description?: LocaleField;
   /** @deprecated Prefer `description`. */
@@ -69,6 +73,8 @@ export type SanityEducation = {
   institution: LocaleField;
   degree: LocaleField;
   fieldOfStudy: LocaleField;
+  /** City and country, or Remote. Omitted when the editor left it blank. */
+  location?: LocaleField;
   startDate: string;
   endDate?: string;
   isCurrent?: boolean;
@@ -262,6 +268,10 @@ export type EducationDisplay = {
   degree: string;
   fieldOfStudy: string;
   period: string;
+  /** City and country, or Remote. Omitted when unset or blank. */
+  location?: string;
+  /** Set only when the content marks the program as ongoing. */
+  isCurrent?: boolean;
 };
 
 export type ContactInfoDisplay = {

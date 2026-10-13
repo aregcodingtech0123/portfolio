@@ -8,11 +8,6 @@ type ProfilePhotoProps = {
   className?: string;
   alt?: string;
   /**
-   * Skip the terminal duotone filter. Used by the minimal hero portrait.
-   * Prefer this over fighting the CSS filter from the caller.
-   */
-  natural?: boolean;
-  /**
    * Rendered width of the box, for the browser's source selection. Keep it in
    * step with `className`; the default matches the "h-40 w-40" used in About.
    */
@@ -22,8 +17,7 @@ type ProfilePhotoProps = {
 /**
  * Profile slot. Renders /images/profilephoto.jpeg through next/image when it
  * loads; otherwise renders nothing at all and lets the layout reflow around
- * its absence. Terminal skins apply a duotone treatment via `.profile-duotone`
- * unless `natural` is set.
+ * its absence. Full color in every skin (no duotone filter).
  *
  * The image is lazy (the default). That matters twice: it sits below the fold
  * on phones, and the skin that does not show it keeps the whole block at
@@ -32,7 +26,6 @@ type ProfilePhotoProps = {
 export function ProfilePhoto({
   className = "h-16 w-16",
   alt = "Arda Ege Tunç - Profile Photo",
-  natural = false,
   sizes = "160px",
 }: ProfilePhotoProps) {
   const [failed, setFailed] = useState(false);
@@ -41,7 +34,7 @@ export function ProfilePhoto({
 
   return (
     <div
-      className={`${natural ? "relative overflow-hidden bg-transparent" : "profile-duotone relative overflow-hidden rounded-sm border border-border"} ${className}`.trim()}
+      className={`relative overflow-hidden rounded-sm border border-border bg-surface ${className}`.trim()}
     >
       <Image
         src="/images/profilephoto.jpeg"
@@ -49,7 +42,7 @@ export function ProfilePhoto({
         fill
         sizes={sizes}
         onError={() => setFailed(true)}
-        className={natural ? "object-contain object-top" : "object-cover object-center"}
+        className="object-contain object-center"
       />
     </div>
   );

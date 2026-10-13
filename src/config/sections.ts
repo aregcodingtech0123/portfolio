@@ -79,3 +79,26 @@ export const sections: readonly SectionConfig[] = [
 export function visibleSections(content: PortfolioContent): SectionConfig[] {
   return sections.filter((s) => s.isVisible(content));
 }
+
+/** Zero-padded section numbers ("01", "02", ...), keyed by section id. */
+export type SectionNumbers = Partial<Record<SectionId, string>>;
+
+/**
+ * Numbers for the Simple skin's section headers ("01 / About"). They follow
+ * the order above, over the sections that are actually rendered, so a hidden
+ * section never leaves a gap. `home` is the hero and has no header, so it is
+ * not numbered.
+ */
+export function sectionNumbers(content: PortfolioContent): SectionNumbers {
+  const numbers: SectionNumbers = {};
+  // The CTF section always renders, but with no entries the Simple skin shows a
+  // slim unnumbered strip instead of a header, so it must not take a number.
+  const ctfIsEmpty = (content.ctfs?.length ?? 0) === 0;
+  visibleSections(content)
+    .filter((section) => section.id !== "home")
+    .filter((section) => !(section.id === "ctf" && ctfIsEmpty))
+    .forEach((section, index) => {
+      numbers[section.id] = String(index + 1).padStart(2, "0");
+    });
+  return numbers;
+}

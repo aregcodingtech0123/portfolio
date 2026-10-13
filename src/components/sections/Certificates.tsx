@@ -1,34 +1,48 @@
 "use client";
 
-import { useId, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useId, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Section } from "@/components/ui/Section";
+import { formatCertDate, groupByYear, sortByRecency } from "@/lib/cert-date";
 import type { CertificateDisplay } from "@/sanity/fetch";
+
+/** Rows shown before "Show all" in the Simple skin. */
+const SIMPLE_VISIBLE_CERTS = 6;
+const SIMPLE_VISIBLE_EVENTS = 8;
 
 type CertificatesProps = {
   educationCertificates: CertificateDisplay[];
   participationCertificates: CertificateDisplay[];
 };
 
+const TABLE_GRID =
+  "sm:grid sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(6rem,8.5rem)] sm:gap-4";
+
 function CertificateTable({
   items,
   labels,
+  locale,
 }: {
   items: CertificateDisplay[];
   labels: { title: string; issuer: string; date: string };
+  locale: string;
 }) {
+  const sorted = useMemo(() => sortByRecency(items), [items]);
+
   return (
     <div className="min-w-0">
-      <div className="hidden border-b border-border pb-2 font-mono text-[10px] tracking-wider text-muted uppercase sm:grid sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_6.5rem] sm:gap-4">
+      <div
+        className={`hidden border-b border-border pb-2 font-mono text-[10px] tracking-wider text-muted uppercase ${TABLE_GRID}`}
+      >
         <span>{labels.title}</span>
         <span>{labels.issuer}</span>
-        <span>{labels.date}</span>
+        <span className="sm:text-right">{labels.date}</span>
       </div>
       <ul>
-        {items.map((item, i) => (
+        {sorted.map((item, i) => (
           <li
             key={`${item.title}-${item.issuer}-${i}`}
-            className="grid gap-1 border-b border-border py-3 last:border-b-0 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_6.5rem] sm:items-baseline sm:gap-4"
+            className={`grid gap-1 border-b border-border py-3 last:border-b-0 sm:items-baseline ${TABLE_GRID}`}
           >
             <div className="min-w-0">
               <p className="font-mono text-[10px] tracking-wider text-muted uppercase sm:hidden">
@@ -42,11 +56,13 @@ function CertificateTable({
               </p>
               <p className="text-sm break-words text-muted">{item.issuer}</p>
             </div>
-            <div>
+            <div className="sm:text-right">
               <p className="font-mono text-[10px] tracking-wider text-muted uppercase sm:hidden">
                 {labels.date}
               </p>
-              <p className="font-mono text-xs text-muted">{item.date || "—"}</p>
+              <p className="font-mono text-xs tabular-nums text-muted">
+                {item.date ? formatCertDate(item.date, locale) : "—"}
+              </p>
             </div>
           </li>
         ))}
@@ -55,40 +71,94 @@ function CertificateTable({
   );
 }
 
-function EssayCertificateGroup({
+/**
+ * Simple: one certificate list grouped by year, newest first. Only the first
+ * `limit` rows show until the visitor asks for the rest; the other rows stay in
+ * the DOM with `hidden`, so the toggle only flips an attribute. `secondary`
+ * draws the same rows one step smaller (used for events).
+ */
+function SimpleCertList({
   title,
-  count,
   items,
+  limit,
+  secondary = false,
 }: {
   title: string;
-  count: number;
   items: CertificateDisplay[];
+  limit: number;
+  secondary?: boolean;
 }) {
+  const t = useTranslations("Certificates");
+  const locale = useLocale();
+  const panelId = `${useId()}-certs`;
+  const [expanded, setExpanded] = useState(false);
+
+  const groups = useMemo(() => groupByYear(sortByRecency(items)), [items]);
   const cleanTitle = title.startsWith("// ") ? title.slice(3) : title;
+  const canToggle = items.length > limit;
+
+  let seen = 0;
+  const rendered = groups.map((group) => {
+    const rows = group.items.map((item) => ({
+      item,
+      hidden: !expanded && seen++ >= limit,
+    }));
+    return { year: group.year, rows, hidden: rows.every((row) => row.hidden) };
+  });
 
   return (
-    <div className="min-w-0">
-      <h3 className="hairline-b flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border pb-2">
-        <span className="font-heading text-xl font-normal tracking-tight text-foreground sm:text-2xl">
-          {cleanTitle}
-        </span>
-        <span className="text-sm text-muted tabular-nums">{count}</span>
+    <div className={`min-w-0${secondary ? " m-cert-secondary" : ""}`}>
+      <h3
+        className="m-h3 flex flex-wrap items-baseline gap-x-3 gap-y-1 capitalize"
+      >
+        <span>{cleanTitle}</span>
+        <span className="m-meta tabular-nums">{items.length}</span>
       </h3>
-      <ul className="mt-5 space-y-3.5">
-        {items.map((item, i) => (
-          <li
-            key={`${item.title}-${item.issuer}-${i}`}
-            className="text-base leading-relaxed text-foreground"
+
+      <div id={panelId} className="m-cert-groups">
+        {rendered.map((group) => (
+          <div
+            key={group.year ?? "undated"}
+            className="m-cert-year"
+            hidden={group.hidden}
           >
-            <span className="break-words">{item.title}</span>
-            <span className="text-muted">
-              {" — "}
-              {item.issuer}
-              {item.date ? ` (${item.date})` : ""}
-            </span>
-          </li>
+            <h4 className="m-cert-yearlabel">
+              {group.year ?? t("undated")}
+            </h4>
+            <ul className="m-cert-list m-stagger">
+              {group.rows.map(({ item, hidden }, i) => (
+                <li
+                  key={`${item.title}-${item.issuer}-${i}`}
+                  className="m-cert-row"
+                  hidden={hidden}
+                >
+                  <p className="m-cert-title break-words">{item.title}</p>
+                  <p className="m-cert-issuer break-words">{item.issuer}</p>
+                  {item.date && (
+                    <p className="m-cert-date">
+                      {formatCertDate(item.date, locale)}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
+
+      {canToggle && (
+        <button
+          type="button"
+          className="m-cert-more"
+          aria-expanded={expanded}
+          aria-controls={panelId}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          {expanded
+            ? t("showFewer")
+            : t("showAll", { count: items.length })}
+        </button>
+      )}
     </div>
   );
 }
@@ -155,6 +225,7 @@ export function Certificates({
   participationCertificates,
 }: CertificatesProps) {
   const t = useTranslations("Certificates");
+  const locale = useLocale();
   const baseId = useId();
   const [openEducation, setOpenEducation] = useState(true);
   const [openEvents, setOpenEvents] = useState(false);
@@ -166,13 +237,13 @@ export function Certificates({
   };
 
   return (
-    <Section id="certificates" className="py-16 sm:py-24">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
+    <Section id="certificates" className="py-16 sm:py-24 minimal:[--section-gap:var(--space-section-minor)]">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
             {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
             {t("subtitle")}
           </h2>
         </div>
@@ -182,7 +253,7 @@ export function Certificates({
           {educationCertificates.length > 0 && (
             <CategoryAccordion
               id={`${baseId}-education`}
-              title={t("educationHeading")}
+              title={t("certificatesHeading")}
               count={educationCertificates.length}
               open={openEducation}
               onToggle={() => setOpenEducation((v) => !v)}
@@ -190,6 +261,7 @@ export function Certificates({
               <CertificateTable
                 items={educationCertificates}
                 labels={tableLabels}
+                locale={locale}
               />
             </CategoryAccordion>
           )}
@@ -205,26 +277,36 @@ export function Certificates({
               <CertificateTable
                 items={participationCertificates}
                 labels={tableLabels}
+                locale={locale}
               />
             </CategoryAccordion>
           )}
         </div>
 
-        {/* Minimal: grouped lists */}
-        <div className="mt-12 hidden space-y-12 minimal:block">
+        {/* Minimal: certificates grouped by year, then events one step smaller */}
+        <div className="hidden min-w-0 minimal:mt-[var(--space-group)] minimal:block">
           {educationCertificates.length > 0 && (
-            <EssayCertificateGroup
-              title={t("educationHeading")}
-              count={educationCertificates.length}
+            <SimpleCertList
+              title={t("certificatesHeading")}
               items={educationCertificates}
+              limit={SIMPLE_VISIBLE_CERTS}
             />
           )}
           {participationCertificates.length > 0 && (
-            <EssayCertificateGroup
-              title={t("eventsHeading")}
-              count={participationCertificates.length}
-              items={participationCertificates}
-            />
+            <div
+              className={
+                educationCertificates.length > 0
+                  ? "mt-[calc(var(--space-group)*1.5)]"
+                  : ""
+              }
+            >
+              <SimpleCertList
+                title={t("eventsHeading")}
+                items={participationCertificates}
+                limit={SIMPLE_VISIBLE_EVENTS}
+                secondary
+              />
+            </div>
           )}
         </div>
       </div>

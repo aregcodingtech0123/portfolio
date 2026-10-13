@@ -10,6 +10,33 @@ import {
 } from "@sanity/icons";
 import { apiVersion } from "./env";
 
+/**
+ * Certificate folders. Stored `category` values match the schema options.
+ * Anything else, including a missing category, stays visible under "Diğer".
+ * No extra sort: each list is a document-type list, so it keeps that list's
+ * default ordering (last edited) and the schema's sort menu.
+ */
+const CERTIFICATE_GROUPS = [
+  {
+    id: "certificate-education",
+    title: "Eğitim sertifikaları",
+    filter: '_type == $type && category == "education"',
+    templateId: "certificate-education",
+  },
+  {
+    id: "certificate-participation",
+    title: "Etkinlik katılımları",
+    filter: '_type == $type && category == "participation"',
+    templateId: "certificate-participation",
+  },
+  {
+    id: "certificate-other",
+    title: "Diğer / kategorisiz",
+    filter: '_type == $type && !(category in ["education", "participation"])',
+    templateId: null,
+  },
+] as const;
+
 /** Fixed skill categories shown as Studio folders (matches skill.category options). */
 const SKILL_CATEGORIES = [
   { id: "ai", title: "AI & Machine Learning", categoryOrder: 0 },
@@ -17,6 +44,8 @@ const SKILL_CATEGORIES = [
   { id: "backend", title: "Backend Development", categoryOrder: 2 },
   { id: "security", title: "Cybersecurity", categoryOrder: 3 },
   { id: "languages", title: "Languages & Tools", categoryOrder: 4 },
+  { id: "programming-languages", title: "Programming Languages", categoryOrder: 5 },
+  { id: "databases", title: "Databases", categoryOrder: 6 },
 ] as const;
 
 export const structure: StructureResolver = (S) =>
@@ -40,9 +69,35 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem("education")
         .title("Education")
         .icon(BlockContentIcon),
-      S.documentTypeListItem("certificate")
+      S.listItem()
+        .id("certificate")
         .title("Certificates")
-        .icon(DocumentIcon),
+        .icon(DocumentIcon)
+        .child(
+          S.list()
+            .id("certificate-groups")
+            .title("Certificates")
+            .items(
+              CERTIFICATE_GROUPS.map((group) =>
+                S.listItem()
+                  .id(group.id)
+                  .title(group.title)
+                  .icon(DocumentIcon)
+                  .child(
+                    S.documentTypeList("certificate")
+                      .id(group.id)
+                      .title(group.title)
+                      .filter(group.filter)
+                      .apiVersion(apiVersion)
+                      .initialValueTemplates(
+                        group.templateId
+                          ? [S.initialValueTemplateItem(group.templateId)]
+                          : [],
+                      ),
+                  ),
+              ),
+            ),
+        ),
       S.listItem()
         .title("Skills")
         .icon(SparklesIcon)

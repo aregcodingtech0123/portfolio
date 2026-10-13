@@ -34,7 +34,7 @@ export function PortraitFrame({ src, className = "" }: PortraitFrameProps) {
       className={`flex flex-col items-center gap-3 ${className}`.trim()}
     >
       <PortraitSlot key={src} src={src} alt={t("portraitAlt")} />
-      <figcaption className="decor font-mono text-[11px] tracking-wide text-muted">
+      <figcaption className="decor font-mono text-[11px] tracking-wide text-muted minimal:hidden">
         {hero.profileTagline}
       </figcaption>
     </figure>
@@ -58,7 +58,9 @@ function PortraitSlot({ src, alt }: { src?: string; alt: string }) {
         "md:w-[clamp(12rem,26vw,18rem)]",
         /* Terminal: soft squircle. Minimal: rounded rectangle matching essay skin. */
         "rounded-[1.75rem]",
-        "minimal:rounded-2xl minimal:border-border",
+        "minimal:rounded-md minimal:border-2 minimal:border-[color:var(--border-strong)]",
+        /* Minimal: hard offset block behind the frame, in the foreground colour. */
+        "minimal:shadow-[8px_8px_0_0_var(--foreground)] md:minimal:shadow-[12px_12px_0_0_var(--foreground)]",
       ].join(" ")}
       {...(empty ? { "aria-hidden": true } : {})}
     >

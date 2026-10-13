@@ -115,14 +115,14 @@ export function NavSelect<T extends string>({
   const widthClass = !showLabel
     ? "min-w-0"
     : labelFromXl
-      ? "min-w-0 xl:w-[6rem]"
+      ? "min-w-0 xl:w-[6rem] xl:minimal:w-auto"
       : "w-[5.75rem] xl:w-[6rem]";
   const labelVisual =
     "truncate text-[9px] font-medium tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]";
   const labelClass = !showLabel
     ? "sr-only"
     : labelFromXl
-      ? "sr-only xl:not-sr-only xl:truncate xl:text-[10px] xl:font-medium xl:tracking-wider xl:text-subtle xl:minimal:font-body xl:minimal:tracking-[0.12em]"
+      ? "sr-only xl:not-sr-only xl:truncate xl:text-[10px] xl:font-medium xl:tracking-wider xl:text-subtle xl:minimal:font-body xl:minimal:tracking-[0.12em] xl:minimal:sr-only"
       : labelVisual;
 
   return (
@@ -161,7 +161,7 @@ export function NavSelect<T extends string>({
           "hover:border-accent hover:text-accent",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
           "disabled:cursor-not-allowed disabled:opacity-60",
-          "minimal:h-8 minimal:rounded-none minimal:border-border minimal:bg-transparent minimal:font-body minimal:text-xs minimal:font-normal minimal:normal-case minimal:tracking-normal minimal:text-foreground",
+          "minimal:h-8 lg:minimal:h-7 minimal:rounded-none minimal:border-border minimal:bg-transparent minimal:font-body minimal:text-xs lg:minimal:text-[11px] minimal:font-normal minimal:normal-case minimal:tracking-normal minimal:text-foreground",
           "minimal:hover:border-foreground minimal:hover:text-foreground",
           "minimal:focus-visible:outline-foreground",
         ].join(" ")}

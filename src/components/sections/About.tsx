@@ -45,14 +45,14 @@ export function About() {
     ) : null;
 
   return (
-    <Section id="about" className="py-16 sm:py-20">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-prose minimal:px-5 sm:minimal:px-6">
+    <Section id="about" className="py-16 sm:py-20 minimal:py-0">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-accent minimal:hidden">
             {t("title")}
           </p>
           {about.summary && (
-            <h2 className="mt-4 max-w-4xl text-2xl font-bold leading-snug tracking-tight text-balance text-foreground break-words hyphens-auto sm:text-3xl lg:text-4xl minimal:mt-0 minimal:max-w-none minimal:font-heading minimal:text-[1.75rem] minimal:font-normal minimal:leading-snug minimal:tracking-tight minimal:sm:text-3xl">
+            <h2 className="mt-4 max-w-4xl text-2xl font-bold leading-snug tracking-tight text-balance text-foreground break-words hyphens-auto sm:text-3xl lg:text-4xl minimal:hidden">
               {about.summary}
             </h2>
           )}
@@ -126,33 +126,27 @@ export function About() {
           </div>
         </div>
 
-        {/* Minimal: written paragraphs + structured skill chips */}
-        <div className="mt-12 hidden minimal:block">
-          {proseParagraphs.length > 0 && (
-            <div className="space-y-5 text-base leading-relaxed text-foreground sm:text-lg">
-              {proseParagraphs.map((paragraph, i) => (
-                <p key={`${i}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
-              ))}
-            </div>
-          )}
-
-          {(hasExperienced || hasHighlights) && (
-            <div
-              className={`hairline-t border-t border-border ${proseParagraphs.length > 0 ? "mt-10 pt-8" : ""}`}
-            >
-              {hasExperienced && (
-                <p className="text-sm tracking-[0.04em] text-muted uppercase">
-                  {about.experienced}
-                </p>
-              )}
-              {hasHighlights && (
-                <div className={hasExperienced ? "mt-4" : ""}>
-                  {renderHighlightBadges()}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Minimal: summary statement beside bio paragraphs only (no stat row or
+            highlight chips; skills live in the dedicated Skills section).
+            The summary is this section's h2 (the shared one above is hidden). */}
+        {(about.summary || proseParagraphs.length > 0) && (
+          <div className="hidden min-w-0 minimal:grid minimal:gap-8 md:minimal:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:minimal:gap-x-12 lg:minimal:gap-x-20">
+            {about.summary && (
+              <h2 className="m-h2 m-h2-statement min-w-0 hyphens-manual">
+                {about.summary}
+              </h2>
+            )}
+            {proseParagraphs.length > 0 && (
+              <div
+                className={`min-w-0 space-y-5 text-base leading-relaxed text-foreground sm:text-lg ${about.summary ? "" : "md:col-span-2 m-measure"}`}
+              >
+                {proseParagraphs.map((paragraph, i) => (
+                  <p key={`${i}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Section>
   );

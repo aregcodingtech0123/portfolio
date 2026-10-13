@@ -23,15 +23,23 @@ type CtfProps = {
 export function Ctf({ ctfs }: CtfProps) {
   const t = useTranslations("CTF");
   const locale = useLocale();
+  const isEmpty = ctfs.length === 0;
 
+  // This section always renders (sections.ts: isVisible: always), so with no
+  // entries the Simple skin shows a slim strip instead of a header and message.
   return (
-    <Section id="ctf" className="py-16 sm:py-24">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
-        <div className="max-w-2xl minimal:max-w-none">
+    <Section
+      id="ctf"
+      className={`py-16 sm:py-24${isEmpty ? " m-section-quiet minimal:[--section-gap:var(--space-header)]" : ""}`}
+    >
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
+        <div
+          className={`max-w-2xl minimal:max-w-none${isEmpty ? " minimal:hidden" : ""}`}
+        >
           <p className="decor font-mono text-xs tracking-wide text-accent">
             {t("sectionLabel")}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
             {t("subtitle")}
           </h2>
           <p className="mt-4 text-left text-sm leading-relaxed text-muted minimal:text-base">
@@ -39,10 +47,17 @@ export function Ctf({ ctfs }: CtfProps) {
           </p>
         </div>
 
-        {ctfs.length === 0 ? (
-          <p className="mt-12 font-mono text-sm text-muted minimal:font-body minimal:text-base">
-            {t("empty")}
-          </p>
+        {isEmpty ? (
+          <>
+            <p className="mt-12 font-mono text-sm text-muted minimal:hidden">
+              {t("empty")}
+            </p>
+            {/* Minimal: one bordered line, no section header */}
+            <div className="m-strip hidden minimal:flex">
+              <h2 className="m-eyebrow">{t("subtitle")}</h2>
+              <p className="m-strip-text">{t("emptyStrip")}</p>
+            </div>
+          </>
         ) : (
           <>
             {/* Terminal table */}
@@ -132,16 +147,22 @@ export function Ctf({ ctfs }: CtfProps) {
               </ul>
             </div>
 
-            {/* Minimal: plain table, hairline under header only */}
-            <div className="mt-12 hidden min-w-0 overflow-x-auto minimal:block">
-              <table className="w-full min-w-[36rem] border-collapse text-left text-base">
+            {/* Minimal: scoreboard table. The wrapper scrolls sideways on narrow
+                screens, so it is a focusable, named region. */}
+            <div
+              className="m-table-wrap mt-12 hidden min-w-0 overflow-x-auto minimal:mt-[var(--space-group)] minimal:block"
+              role="region"
+              aria-label={t("subtitle")}
+              tabIndex={0}
+            >
+              <table className="m-table w-full min-w-[40rem] border-collapse text-left text-base">
                 <thead>
-                  <tr className="hairline-b border-b border-border text-sm text-muted">
-                    <th className="pb-2.5 pr-4 font-normal">{t("colEvent")}</th>
-                    <th className="pb-2.5 pr-4 font-normal">{t("colDate")}</th>
-                    <th className="pb-2.5 pr-4 font-normal">{t("colCategory")}</th>
-                    <th className="pb-2.5 pr-4 font-normal">{t("colRank")}</th>
-                    <th className="pb-2.5 font-normal">{t("colWriteup")}</th>
+                  <tr>
+                    <th scope="col">{t("colEvent")}</th>
+                    <th scope="col">{t("colDate")}</th>
+                    <th scope="col">{t("colCategory")}</th>
+                    <th scope="col">{t("colRank")}</th>
+                    <th scope="col">{t("colWriteup")}</th>
                   </tr>
                 </thead>
                 <tbody>

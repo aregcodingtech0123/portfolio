@@ -93,12 +93,21 @@ export function Navbar() {
           : "border-b border-border/60 bg-background/80 minimal:hairline-b minimal:border-border/80 minimal:bg-background/90"
       }`}
     >
-      <nav className="mx-auto flex min-h-[5.75rem] w-full max-w-full items-center justify-between gap-4 px-5 py-3.5 sm:gap-6 sm:px-6 lg:gap-3 lg:px-6 xl:gap-4 xl:px-8 minimal:min-h-[4.5rem] minimal:py-3">
+      {/* First focusable element on the page. Visually hidden until it takes
+          focus, in both skins. A plain anchor (not the router Link): it only
+          moves focus to <main id="main-content"> in the same document. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-accent focus:px-4 focus:py-2 focus:font-body focus:text-sm focus:font-medium focus:text-on-accent"
+      >
+        {t("skipToContent")}
+      </a>
+      <nav className="mx-auto flex min-h-[5.75rem] w-full max-w-full items-center justify-between gap-4 px-5 py-3.5 sm:gap-6 sm:px-6 lg:gap-3 lg:px-6 xl:gap-4 xl:px-8 minimal:min-h-[var(--nav-h)] minimal:py-3 m-container">
         {/* Left: brand */}
         <Link
           href="/"
           prefetch={false}
-          className="group flex shrink-0 items-center gap-1.5 font-mono text-xs tracking-wide text-muted transition-colors hover:text-accent minimal:font-heading minimal:text-base minimal:font-normal minimal:tracking-tight minimal:text-foreground minimal:hover:text-foreground"
+          className="group flex shrink-0 items-center gap-1.5 font-mono text-xs tracking-wide text-muted transition-colors hover:text-accent minimal:font-heading minimal:text-lg minimal:font-semibold minimal:tracking-tight minimal:text-foreground minimal:hover:text-foreground"
         >
           <span className="decor text-accent">~/</span>
           <span className="whitespace-nowrap text-foreground group-hover:text-accent minimal:group-hover:text-foreground">
@@ -112,18 +121,19 @@ export function Navbar() {
             the last is pushed out of the (hidden-scrollbar) scrollport and
             clipped -- the bug plain justify-center caused. */}
         <div className="hidden min-w-0 flex-1 items-center justify-center-safe overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">
-          <div className="flex flex-nowrap items-center justify-center-safe gap-1 xl:gap-2 2xl:gap-3">
+          <div className="flex flex-nowrap items-center justify-center-safe gap-1 xl:gap-2 2xl:gap-3 minimal:gap-2.5 xl:minimal:gap-4 2xl:minimal:gap-5">
             {navSections.map(({ id, key, num }) => {
               const isActive = active === id;
               return (
                 <SectionLink
                   key={id}
                   section={id}
-                  className={`relative shrink-0 whitespace-nowrap px-0.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs minimal:px-0 minimal:py-1 minimal:font-body minimal:text-[13px] minimal:tracking-normal xl:minimal:text-sm ${
+                  className={`relative shrink-0 whitespace-nowrap px-0.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 xl:px-1.5 xl:text-xs m-navlink ${
                     isActive
-                      ? "text-foreground minimal:underline minimal:decoration-foreground minimal:underline-offset-[0.28em]"
+                      ? "text-foreground"
                       : "text-muted hover:text-foreground"
                   }`}
+                  aria-current={isActive ? "location" : undefined}
                 >
                   <span
                     aria-hidden="true"
@@ -148,7 +158,7 @@ export function Navbar() {
         <div className="hidden shrink-0 items-center gap-2 lg:flex xl:gap-2.5">
           {/* Micro-labels from xl up; below that the controls are compact so
               the dense nav fits narrower desktop widths without clipping. */}
-          <div className="flex items-end gap-1 xl:gap-2">
+          <div className="flex items-end gap-1 xl:gap-2 minimal:items-center">
             <LanguageSwitcher labelFromXl />
             <ThemeToggle labelFromXl />
             <SkinSwitcher labelFromXl />
@@ -157,7 +167,7 @@ export function Navbar() {
           <SocialExternalLinks
             ariaGithub={s("githubAria")}
             ariaLinkedin={s("linkedinAria")}
-            className="flex items-center gap-1 self-end pb-0.5 xl:gap-1.5"
+            className="flex items-center gap-1 self-end pb-0.5 xl:gap-1.5 minimal:self-center minimal:pb-0 minimal:max-xl:hidden"
             iconClassName="h-3.5 w-3.5"
             linkClassName={`${socialIconLinkClassNav} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:p-0 minimal:text-muted minimal:hover:border-0 minimal:hover:text-foreground`}
           />
@@ -165,9 +175,12 @@ export function Navbar() {
 
         {/* Right: compact controls + menu (mobile / tablet) */}
         <div className="flex shrink-0 items-center gap-1.5 lg:hidden minimal:gap-2">
-          <LanguageSwitcher showLabel={false} />
-          <ThemeToggle showLabel={false} />
-          <SkinSwitcher showLabel={false} />
+          {/* Simple, below 480px: the three controls no longer fit beside the
+              menu button (it was pushed off screen), so they move into the
+              menu panel below. */}
+          <LanguageSwitcher showLabel={false} className="minimal:max-[30rem]:hidden" />
+          <ThemeToggle showLabel={false} className="minimal:max-[30rem]:hidden" />
+          <SkinSwitcher showLabel={false} className="minimal:max-[30rem]:hidden" />
           <button
             type="button"
             className="inline-flex h-8 w-8 touch-manipulation items-center justify-center rounded-sm border border-border bg-surface text-foreground minimal:h-8 minimal:w-8 minimal:rounded-none minimal:border-0 minimal:bg-transparent"
@@ -212,7 +225,7 @@ export function Navbar() {
             id="mobile-nav"
             className="border-b border-border bg-surface lg:hidden minimal:border-border/60 minimal:bg-background"
           >
-            <div className="mx-auto flex w-full max-w-content flex-col px-4 py-3 minimal:px-5 sm:minimal:px-6">
+            <div className="mx-auto flex w-full max-w-content flex-col px-4 py-3 m-container">
               {navSections.map(({ id, key, num }) => {
                 const isActive = active === id;
                 return (
@@ -220,6 +233,7 @@ export function Navbar() {
                     key={id}
                     section={id}
                     onClick={() => setOpen(false)}
+                    aria-current={isActive ? "location" : undefined}
                     className={`flex touch-manipulation items-center gap-3 border-b border-border/60 px-1 py-3 font-mono text-sm last:border-b-0 minimal:border-border/40 minimal:px-0 minimal:py-3 minimal:font-body minimal:text-base ${
                       isActive
                         ? "text-accent minimal:text-foreground minimal:underline minimal:underline-offset-[0.22em]"
@@ -231,6 +245,11 @@ export function Navbar() {
                   </SectionLink>
                 );
               })}
+              <div className="mt-3 hidden items-center gap-2 pt-1 minimal:flex min-[30rem]:minimal:hidden">
+                <LanguageSwitcher showLabel={false} />
+                <ThemeToggle showLabel={false} />
+                <SkinSwitcher showLabel={false} />
+              </div>
               <div className="mt-3 flex items-center gap-3 border-t border-border pt-3 minimal:border-border/40">
                 <p className="font-mono text-[10px] uppercase tracking-wider text-muted minimal:font-body minimal:normal-case minimal:tracking-normal">
                   {s("mobileHeading")}

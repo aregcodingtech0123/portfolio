@@ -20,7 +20,13 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     templates: (prev) => [
-      ...prev.filter((template) => template.id !== "skill-by-category"),
+      ...prev.filter(
+        (template) =>
+          template.id !== "skill-by-category" &&
+          template.id !== "certificate" &&
+          template.id !== "certificate-education" &&
+          template.id !== "certificate-participation",
+      ),
       {
         id: "skill-by-category",
         title: "Skill",
@@ -35,6 +41,18 @@ export default defineConfig({
           featured: false,
           order: 0,
         }),
+      },
+      {
+        id: "certificate-education",
+        title: "Eğitim sertifikası",
+        schemaType: "certificate",
+        value: { category: "education" },
+      },
+      {
+        id: "certificate-participation",
+        title: "Etkinlik katılımı",
+        schemaType: "certificate",
+        value: { category: "participation" },
       },
     ],
   },

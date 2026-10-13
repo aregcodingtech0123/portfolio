@@ -14,8 +14,9 @@ import { Education } from "@/components/sections/Education";
 import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
-import { type SectionId, visibleSections } from "@/config/sections";
+import { type SectionId, sectionNumbers, visibleSections } from "@/config/sections";
 import { heroPortraitSrc } from "@/lib/portrait";
+import { SectionNumbersProvider } from "@/components/ui/SectionMark";
 
 /**
  * Generated at build time for /en and /tr, then regenerated in the background
@@ -87,15 +88,25 @@ export default async function HomePage({
   setRequestLocale(locale);
   const content = await getPortfolioContent(locale);
   const portraitSrc = heroPortraitSrc();
+  const visible = visibleSections(content);
+  // Simple skin only: "01 / About" numbers follow the config order, over the
+  // sections that are actually rendered (home has no header).
+  const numbers = sectionNumbers(content);
 
   return (
     <SiteContentProvider value={content}>
       <Navbar />
       <SocialSidebar />
-      <main className="relative isolate min-w-0 overflow-x-clip">
-        {visibleSections(content).map((section) => (
-          <Fragment key={section.id}>{renderSection(section.id, content, portraitSrc)}</Fragment>
-        ))}
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="relative isolate min-w-0 overflow-x-clip focus:outline-none"
+      >
+        <SectionNumbersProvider numbers={numbers}>
+          {visible.map((section) => (
+            <Fragment key={section.id}>{renderSection(section.id, content, portraitSrc)}</Fragment>
+          ))}
+        </SectionNumbersProvider>
       </main>
       <Footer />
     </SiteContentProvider>
