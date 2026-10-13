@@ -517,6 +517,23 @@ html[data-skin="minimal"] .hairline-t {
   }
 }
 
+/* --- Off-screen sections skip rendering ----------------------------------
+   Every web font that arrives after first paint (Inter, its latin-ext
+   subset, then the skin's heading and label faces) makes the browser lay out
+   the whole document again. On a throttled phone those relayouts were the
+   long tasks that pushed mobile Total Blocking Time over budget (measured with
+   the perf harness: minimal 322 ms median before this rule, 167 ms with it).
+   content-visibility: auto lets the browser skip layout and paint for
+   sections that are off screen; they render normally as they approach the
+   viewport, stay in the accessibility tree and find-in-page, and render with
+   no JavaScript. contain-intrinsic-size reserves an estimated height until a
+   section has rendered once; `auto` then keeps its real height.
+   The hero (#home) is not a <section> and always renders. */
+main > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* ===========================================================================
  * Minimal toolkit.
  *

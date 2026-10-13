@@ -1,4 +1,31 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+
+/**
+ * The text a visitor sees reading the whole page: the page outside the
+ * sections, plus each section once scrolled into view. Sections skip
+ * rendering while off screen (content-visibility: auto), and innerText
+ * leaves out content that is not rendered, so each one is read in view.
+ */
+async function renderedText(page: Page): Promise<string> {
+  const parts = [await page.locator("body").innerText()];
+  const ids = await page.locator("main > section").evaluateAll((nodes) => nodes.map((n) => n.id));
+  for (const id of ids) {
+    const section = page.locator(`main > section#${id}`);
+    await section.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        section.evaluate((n) =>
+          [...n.querySelectorAll("h2")]
+            .filter((h) => h.checkVisibility())
+            .every((h) => h.checkVisibility({ contentVisibilityAuto: true })),
+        ),
+      )
+      .toBe(true);
+    parts.push(await section.innerText());
+  }
+  return parts.join("\n");
+}
 
 /*
  * Search metadata as a crawler without JavaScript receives it: raw HTML and
@@ -225,7 +252,7 @@ test.describe("structured data (JSON-LD)", () => {
 
       // description, location, alumniOf and knowsAbout: visible text, the
       // project dialogs included (the full technology list is shown there).
-      let text = await page.locator("body").innerText();
+      let text = await renderedText(page);
       const titles = page.locator("#projects h3 button:visible");
       const count = await titles.count();
       expect(count).toBeGreaterThan(0);
@@ -314,7 +341,7 @@ test.describe("preview image", () => {
 test.describe("locale hygiene", () => {
   test("/tr shows no English UI string or untranslated university name in the indexable text", async ({ page }) => {
     await page.goto("/tr");
-    const text = await page.locator("body").innerText();
+    const text = await renderedText(page);
     expect(text).not.toContain("entries listed");
     expect(text).toContain("kayıt listelendi");
     expect(text).not.toContain("Ankara Science University");

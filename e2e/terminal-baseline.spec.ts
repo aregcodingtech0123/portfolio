@@ -97,6 +97,14 @@ test.describe("terminal pixel baseline", () => {
 
           await prepareTerminalPage(page, { locale, mode, width });
 
+          // Sections use content-visibility: auto (globals.css), so the browser
+          // skips rendering the ones far from the viewport, and a full-page
+          // capture would show them as empty space. A visitor never sees that:
+          // each section renders as it scrolls into view. Render all of them
+          // for the capture, so the baseline compares the skin's real pixels.
+          // e2e/content-visibility.spec.ts checks the rule itself is shipped.
+          await page.addStyleTag({ content: "main > section { content-visibility: visible !important; }" });
+
           await expect(page).toHaveScreenshot(`terminal-${locale}-${mode}-${width}.png`, {
             fullPage: true,
             animations: "disabled",
