@@ -16,7 +16,9 @@ import { SiteContentProvider } from "@/components/providers/SiteContentProvider"
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
 import { type SectionId, sectionNumbers, visibleSections } from "@/config/sections";
 import { heroPortraitSrc } from "@/lib/portrait";
-import { homeLanguageAlternates } from "@/lib/seo/site";
+import { OWNER_IDENTITY } from "@/lib/seo/identity";
+import { homeLanguageAlternates, OG_LOCALE, type SiteLocale } from "@/lib/seo/site";
+import { routing } from "@/i18n/routing";
 import { SectionNumbersProvider } from "@/components/ui/SectionMark";
 
 /**
@@ -31,13 +33,32 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const siteLocale = locale as SiteLocale;
   const content = await getPortfolioContent(locale);
+  const title = `${content.siteName} | ${OWNER_IDENTITY.jobTitle[siteLocale]}`;
+  const description = content.seoDescription;
 
   return {
     title: {
-      absolute: content.siteName,
+      absolute: title,
     },
-    description: content.seoDescription,
+    description,
+    openGraph: {
+      type: "website",
+      url: `/${locale}`,
+      siteName: content.siteName,
+      title,
+      description,
+      locale: OG_LOCALE[siteLocale],
+      alternateLocale: routing.locales
+        .filter((other) => other !== locale)
+        .map((other) => OG_LOCALE[other]),
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
     alternates: {
       canonical: `/${locale}`,
       // The only hreflang source (next-intl's Link header is off).

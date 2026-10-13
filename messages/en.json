@@ -174,9 +174,6 @@
     "connect": "Connect",
     "backToTop": "Back to top"
   },
-  "SEO": {
-    "homeDescription": "Portfolio of Arda Ege Tunç: AI engineering, full-stack development, and cybersecurity."
-  },
   "Terminal": {
     "welcome1": "Interactive portfolio terminal initialized.",
     "welcome2": "Type 'help' to list available commands.",

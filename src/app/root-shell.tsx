@@ -5,6 +5,7 @@ import {
   JetBrains_Mono,
   Source_Serif_4,
 } from "next/font/google";
+import { siteUrl } from "@/lib/seo/site";
 import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -63,18 +64,16 @@ export const siteViewport = {
   themeColor: "#0A0C0F",
 };
 
+/**
+ * Site-wide defaults. Per-locale title, description, alternates, Open Graph
+ * and Twitter metadata come from the page (app/[locale]/page.tsx), which
+ * knows the locale and the content.
+ */
 export const siteMetadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: siteUrl(),
   title: {
     default: "Arda Ege Tunç",
     template: "%s",
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    alternateLocale: ["tr_TR"],
   },
   robots: { index: true, follow: true },
 };

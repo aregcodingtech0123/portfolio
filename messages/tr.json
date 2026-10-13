@@ -174,9 +174,6 @@
     "connect": "Bağlan",
     "backToTop": "Başa dön"
   },
-  "SEO": {
-    "homeDescription": "Arda Ege Tunç'un portföyü: yapay zeka mühendisliği, full-stack geliştirme ve siber güvenlik."
-  },
   "Terminal": {
     "welcome1": "Etkileşimli portföy terminali başlatıldı.",
     "welcome2": "Kullanılabilir komutları görmek için 'help' yaz.",
