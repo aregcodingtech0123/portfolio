@@ -310,3 +310,22 @@ test.describe("preview image", () => {
     });
   }
 });
+
+test.describe("locale hygiene", () => {
+  test("/tr shows no English UI string or untranslated university name in the indexable text", async ({ page }) => {
+    await page.goto("/tr");
+    const text = await page.locator("body").innerText();
+    expect(text).not.toContain("entries listed");
+    expect(text).toContain("kayıt listelendi");
+    expect(text).not.toContain("Ankara Science University");
+    // The raw HTML too, since crawlers read both skins' markup.
+    const html = await (await page.request.get("/tr")).text();
+    expect(html).not.toMatch(/entries listed|Ankara Science University/);
+  });
+
+  test("/en keeps its own wording, pluralized", async ({ page }) => {
+    await page.goto("/en");
+    await expect(page.locator("#skills")).toContainText("5 entries listed");
+    await expect(page.locator("#skills")).toContainText("3 entries listed");
+  });
+});

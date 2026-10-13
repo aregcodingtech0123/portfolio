@@ -36,7 +36,12 @@ function visibleIds(c: PortfolioContent) {
 
 describe("visibleSections: the visibility axis", () => {
   it("shows only the always-visible sections when there is no content", () => {
-    expect(visibleIds(content({}))).toEqual(["home", "about", "ctf", "contact"]);
+    expect(visibleIds(content({}))).toEqual(["home", "about", "contact"]);
+  });
+
+  it("hides ctf until it has at least one entry", () => {
+    expect(visibleIds(content({}))).not.toContain("ctf");
+    expect(visibleIds(content({ ctfs: [{} as never] }))).toContain("ctf");
   });
 
   it("adds projects once there is at least one project", () => {
@@ -59,6 +64,7 @@ describe("visibleSections: the visibility axis", () => {
       education: [{} as never],
       skillCategories: [{} as never],
       educationCertificates: [{} as never],
+      ctfs: [{} as never],
     });
     expect(visibleIds(full)).toEqual(sections.map((s) => s.id));
   });
@@ -72,7 +78,7 @@ describe("sectionNumbers: Simple skin header numbering", () => {
     });
   });
 
-  it("numbers ctf only when it has entries, since an empty one is an unnumbered strip", () => {
+  it("numbers ctf only when it has entries, since an empty one is not rendered", () => {
     expect(sectionNumbers(content({})).ctf).toBeUndefined();
     expect(sectionNumbers(content({ ctfs: [{} as never] }))).toEqual({
       about: "01",
@@ -118,8 +124,8 @@ describe("sectionNumbers: Simple skin header numbering", () => {
 });
 
 describe("visibleSections: a hidden section must also disappear from nav and footer", () => {
-  it("keeps ctf out of the nav and footer even though it is always visible", () => {
-    const ctf = visibleSections(content({})).find((s) => s.id === "ctf");
+  it("keeps ctf out of the nav and footer even when it is visible", () => {
+    const ctf = visibleSections(content({ ctfs: [{} as never] })).find((s) => s.id === "ctf");
     expect(ctf).toBeTruthy();
     expect(ctf?.inNav).toBe(false);
     expect(ctf?.inFooter).toBe(false);

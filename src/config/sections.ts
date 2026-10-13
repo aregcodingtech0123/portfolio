@@ -71,7 +71,9 @@ export const sections: readonly SectionConfig[] = [
     navKey: "ctf",
     inNav: false,
     inFooter: false,
-    isVisible: always,
+    // Hidden until there is a result to show: an empty scoreboard is only a
+    // placeholder ("No public results yet").
+    isVisible: (c) => (c.ctfs?.length ?? 0) > 0,
   },
   { id: "contact", navKey: "contact", inNav: true, inFooter: true, isVisible: always },
 ];
@@ -91,12 +93,8 @@ export type SectionNumbers = Partial<Record<SectionId, string>>;
  */
 export function sectionNumbers(content: PortfolioContent): SectionNumbers {
   const numbers: SectionNumbers = {};
-  // The CTF section always renders, but with no entries the Simple skin shows a
-  // slim unnumbered strip instead of a header, so it must not take a number.
-  const ctfIsEmpty = (content.ctfs?.length ?? 0) === 0;
   visibleSections(content)
     .filter((section) => section.id !== "home")
-    .filter((section) => !(section.id === "ctf" && ctfIsEmpty))
     .forEach((section, index) => {
       numbers[section.id] = String(index + 1).padStart(2, "0");
     });

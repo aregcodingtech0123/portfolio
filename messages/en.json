@@ -45,6 +45,7 @@
     "sectionLabel": "// 06 skills",
     "subtitle": "Skills",
     "evidence": "Evidence",
+    "entriesListed": "<n>{count}</n> {count, plural, one {entry} other {entries}} listed",
     "categories": {
       "ai": "AI & Machine Learning",
       "frontend": "Frontend Development",

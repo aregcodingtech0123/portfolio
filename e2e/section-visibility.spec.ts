@@ -59,9 +59,20 @@ test("every section with real fallback content appears in the page, and in the n
   }
 
   // ctf is deliberately excluded from both nav and footer regardless of
-  // content (inNav: false, inFooter: false in sections.ts), while still
-  // always rendering on the page itself (isVisible: always).
-  await expect(page.locator("#ctf")).toBeVisible();
+  // content (inNav: false, inFooter: false in sections.ts).
   await expect(nav.getByRole("link", { name: /CTF/ })).toHaveCount(0);
   await expect(footer.getByRole("link", { name: "CTF", exact: true })).toHaveCount(0);
+});
+
+test("the CTF section is not rendered while it has no entries (the fallback dataset has none)", async ({
+  page,
+}) => {
+  for (const locale of ["en", "tr"]) {
+    await page.goto(`/${locale}`);
+    await expect(page.locator("#ctf")).toHaveCount(0);
+    // Its placeholder copy is gone with it, in both skins' markup.
+    await expect(page.locator("body")).not.toContainText(
+      locale === "en" ? "No public results yet" : "Henüz genel sonuç yok",
+    );
+  }
 });

@@ -45,6 +45,7 @@
     "sectionLabel": "// 06 yetenekler",
     "subtitle": "Yetenekler",
     "evidence": "Kanıt",
+    "entriesListed": "<n>{count}</n> kayıt listelendi",
     "categories": {
       "ai": "Yapay Zeka ve Makine Öğrenmesi",
       "frontend": "Frontend Geliştirme",

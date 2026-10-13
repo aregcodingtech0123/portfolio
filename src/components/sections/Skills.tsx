@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Section } from "@/components/ui/Section";
 import type { SkillCategoryDisplay } from "@/sanity/fetch";
@@ -45,11 +46,14 @@ function TerminalSkillPanel({
   label,
   skills,
   tierLabel,
+  countLabel,
 }: {
   categoryId: string;
   label: string;
   skills: SkillDisplay[];
   tierLabel: (tier?: SkillTierId) => string | null;
+  /** "5 entries listed", localized, with the number highlighted. */
+  countLabel: (count: number) => ReactNode;
 }) {
   if (skills.length === 0) return null;
 
@@ -104,8 +108,7 @@ function TerminalSkillPanel({
         </ul>
 
         <p className="mt-auto pt-4 font-mono text-[10px] text-muted">
-          <span className="text-accent">{skills.length}</span>
-          {" entries listed"}
+          {countLabel(skills.length)}
         </p>
       </div>
     </article>
@@ -219,6 +222,12 @@ export function Skills({ categories }: SkillsProps) {
               label={categoryLabel(cat)}
               skills={cat.skills}
               tierLabel={tierLabel}
+              countLabel={(count) =>
+                t.rich("entriesListed", {
+                  count,
+                  n: (chunks) => <span className="text-accent">{chunks}</span>,
+                })
+              }
             />
           ))}
         </div>

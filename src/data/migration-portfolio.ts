@@ -80,25 +80,36 @@ type SkillSeed = {
   evidenceProjectId?: string;
 };
 
+/** The university's name in each language, as used by the education and experience entries. */
+const ANKARA_SCIENCE_UNIVERSITY: LocaleField = {
+  en: "Ankara Science University",
+  tr: "Ankara Bilim Üniversitesi",
+};
+
 /** Same text in English and Turkish: official certificate names and issuers are not translated yet. */
 function sameInBoth(text: string): LocaleField {
   return { en: text, tr: text };
 }
 
+/** An issuer given as a plain string has no translation yet: same text in both. */
+function issuerField(issuer: string | LocaleField): LocaleField {
+  return typeof issuer === "string" ? sameInBoth(issuer) : issuer;
+}
+
 function cert(
   title: string,
-  issuer: string,
+  issuer: string | LocaleField,
   date?: string,
 ): CertificateSeed {
-  return { title: sameInBoth(title), issuer: sameInBoth(issuer), date };
+  return { title: sameInBoth(title), issuer: issuerField(issuer), date };
 }
 
 function certLocalized(
   title: LocaleField,
-  issuer: string,
+  issuer: string | LocaleField,
   date?: string,
 ): CertificateSeed {
-  return { title, issuer: sameInBoth(issuer), date };
+  return { title, issuer: issuerField(issuer), date };
 }
 
 export const migrationPortfolio = {
@@ -273,10 +284,7 @@ export const migrationPortfolio = {
   education: [
     {
       id: "education-asbu-ce",
-      institution: {
-        en: "Ankara Science University",
-        tr: "Ankara Bilim Üniversitesi",
-      },
+      institution: ANKARA_SCIENCE_UNIVERSITY,
       degree: { en: "B.Sc.", tr: "Lisans" },
       fieldOfStudy: {
         en: "Computer Engineering",
@@ -352,10 +360,7 @@ export const migrationPortfolio = {
     },
     {
       id: "experience-lab",
-      company: {
-        en: "Ankara Science University",
-        tr: "Ankara Bilim Üniversitesi",
-      },
+      company: ANKARA_SCIENCE_UNIVERSITY,
       role: {
         en: "Computer Laboratory Assistant",
         tr: "Bilgisayar Laboratuvarı Asistanı",
@@ -405,14 +410,14 @@ export const migrationPortfolio = {
     cert("Talent Coders Code Genius Certificate", "Talentcoders", "February 2026"),
     cert("Introduction to Generative AI", "BTK Akademi", "February 2026"),
     cert("Advanced Cyber Security in Technologies", "HAVELSAN", "February 2024"),
-    cert("AI Literacy", "Ankara Science University", "May 2024"),
+    cert("AI Literacy", ANKARA_SCIENCE_UNIVERSITY, "May 2024"),
     cert("3D Design and Printing", "KA3D Arge Tasarım", "October 2022"),
     certLocalized(
       {
         en: "Java Lab Assistantship",
         tr: "Java Laboratuvar Asistanlığı",
       },
-      "Ankara Science University",
+      ANKARA_SCIENCE_UNIVERSITY,
     ),
     cert("Internship Completion Certificate", "RE/MAX Wise", "October 2025"),
     cert("Blockchain Training", "1. Vision & Efficiency Summit", "May 2023"),
