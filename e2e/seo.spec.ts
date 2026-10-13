@@ -252,3 +252,39 @@ test.describe("structured data (JSON-LD)", () => {
     });
   }
 });
+
+/** md5 of create-next-app's stock favicon.ico (the Vercel triangle). */
+const STOCK_FAVICON_MD5 = "c30c7d42707a47a3f4591831641e50dc";
+
+function pngSize(png: Buffer): { width: number; height: number } {
+  expect(png.subarray(1, 4).toString("ascii")).toBe("PNG");
+  return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+}
+
+test.describe("icons", () => {
+  test("/favicon.ico is the owner's icon, not the stock file, with 16, 32 and 48 px frames", async ({ request }) => {
+    const res = await request.get("/favicon.ico");
+    expect(res.status()).toBe(200);
+    const ico = await res.body();
+    const { createHash } = await import("node:crypto");
+    expect(createHash("md5").update(ico).digest("hex")).not.toBe(STOCK_FAVICON_MD5);
+    expect(ico.readUInt16LE(2)).toBe(1); // ICO type
+    const count = ico.readUInt16LE(4);
+    const sizes = Array.from({ length: count }, (_, i) => ico[6 + 16 * i]);
+    expect(sizes).toEqual([16, 32, 48]);
+  });
+
+  test("every page links the favicon and a 180 px apple-touch-icon", async ({ request }) => {
+    for (const locale of LOCALES) {
+      const html = await (await request.get(`/${locale}`)).text();
+      const links = tags(html, "link");
+      expect(links.some((l) => l.rel === "icon" && l.href.startsWith("/favicon.ico"))).toBe(true);
+      const apple = links.find((l) => l.rel === "apple-touch-icon");
+      expect(apple, "apple-touch-icon link").toBeTruthy();
+      const res = await request.get(decode(apple!.href));
+      expect(res.status()).toBe(200);
+      expect(res.headers()["content-type"]).toBe("image/png");
+      expect(pngSize(await res.body())).toEqual({ width: 180, height: 180 });
+    }
+  });
+});

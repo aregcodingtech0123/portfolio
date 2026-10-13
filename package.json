@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "sanity:types": "sanity schema extract && sanity typegen generate",
     "seed:sanity": "tsx scripts/seed-sanity.ts",
+    "icons": "tsx scripts/icons/generate-icons.ts",
     "check:copy": "node scripts/check-copy.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
     "perf": "node scripts/perf/lighthouse.mjs",
