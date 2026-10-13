@@ -91,12 +91,29 @@ export type SectionNumbers = Partial<Record<SectionId, string>>;
  * section never leaves a gap. `home` is the hero and has no header, so it is
  * not numbered.
  */
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/**
+ * Numbers for the Terminal skin's "// 03 projects" labels: the rendered
+ * sections in config order, home counted as 01 the way the nav counts, so a
+ * hidden section never leaves a gap in the sequence.
+ */
+export function terminalSectionNumbers(content: PortfolioContent): SectionNumbers {
+  const numbers: SectionNumbers = {};
+  visibleSections(content).forEach((section, index) => {
+    numbers[section.id] = pad(index + 1);
+  });
+  return numbers;
+}
+
 export function sectionNumbers(content: PortfolioContent): SectionNumbers {
   const numbers: SectionNumbers = {};
   visibleSections(content)
     .filter((section) => section.id !== "home")
     .forEach((section, index) => {
-      numbers[section.id] = String(index + 1).padStart(2, "0");
+      numbers[section.id] = pad(index + 1);
     });
   return numbers;
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sectionNumbers, sections, visibleSections } from "@/config/sections";
+import {
+  sectionNumbers,
+  sections,
+  terminalSectionNumbers,
+  visibleSections,
+} from "@/config/sections";
 import type { PortfolioContent } from "@/sanity/fetch";
 
 type RelevantFields = Pick<
@@ -183,5 +188,44 @@ describe("visibleSections: a hidden section must also disappear from nav and foo
       "contact",
     ]);
     expect(inFooter).toEqual(["home", "about", "projects", "skills", "contact"]);
+  });
+});
+
+describe("terminalSectionNumbers: Terminal skin \"// NN label\" numbering", () => {
+  const all = {
+    projects: [{} as never],
+    experience: [{} as never],
+    education: [{} as never],
+    skillCategories: [{} as never],
+    educationCertificates: [{} as never],
+  };
+
+  it("with CTF hidden, numbers stay consecutive: contact follows certificates", () => {
+    const numbers = terminalSectionNumbers(content(all));
+    expect(numbers).toEqual({
+      home: "01",
+      about: "02",
+      projects: "03",
+      experience: "04",
+      education: "05",
+      skills: "06",
+      certificates: "07",
+      contact: "08",
+    });
+    expect(numbers.ctf).toBeUndefined();
+  });
+
+  it("with every section rendered, follows the config order", () => {
+    const numbers = terminalSectionNumbers(content({ ...all, ctfs: [{} as never] }));
+    sections.forEach((section, index) => {
+      expect(numbers[section.id]).toBe(String(index + 1).padStart(2, "0"));
+    });
+    expect(numbers.ctf).toBe("08");
+    expect(numbers.contact).toBe("09");
+  });
+
+  it("is always a gapless 01..n sequence, whatever is hidden", () => {
+    const numbers = terminalSectionNumbers(content({ projects: [{} as never], skillCategories: [{} as never] }));
+    expect(Object.values(numbers)).toEqual(Object.values(numbers).map((_, i) => String(i + 1).padStart(2, "0")));
   });
 });

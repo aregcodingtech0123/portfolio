@@ -16,7 +16,7 @@ const baseItem: EducationItem = {
 function renderEducation(items: EducationItem[]) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <Education items={items} />
+      <Education items={items} sectionLabel="// 05 education" />
     </NextIntlClientProvider>,
   );
 }

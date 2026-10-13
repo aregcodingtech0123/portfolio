@@ -15,7 +15,7 @@ const baseItem: ExperienceItem = {
 function renderExperience(items: ExperienceItem[]) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <Experience items={items} />
+      <Experience items={items} sectionLabel="// 04 experience" />
     </NextIntlClientProvider>,
   );
 }

@@ -6,7 +6,14 @@ import { SimpleTimelineRow } from "@/components/ui/SimpleTimeline";
 import { isOpenEndedPeriod } from "@/lib/period";
 import type { ExperienceItem } from "@/types/content";
 
-export function Experience({ items }: { items: ExperienceItem[] }) {
+export function Experience({
+  items,
+  sectionLabel,
+}: {
+  items: ExperienceItem[];
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
+}) {
   const t = useTranslations("Experience");
 
   return (
@@ -14,7 +21,7 @@ export function Experience({ items }: { items: ExperienceItem[] }) {
       <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="min-w-0 max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2 m-h2-statement">
             {t("subtitle")}

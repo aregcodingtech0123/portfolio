@@ -10,7 +10,14 @@ function programTitle(item: EducationItem): string {
   return parts.join(" · ");
 }
 
-export function Education({ items }: { items: EducationItem[] }) {
+export function Education({
+  items,
+  sectionLabel,
+}: {
+  items: EducationItem[];
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
+}) {
   const t = useTranslations("Education");
 
   return (
@@ -18,7 +25,7 @@ export function Education({ items }: { items: EducationItem[] }) {
       <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="min-w-0 max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2 m-h2-statement">
             {t("subtitle")}

@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Fragment, type ReactNode } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -14,7 +14,12 @@ import { Education } from "@/components/sections/Education";
 import { Contact } from "@/components/sections/Contact";
 import { SiteContentProvider } from "@/components/providers/SiteContentProvider";
 import { getPortfolioContent, type PortfolioContent } from "@/sanity/fetch";
-import { type SectionId, sectionNumbers, visibleSections } from "@/config/sections";
+import {
+  type SectionId,
+  sectionNumbers,
+  terminalSectionNumbers,
+  visibleSections,
+} from "@/config/sections";
 import { heroPortraitSrc } from "@/lib/portrait";
 import { OWNER_IDENTITY } from "@/lib/seo/identity";
 import { buildJsonLd, serializeJsonLd } from "@/lib/seo/json-ld";
@@ -72,10 +77,14 @@ export async function generateMetadata({
   };
 }
 
+/** Terminal skin section labels ("// 03 projects"), finished on the server. */
+type SectionLabels = Record<Exclude<SectionId, "home" | "about">, string>;
+
 function renderSection(
   id: SectionId,
   content: PortfolioContent,
   portraitSrc: string | undefined,
+  labels: SectionLabels,
 ): ReactNode {
   switch (id) {
     case "home":
@@ -83,24 +92,25 @@ function renderSection(
     case "about":
       return <About />;
     case "projects":
-      return <Projects projects={content.projects} />;
+      return <Projects projects={content.projects} sectionLabel={labels.projects} />;
     case "experience":
-      return <Experience items={content.experience} />;
+      return <Experience items={content.experience} sectionLabel={labels.experience} />;
     case "education":
-      return <Education items={content.education} />;
+      return <Education items={content.education} sectionLabel={labels.education} />;
     case "skills":
-      return <Skills categories={content.skillCategories} />;
+      return <Skills categories={content.skillCategories} sectionLabel={labels.skills} />;
     case "certificates":
       return (
         <Certificates
           educationCertificates={content.educationCertificates}
           participationCertificates={content.participationCertificates}
+          sectionLabel={labels.certificates}
         />
       );
     case "ctf":
-      return <Ctf ctfs={content.ctfs} />;
+      return <Ctf ctfs={content.ctfs} sectionLabel={labels.ctf} />;
     case "contact":
-      return <Contact />;
+      return <Contact sectionLabel={labels.contact} />;
   }
 }
 
@@ -117,6 +127,21 @@ export default async function HomePage({
   // Simple skin only: "01 / About" numbers follow the config order, over the
   // sections that are actually rendered (home has no header).
   const numbers = sectionNumbers(content);
+  // Terminal skin "// 03 projects" labels: same idea, home counted as 01.
+  // Numbered over the rendered sections and translated here, on the server:
+  // the client receives the finished text and does no numbering work.
+  const terminalNumbers = terminalSectionNumbers(content);
+  const t = await getTranslations({ locale });
+  const n = (id: SectionId) => ({ number: terminalNumbers[id] ?? "" });
+  const sectionLabels: SectionLabels = {
+    projects: t("Projects.sectionLabel", n("projects")),
+    experience: t("Experience.sectionLabel", n("experience")),
+    education: t("Education.sectionLabel", n("education")),
+    skills: t("Skills.sectionLabel", n("skills")),
+    certificates: t("Certificates.sectionLabel", n("certificates")),
+    ctf: t("CTF.sectionLabel", n("ctf")),
+    contact: t("Contact.sectionLabel", n("contact")),
+  };
   // Structured data, built and serialized here in the server component: it
   // is part of the static HTML and adds no client JavaScript.
   const jsonLd = serializeJsonLd(
@@ -141,7 +166,7 @@ export default async function HomePage({
       >
         <SectionNumbersProvider numbers={numbers}>
           {visible.map((section) => (
-            <Fragment key={section.id}>{renderSection(section.id, content, portraitSrc)}</Fragment>
+            <Fragment key={section.id}>{renderSection(section.id, content, portraitSrc, sectionLabels)}</Fragment>
           ))}
         </SectionNumbersProvider>
       </main>

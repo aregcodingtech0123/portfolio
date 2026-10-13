@@ -17,10 +17,12 @@ function formatSolvedDate(date: string, locale: string): string {
 }
 
 type CtfProps = {
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
   ctfs: CtfDisplay[];
 };
 
-export function Ctf({ ctfs }: CtfProps) {
+export function Ctf({ ctfs, sectionLabel }: CtfProps) {
   const t = useTranslations("CTF");
   const locale = useLocale();
   const isEmpty = ctfs.length === 0;
@@ -37,7 +39,7 @@ export function Ctf({ ctfs }: CtfProps) {
           className={`max-w-2xl minimal:max-w-none${isEmpty ? " minimal:hidden" : ""}`}
         >
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
             {t("subtitle")}

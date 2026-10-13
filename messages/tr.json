@@ -42,7 +42,7 @@
     "locationLabel": "Konum"
   },
   "Skills": {
-    "sectionLabel": "// 06 yetenekler",
+    "sectionLabel": "// {number} yetenekler",
     "subtitle": "Yetenekler",
     "evidence": "Kanıt",
     "entriesListed": "<n>{count}</n> kayıt listelendi",
@@ -67,7 +67,7 @@
     }
   },
   "CTF": {
-    "sectionLabel": "// 08 ctf",
+    "sectionLabel": "// {number} ctf",
     "subtitle": "Skor tablosu",
     "intro": "Capture The Flag pratiğinden genel sonuçlar.",
     "empty": "Henüz genel sonuç yok. Write-up'lar yakında.",
@@ -81,19 +81,19 @@
     "noWriteup": "-"
   },
   "Experience": {
-    "sectionLabel": "// 04 deneyim",
+    "sectionLabel": "// {number} deneyim",
     "subtitle": "Deneyimlerim",
     "current": "Devam ediyor",
     "emptyBody": "Henüz deneyim kaydı yok. Content Hub'dan Deneyim bölümüne ekleyin."
   },
   "Education": {
-    "sectionLabel": "// 05 eğitim",
+    "sectionLabel": "// {number} eğitim",
     "subtitle": "Eğitim",
     "current": "Devam ediyor",
     "emptyBody": "Henüz eğitim kaydı yok. Content Hub'dan Eğitim bölümüne ekleyin."
   },
   "Projects": {
-    "sectionLabel": "// 03 projeler",
+    "sectionLabel": "// {number} projeler",
     "subtitle": "Projeler",
     "searchPlaceholder": "Teknoloji veya anahtar kelime…",
     "grepPrefix": "grep",
@@ -123,7 +123,7 @@
     "preview": "Önizleme yok"
   },
   "Certificates": {
-    "sectionLabel": "// 07 sertifikalar",
+    "sectionLabel": "// {number} sertifikalar",
     "subtitle": "Sertifikalar ve Etkinlikler",
     "certificatesHeading": "// sertifikalar",
     "eventsHeading": "// etkinlikler",
@@ -135,7 +135,7 @@
     "undated": "Tarihsiz"
   },
   "Contact": {
-    "sectionLabel": "// 09 iletişim",
+    "sectionLabel": "// {number} iletişim",
     "title": "İletişim",
     "heading": "Birlikte çalışalım",
     "subtitle": "Mesaj gönderin, ya da GitHub ve LinkedIn üzerinden ulaşın.",

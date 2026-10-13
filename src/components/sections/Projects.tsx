@@ -52,6 +52,8 @@ function projectMatchesQuery(project: ProjectDisplay, value: string): boolean {
 type FilterKey = "all" | ProjectCategory;
 
 type ProjectsProps = {
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
   projects: ProjectDisplay[];
 };
 
@@ -63,6 +65,7 @@ type ProjectsViewProps = ProjectsProps & {
 
 function ProjectsView({
   projects: projectData,
+  sectionLabel,
   activeProject,
   onOpen,
   onClose,
@@ -108,7 +111,7 @@ function ProjectsView({
         <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-end lg:justify-between minimal:block">
           <div className="min-w-0 max-w-2xl minimal:max-w-none">
             <p className="decor font-mono text-xs tracking-wide text-accent">
-              {t("sectionLabel")}
+              {sectionLabel}
             </p>
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
               {t("subtitle")}
@@ -254,7 +257,7 @@ function ProjectsView({
  * That avoids races where local state and searchParams briefly disagree and the
  * modal immediately re-opens (or closes) after a click.
  */
-function ProjectsWithQuery({ projects }: ProjectsProps) {
+function ProjectsWithQuery({ projects, sectionLabel }: ProjectsProps) {
   const searchParams = useSearchParams();
   const triggerRef = useRef<HTMLElement | null>(null);
 
@@ -289,6 +292,7 @@ function ProjectsWithQuery({ projects }: ProjectsProps) {
   return (
     <ProjectsView
       projects={projects}
+      sectionLabel={sectionLabel}
       activeProject={activeProject}
       onOpen={openProject}
       onClose={closeProject}

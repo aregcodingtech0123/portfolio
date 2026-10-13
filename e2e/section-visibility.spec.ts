@@ -76,3 +76,26 @@ test("the CTF section is not rendered while it has no entries (the fallback data
     );
   }
 });
+
+test("terminal section labels are numbered consecutively over the rendered sections (CTF hidden)", async ({
+  page,
+}) => {
+  for (const locale of ["en", "tr"]) {
+    await page.goto(`/${locale}`);
+    await expect(page.locator("html")).toHaveAttribute("data-skin", "terminal");
+    // textContent, not innerText: sections off screen skip rendering
+    // (content-visibility: auto) and innerText is empty for them. Only labels
+    // the Terminal skin displays count (checkVisibility ignores that skipping).
+    const labels = await page.locator("main p").evaluateAll((nodes) =>
+      nodes
+        .filter((p) => /^\/\/ \d{2} /.test(p.textContent ?? "") && p.checkVisibility())
+        .map((p) => (p.textContent ?? "").trim()),
+    );
+    const numbers = labels.map((label) => Number(label.slice(3, 5)));
+    // home is 01 and about 02 (neither has a numbered label), so labels start at 03.
+    expect(numbers).toEqual(numbers.map((_, i) => i + 3));
+    expect(labels.some((label) => label.startsWith("// 08 ") && /contact|iletişim/.test(label))).toBe(true);
+    // The nav counts the same way: its Contact entry carries the same number.
+    await expect(page.locator("nav").first()).toContainText(/08\s*(Contact|İletişim)/);
+  }
+});

@@ -42,7 +42,7 @@
     "locationLabel": "Location"
   },
   "Skills": {
-    "sectionLabel": "// 06 skills",
+    "sectionLabel": "// {number} skills",
     "subtitle": "Skills",
     "evidence": "Evidence",
     "entriesListed": "<n>{count}</n> {count, plural, one {entry} other {entries}} listed",
@@ -67,7 +67,7 @@
     }
   },
   "CTF": {
-    "sectionLabel": "// 08 ctf",
+    "sectionLabel": "// {number} ctf",
     "subtitle": "Scoreboard",
     "intro": "Public results from Capture The Flag practice.",
     "empty": "No public results yet. Write-ups coming.",
@@ -81,19 +81,19 @@
     "noWriteup": "-"
   },
   "Experience": {
-    "sectionLabel": "// 04 experience",
+    "sectionLabel": "// {number} experience",
     "subtitle": "Roles that shaped how I build and break systems.",
     "current": "Current",
     "emptyBody": "No experience entries yet. Add roles in Content Hub under Experience."
   },
   "Education": {
-    "sectionLabel": "// 05 education",
+    "sectionLabel": "// {number} education",
     "subtitle": "Academic background and programs of study.",
     "current": "In progress",
     "emptyBody": "No education entries yet. Add programs in Content Hub under Education."
   },
   "Projects": {
-    "sectionLabel": "// 03 projects",
+    "sectionLabel": "// {number} projects",
     "subtitle": "Projects",
     "searchPlaceholder": "Technology or keyword…",
     "grepPrefix": "grep",
@@ -123,7 +123,7 @@
     "preview": "No preview"
   },
   "Certificates": {
-    "sectionLabel": "// 07 certificates",
+    "sectionLabel": "// {number} certificates",
     "subtitle": "Certificates & Events",
     "certificatesHeading": "// certificates",
     "eventsHeading": "// events",
@@ -135,7 +135,7 @@
     "undated": "Undated"
   },
   "Contact": {
-    "sectionLabel": "// 09 contact",
+    "sectionLabel": "// {number} contact",
     "title": "Contact",
     "heading": "Let's work together",
     "subtitle": "Send a message, or find me on GitHub and LinkedIn.",

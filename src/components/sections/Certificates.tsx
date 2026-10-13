@@ -11,6 +11,8 @@ const SIMPLE_VISIBLE_CERTS = 6;
 const SIMPLE_VISIBLE_EVENTS = 8;
 
 type CertificatesProps = {
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
   educationCertificates: CertificateDisplay[];
   participationCertificates: CertificateDisplay[];
 };
@@ -223,6 +225,7 @@ function CategoryAccordion({
 export function Certificates({
   educationCertificates,
   participationCertificates,
+  sectionLabel,
 }: CertificatesProps) {
   const t = useTranslations("Certificates");
   const locale = useLocale();
@@ -241,7 +244,7 @@ export function Certificates({
       <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
             {t("subtitle")}
