@@ -242,13 +242,21 @@ test.describe("structured data (JSON-LD)", () => {
       // Name = the visible h1 (one per skin; the other skin's is hidden).
       await expect(page.locator("h1:visible")).toHaveText(person.name as string);
 
-      // sameAs: only links the visitor can see on the page.
-      const visibleHrefs = await page
-        .locator("a[href^='http']:visible")
-        .evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).href));
-      for (const url of person.sameAs as string[]) {
-        expect(visibleHrefs).toContain(url);
-      }
+      // sameAs: exactly the GitHub and LinkedIn links the Contact section
+      // shows, href for href (as written in the HTML, not normalized).
+      const contact = page.locator("#contact");
+      await contact.scrollIntoViewIfNeeded();
+      const profileLinks = await contact.locator("a[href]").evaluateAll((links) => [
+        ...new Set(
+          links
+            .filter((a) => a.checkVisibility())
+            .map((a) => a.getAttribute("href") ?? "")
+            .filter((href) => /^https:\/\/(www\.)?(github|linkedin)\.com\//.test(href)),
+        ),
+      ]);
+      expect(profileLinks.some((href) => href.includes("github.com"))).toBe(true);
+      expect(profileLinks.some((href) => href.includes("linkedin.com"))).toBe(true);
+      expect([...(person.sameAs as string[])].sort()).toEqual([...profileLinks].sort());
 
       // description, location, alumniOf and knowsAbout: visible text, the
       // project dialogs included (the full technology list is shown there).

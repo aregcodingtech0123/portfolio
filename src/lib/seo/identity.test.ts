@@ -9,3 +9,15 @@ describe("OWNER_IDENTITY", () => {
     expect(OWNER_IDENTITY.jobTitle.tr).toBe(tr.Hero.roleBadge);
   });
 });
+
+describe("OWNER_IDENTITY profiles", () => {
+  it("confirms GitHub and LinkedIn, whose URLs come from the content, not from here", async () => {
+    const { migrationPortfolio } = await import("@/data/migration-portfolio");
+    const { confirmedSameAs } = await import("./json-ld");
+    expect(OWNER_IDENTITY.confirmedProfiles).toEqual(["github", "linkedin"]);
+    const { githubUrl, linkedinUrl } = migrationPortfolio.siteSettings;
+    expect(
+      confirmedSameAs({ github: githubUrl, linkedin: linkedinUrl }, OWNER_IDENTITY.confirmedProfiles),
+    ).toEqual([githubUrl, linkedinUrl]);
+  });
+});

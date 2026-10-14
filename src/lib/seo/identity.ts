@@ -7,7 +7,11 @@
  * rather than guessed. Change a value only when the owner confirms the new
  * one.
  */
+import type { SocialLinksDisplay } from "@/sanity/types";
 import type { SiteLocale } from "./site";
+
+/** A profile link the site shows (content.social), by key. */
+export type ProfileKey = keyof SocialLinksDisplay;
 
 export type OwnerIdentity = {
   /**
@@ -16,11 +20,12 @@ export type OwnerIdentity = {
    */
   jobTitle: Record<SiteLocale, string>;
   /**
-   * Profile URLs confirmed as the owner's own. A social link from the content
-   * is emitted as `sameAs` only when it is in this list, so an edited or
-   * mistyped link in Sanity cannot assert a wrong identity.
+   * The site's profile links the owner confirmed as their own, by key. Their
+   * URLs are read from the content (content.social, the same values the
+   * visible GitHub and LinkedIn links use), never copied here, so `sameAs`
+   * always equals what the page links to. A profile not listed is left out.
    */
-  confirmedProfileUrls: readonly string[];
+  confirmedProfiles: readonly ProfileKey[];
   /** Education entry ids (fallback id = seeded Sanity _id) of completed degrees. */
   completedDegreeIds: readonly string[];
   /** Whether the hero portrait may be used as Person.image and in previews. */
@@ -29,7 +34,7 @@ export type OwnerIdentity = {
 
 export const OWNER_IDENTITY: OwnerIdentity = {
   jobTitle: { en: "Computer Engineer", tr: "Bilgisayar Mühendisi" },
-  confirmedProfileUrls: ["https://github.com/aregcodingtech0123"],
+  confirmedProfiles: ["github", "linkedin"],
   completedDegreeIds: ["education-asbu-ce"],
   portraitAllowed: true,
 };

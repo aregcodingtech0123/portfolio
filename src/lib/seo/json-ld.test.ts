@@ -14,7 +14,7 @@ const LINKEDIN = "https://www.linkedin.com/in/owner-handle/";
 
 const identity: OwnerIdentity = {
   jobTitle: { en: "Computer Engineer", tr: "Bilgisayar Mühendisi" },
-  confirmedProfileUrls: [GITHUB],
+  confirmedProfiles: ["github"],
   completedDegreeIds: ["edu-done"],
   portraitAllowed: true,
 };
@@ -167,12 +167,19 @@ describe("evidencedTopics", () => {
 });
 
 describe("confirmedSameAs", () => {
-  it("keeps only confirmed profiles, ignoring a trailing slash and case", () => {
-    expect(confirmedSameAs({ github: `${GITHUB}/`, linkedin: LINKEDIN }, [GITHUB.toUpperCase()])).toEqual([`${GITHUB}/`]);
+  it("returns the confirmed profiles' URLs exactly as the content has them, in order", () => {
+    expect(confirmedSameAs({ github: GITHUB, linkedin: LINKEDIN }, ["github", "linkedin"])).toEqual([GITHUB, LINKEDIN]);
   });
 
-  it("drops a link that differs from the confirmed one", () => {
-    expect(confirmedSameAs({ github: "https://github.com/someone-else", linkedin: "" }, [GITHUB])).toEqual([]);
+  it("does not normalize: an encoded path and a trailing slash are kept as linked", () => {
+    const encoded = "https://www.linkedin.com/in/arda-ege-tun%C3%A7-7991312b2/";
+    expect(confirmedSameAs({ github: "", linkedin: encoded }, ["linkedin"])).toEqual([encoded]);
+  });
+
+  it("leaves out profiles the owner did not confirm, and empty links", () => {
+    expect(confirmedSameAs({ github: GITHUB, linkedin: LINKEDIN }, ["github"])).toEqual([GITHUB]);
+    expect(confirmedSameAs({ github: "", linkedin: LINKEDIN }, ["github", "linkedin"])).toEqual([LINKEDIN]);
+    expect(confirmedSameAs({ github: GITHUB, linkedin: LINKEDIN }, [])).toEqual([]);
   });
 });
 

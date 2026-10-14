@@ -15,7 +15,7 @@
  */
 import { routing } from "@/i18n/routing";
 import type { PortfolioContent } from "@/sanity/fetch";
-import type { OwnerIdentity } from "./identity";
+import type { OwnerIdentity, ProfileKey } from "./identity";
 import { absoluteUrl, type SiteLocale } from "./site";
 
 export type JsonLdContent = Pick<
@@ -38,15 +38,6 @@ export type JsonLdGraph = {
   "@context": "https://schema.org";
   "@graph": Node[];
 };
-
-function comparableUrl(value: string): string {
-  try {
-    const url = new URL(value);
-    return `${url.protocol}//${url.host}${url.pathname}`.replace(/\/+$/, "").toLowerCase();
-  } catch {
-    return "";
-  }
-}
 
 /**
  * Topics with evidence on the page: skills linked to a project or CTF entry,
@@ -75,15 +66,15 @@ export function evidencedTopics(content: Pick<JsonLdContent, "skillCategories" |
   return topics;
 }
 
-/** Visible social links that the owner confirmed as their own profiles. */
+/**
+ * The confirmed profiles' URLs, exactly as the page links to them
+ * (content.social). An empty link is left out.
+ */
 export function confirmedSameAs(
   social: JsonLdContent["social"],
-  confirmed: readonly string[],
+  confirmed: readonly ProfileKey[],
 ): string[] {
-  const allowed = new Set(confirmed.map(comparableUrl));
-  return [social.github, social.linkedin].filter(
-    (url): url is string => Boolean(url) && allowed.has(comparableUrl(url)),
-  );
+  return confirmed.map((key) => social[key]).filter((url) => Boolean(url));
 }
 
 export function buildJsonLd({ locale, base, content, identity, portraitSrc }: JsonLdInput): JsonLdGraph {
@@ -95,7 +86,7 @@ export function buildJsonLd({ locale, base, content, identity, portraitSrc }: Js
   const name = content.hero.name.trim() || content.siteName;
   const description = content.about.summary.trim();
   const location = content.about.location.trim();
-  const sameAs = confirmedSameAs(content.social, identity.confirmedProfileUrls);
+  const sameAs = confirmedSameAs(content.social, identity.confirmedProfiles);
   const knowsAbout = evidencedTopics(content);
   const alumniOf = content.education
     .filter((entry) => identity.completedDegreeIds.includes(entry.id) && entry.institution)
