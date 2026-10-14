@@ -44,6 +44,49 @@ function check(group, name, value, limit, unit, { floor = false } = {}) {
   const pass = floor ? value >= limit : value <= limit;
   rows.push({ group, name, value, limit, unit, floor, pass });
 }
+/**
+ * Per Lighthouse config: the elements that shifted, so a CLS failure explains
+ * itself (CI prints budget.md; the full reports are in OUT_DIR/lighthouse).
+ */
+const shiftReport = [];
+
+/** Lighthouse's layout-shifts audit, reduced to selector, score and cause. */
+function layoutShifts(lhr) {
+  return (lhr.audits["layout-shifts"]?.details?.items ?? []).map((item) => ({
+    selector: item.node?.selector ?? item.node?.snippet ?? "(unknown)",
+    score: item.score ?? 0,
+    cause: [...new Set((item.subItems?.items ?? []).map((s) => s.cause).filter(Boolean))].join("; "),
+  }));
+}
+
+/**
+ * Sources aggregated over a config's runs, largest first: per run, an
+ * element's shifts are summed; then the median of those sums over the runs in
+ * which it shifted, and in how many runs that was.
+ */
+function topShiftSources(runs, limit = 5) {
+  const bySelector = new Map();
+  for (const run of runs) {
+    const perRun = new Map();
+    for (const shift of run.shifts) {
+      const sum = perRun.get(shift.selector) ?? { score: 0, causes: new Set() };
+      sum.score += shift.score;
+      if (shift.cause) sum.causes.add(shift.cause);
+      perRun.set(shift.selector, sum);
+    }
+    for (const [selector, sum] of perRun) {
+      const entry = bySelector.get(selector) ?? { selector, scores: [], causes: new Set() };
+      entry.scores.push(sum.score);
+      for (const cause of sum.causes) entry.causes.add(cause);
+      bySelector.set(selector, entry);
+    }
+  }
+  return [...bySelector.values()]
+    .map((e) => ({ selector: e.selector, median: median(e.scores), runs: e.scores.length, causes: [...e.causes].join("; ") }))
+    .sort((a, b) => b.median - a.median)
+    .slice(0, limit);
+}
+
 function checkNone(group, name, found) {
   rows.push({ group, name, value: found.length ? found.join(", ") : "none", limit: "none", unit: "", pass: found.length === 0 });
 }
@@ -148,12 +191,18 @@ async function lighthouseStage(budget) {
     const idOf = (c) => `${c.form}-${c.locale}-${c.skin}-${c.mode}-${c.throttling ?? "simulate"}`;
 
     const runs = [];
+    shiftReport.length = 0;
+    const reportDir = path.join(OUT_DIR, "lighthouse");
+    await mkdir(reportDir, { recursive: true });
     for (let rep = 1; rep <= l.runs; rep++) {
       for (const c of l.configs) {
         const cfg = { id: idOf(c), ...c };
         const { lhr, verified } = await runOnce(cfg, flagsFor(c));
         if (!verified) throw new Error(`${cfg.id}: skin/mode was not applied as requested`);
-        runs.push({ cfg, ...slimRun(lhr) });
+        runs.push({ cfg, ...slimRun(lhr), shifts: layoutShifts(lhr) });
+        // Full report, for the CI artifact: a CLS or LCP failure on a runner
+        // can then be read element by element.
+        await writeFile(path.join(reportDir, `${cfg.id}-run${rep}.json`), JSON.stringify(lhr));
         console.error(`  ${cfg.id} #${rep}: score ${Math.round(runs.at(-1).score * 100)}, LCP ${Math.round(runs.at(-1).metrics.lcp)} ms`);
       }
     }
@@ -168,6 +217,7 @@ async function lighthouseStage(budget) {
       check(g, "FCP", med((r) => r.metrics.fcp), lim.fcpMs, "ms");
       check(g, "TBT", med((r) => r.metrics.tbt), lim.tbtMs, "ms");
       check(g, "CLS", med((r) => r.metrics.cls), lim.cls, "");
+      shiftReport.push({ id, cls: med((r) => r.metrics.cls), limit: lim.cls, runs: mine.length, sources: topShiftSources(mine) });
       check(g, "transferred", med((r) => r.metrics.bytes) / 1024, lim.transferKB, "KB");
       check(
         g,
@@ -189,6 +239,16 @@ function render() {
     lines.push(
       `| ${r.pass ? "PASS" : "**FAIL**"} | ${r.group}: ${r.name} | ${fmt(r.value)}${r.unit ? " " + r.unit : ""} | ${r.floor ? ">= " : r.limit === "none" ? "" : "<= "}${fmt(r.limit)}${r.unit && typeof r.limit === "number" ? " " + r.unit : ""} |`,
     );
+  }
+  if (shiftReport.length) {
+    lines.push("", "Layout shift sources (Lighthouse layout-shifts audit; median score over the runs in which the element shifted):", "");
+    for (const r of shiftReport) {
+      lines.push(`- ${r.id}: CLS ${fmt(r.cls)} (limit ${fmt(r.limit)})`);
+      if (!r.sources.length) lines.push("  - no shifts");
+      for (const src of r.sources) {
+        lines.push(`  - ${src.median.toFixed(4)} in ${src.runs}/${r.runs} runs: \`${src.selector}\`${src.causes ? ` (${src.causes})` : ""}`);
+      }
+    }
   }
   return lines.join("\n") + "\n";
 }
@@ -221,6 +281,13 @@ async function main() {
   await writeFile(path.join(OUT_DIR, "budget.md"), md);
   console.log(md);
   const failed = rows.filter((r) => !r.pass);
+  for (const r of failed.filter((x) => x.name === "CLS")) {
+    const report = shiftReport.find((x) => r.group.includes(x.id));
+    console.error(`  ${r.group}: CLS ${r.value.toFixed(4)} over ${r.limit}. Top shifting elements:`);
+    for (const src of report?.sources ?? []) {
+      console.error(`    ${src.median.toFixed(4)} (${src.runs}/${report.runs} runs) ${src.selector}${src.causes ? ` [${src.causes}]` : ""}`);
+    }
+  }
   if (failed.length) {
     console.error(`Performance budget FAILED: ${failed.length} of ${rows.length} checks over the limit in ${path.relative(process.cwd(), BUDGET_PATH)}.`);
     process.exit(1);

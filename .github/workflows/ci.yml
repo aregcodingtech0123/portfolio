@@ -60,3 +60,14 @@ jobs:
         run: npm run perf:budget -- --only bundle --skip-build
       - name: Performance budget, Lighthouse (reduced matrix)
         run: npm run perf:budget -- --only lighthouse --skip-build
+      # When a budget check fails, keep what explains it: budget.md (it also
+      # lists the top layout-shift sources per config) and every Lighthouse
+      # run's full JSON report (layout shifts, LCP element, network).
+      - name: Upload performance reports (on failure)
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: perf-budget-reports
+          path: perf-results/budget/
+          if-no-files-found: ignore
+          retention-days: 14
