@@ -121,7 +121,7 @@ export function Navbar() {
             the last is pushed out of the (hidden-scrollbar) scrollport and
             clipped -- the bug plain justify-center caused. */}
         <div className="hidden min-w-0 flex-1 items-center justify-center-safe overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex [&::-webkit-scrollbar]:hidden">
-          <div className="flex flex-nowrap items-center justify-center-safe gap-1 xl:gap-2 2xl:gap-3 minimal:gap-2.5 xl:minimal:gap-4 2xl:minimal:gap-5">
+          <div className="flex flex-nowrap items-center justify-center-safe gap-1 xl:gap-2 2xl:gap-3 minimal:gap-2.5 xl:minimal:gap-4">
             {navSections.map(({ id, key, num }) => {
               const isActive = active === id;
               return (
@@ -164,10 +164,17 @@ export function Navbar() {
             <SkinSwitcher labelFromXl />
           </div>
 
+          {/* The profile icons leave the row where the section links need the
+              room: below xl in both skins, and below 2xl in the Terminal
+              skin, whose fixed social sidebar (md and up) already shows the
+              same links with the same names; the footer has them too. The
+              Turkish labels are the longest, and Linux Chromium rounds the
+              11px mono glyphs from 6.6 to 7px, which made that row 27px
+              wider than on Windows. */}
           <SocialExternalLinks
             ariaGithub={s("githubAria")}
             ariaLinkedin={s("linkedinAria")}
-            className="flex items-center gap-1 self-end pb-0.5 xl:gap-1.5 minimal:self-center minimal:pb-0 minimal:max-xl:hidden"
+            className="flex items-center gap-1 self-end pb-0.5 max-xl:hidden terminal:max-2xl:hidden xl:gap-1.5 minimal:self-center minimal:pb-0"
             iconClassName="h-3.5 w-3.5"
             linkClassName={`${socialIconLinkClassNav} minimal:h-auto minimal:w-auto minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:p-0 minimal:text-muted minimal:hover:border-0 minimal:hover:text-foreground`}
           />

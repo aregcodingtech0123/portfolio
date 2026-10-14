@@ -8,9 +8,23 @@ import { expect, seedTheme, test, type Skin } from "./fixtures";
 // width, in both skins and both locales, the whole set of links fits the
 // scrollport (nothing is clipped) and the first and last are inside the
 // viewport.
+//
+// "Fits" is not enough: the row once fitted on Windows with 1px to spare and
+// overflowed by 23px on Linux, where Chromium rounds the 11px mono glyphs from
+// 6.6 to 7px. So the row must leave spare room: none of it clipped at load
+// (when the web fonts may not have arrived yet), and at least MIN_HEADROOM px
+// free once they have.
 
 const WIDTHS = [1024, 1280, 1366, 1440, 1536, 1920];
 const HEIGHT = 900;
+const MIN_HEADROOM = 8;
+
+/** Free px in the scrollport: its width minus the link row's full width (negative = clipped). */
+function headroom(el: Element): number {
+  const scroller = el.closest<HTMLElement>('[class*="overflow-x-auto"]')!;
+  const row = scroller.firstElementChild as HTMLElement;
+  return scroller.clientWidth - row.scrollWidth;
+}
 
 for (const locale of ["en", "tr"] as const) {
   for (const skin of ["terminal", "minimal"] as const satisfies Skin[]) {
@@ -30,17 +44,22 @@ for (const locale of ["en", "tr"] as const) {
           3,
         );
 
-        // The links sit in a horizontal scroll container. No overflow means
-        // the whole row fits in view -- nothing is clipped or hidden behind
-        // the (invisible) scrollbar.
-        const overflow = await links.first().evaluate((el) => {
-          const scroller = el.closest<HTMLElement>('[class*="overflow-x-auto"]')!;
-          return scroller.scrollWidth - scroller.clientWidth;
-        });
+        // The links sit in a horizontal scroll container. Nothing may be
+        // clipped or hidden behind the (invisible) scrollbar, even before the
+        // web fonts have loaded...
+        const atLoad = await links.first().evaluate(headroom);
         expect(
-          overflow,
-          `${locale}/${skin} @${width}: nav links overflow the scrollport by ${overflow}px (clipped)`,
-        ).toBeLessThanOrEqual(1);
+          atLoad,
+          `${locale}/${skin} @${width}: nav links clipped by ${-atLoad}px at load`,
+        ).toBeGreaterThanOrEqual(0);
+
+        // ...and once they have, the row keeps real spare room.
+        await page.evaluate(() => document.fonts.ready);
+        const settled = await links.first().evaluate(headroom);
+        expect(
+          settled,
+          `${locale}/${skin} @${width}: only ${settled}px of headroom (need ${MIN_HEADROOM})`,
+        ).toBeGreaterThanOrEqual(MIN_HEADROOM);
 
         // Belt and braces: the first and last are within the viewport, not
         // pushed off either edge (the old justify-center failure mode).
