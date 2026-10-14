@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -58,17 +59,16 @@ type ProjectsProps = {
 };
 
 type ProjectsViewProps = ProjectsProps & {
-  activeProject: ProjectDisplay | null;
   onOpen: (project: ProjectDisplay) => void;
-  onClose: () => void;
+  /** The project dialog, driven by ?project= (ProjectModalFromQuery). */
+  modal: ReactNode;
 };
 
 function ProjectsView({
   projects: projectData,
   sectionLabel,
-  activeProject,
   onOpen,
-  onClose,
+  modal,
 }: ProjectsViewProps) {
   const t = useTranslations("Projects");
   const [query, setQuery] = useState("");
@@ -243,76 +243,81 @@ function ProjectsView({
         )}
       </div>
 
-      <ProjectModal
-        project={activeProject}
-        open={activeProject !== null}
-        onClose={onClose}
-      />
+      {modal}
     </Section>
   );
 }
 
 /**
- * Modal open state is derived from `?project=` — open/close only mutate the URL.
- * That avoids races where local state and searchParams briefly disagree and the
- * modal immediately re-opens (or closes) after a click.
+ * The project dialog, open when the URL has `?project=`.
+ *
+ * Only this component reads useSearchParams. On a statically generated page
+ * that hook renders on the client only, up to the nearest Suspense boundary,
+ * so the boundary sits around the dialog alone (which renders nothing on the
+ * server anyway). It used to wrap the whole section: the server shipped a
+ * fallback copy of every card, and the client then discarded it and rendered
+ * the section again from scratch. Until then the cards ignored clicks: on a
+ * 4x-CPU, Slow 4G phone the first click that opened a dialog came about
+ * 3.7 s after the cards appeared (measured).
+ *
+ * Open state is derived from `?project=` alone; open/close only mutate the
+ * URL. That avoids races where local state and searchParams briefly disagree
+ * and the modal immediately re-opens (or closes) after a click.
  */
-function ProjectsWithQuery({ projects, sectionLabel }: ProjectsProps) {
-  const searchParams = useSearchParams();
-  const triggerRef = useRef<HTMLElement | null>(null);
-
-  const queryValue = searchParams.get(PROJECT_QUERY_KEY);
+function ProjectModalFromQuery({
+  projects,
+  onClose,
+}: Pick<ProjectsProps, "projects"> & { onClose: () => void }) {
+  const queryValue = useSearchParams().get(PROJECT_QUERY_KEY);
   const activeProject = useMemo(() => {
     if (!queryValue) return null;
     return projects.find((p) => projectMatchesQuery(p, queryValue)) ?? null;
   }, [projects, queryValue]);
 
-  const openProject = useCallback(
-    (project: ProjectDisplay) => {
-      triggerRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
-      replaceQuery(params);
-    },
-    [searchParams],
+  return (
+    <ProjectModal
+      project={activeProject}
+      open={activeProject !== null}
+      onClose={onClose}
+    />
   );
+}
+
+export function Projects({ projects, sectionLabel }: ProjectsProps) {
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // The query string is read from the URL itself, not from useSearchParams,
+  // so the cards render (and hydrate) outside the dialog's Suspense boundary.
+  // replaceQuery keeps useSearchParams in sync.
+  const openProject = useCallback((project: ProjectDisplay) => {
+    triggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const params = new URLSearchParams(window.location.search);
+    params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
+    replaceQuery(params);
+  }, []);
 
   const closeProject = useCallback(() => {
     triggerRef.current?.focus();
     triggerRef.current = null;
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (!params.has(PROJECT_QUERY_KEY)) return;
     params.delete(PROJECT_QUERY_KEY);
     replaceQuery(params);
-  }, [searchParams]);
+  }, []);
 
   return (
     <ProjectsView
       projects={projects}
       sectionLabel={sectionLabel}
-      activeProject={activeProject}
       onOpen={openProject}
-      onClose={closeProject}
-    />
-  );
-}
-
-export function Projects(props: ProjectsProps) {
-  return (
-    <Suspense
-      fallback={
-        <ProjectsView
-          {...props}
-          activeProject={null}
-          onOpen={() => {}}
-          onClose={() => {}}
-        />
+      modal={
+        <Suspense fallback={null}>
+          <ProjectModalFromQuery projects={projects} onClose={closeProject} />
+        </Suspense>
       }
-    >
-      <ProjectsWithQuery {...props} />
-    </Suspense>
+    />
   );
 }
