@@ -1,9 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
-import {
-  getMessages,
-  getTranslations,
-  setRequestLocale,
-} from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
@@ -18,15 +14,8 @@ type Props = {
 
 export const viewport = siteViewport;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "SEO" });
-  return { ...siteMetadata, description: t("homeDescription") };
-}
+/** Defaults only; the description comes from the content, in the page. */
+export const metadata: Metadata = siteMetadata;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

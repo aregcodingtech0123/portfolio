@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { sections, visibleSections } from "@/config/sections";
+import {
+  sectionNumbers,
+  sections,
+  terminalSectionNumbers,
+  visibleSections,
+} from "@/config/sections";
 import type { PortfolioContent } from "@/sanity/fetch";
 
 type RelevantFields = Pick<
@@ -10,6 +15,7 @@ type RelevantFields = Pick<
   | "skillCategories"
   | "educationCertificates"
   | "participationCertificates"
+  | "ctfs"
 >;
 
 // isVisible only ever reads these five array fields (see src/config/sections.ts).
@@ -24,6 +30,7 @@ function content(overrides: Partial<RelevantFields>): PortfolioContent {
     skillCategories: [],
     educationCertificates: [],
     participationCertificates: [],
+    ctfs: [],
     ...overrides,
   } as unknown as PortfolioContent;
 }
@@ -34,7 +41,12 @@ function visibleIds(c: PortfolioContent) {
 
 describe("visibleSections: the visibility axis", () => {
   it("shows only the always-visible sections when there is no content", () => {
-    expect(visibleIds(content({}))).toEqual(["home", "about", "ctf", "contact"]);
+    expect(visibleIds(content({}))).toEqual(["home", "about", "contact"]);
+  });
+
+  it("hides ctf until it has at least one entry", () => {
+    expect(visibleIds(content({}))).not.toContain("ctf");
+    expect(visibleIds(content({ ctfs: [{} as never] }))).toContain("ctf");
   });
 
   it("adds projects once there is at least one project", () => {
@@ -57,14 +69,68 @@ describe("visibleSections: the visibility axis", () => {
       education: [{} as never],
       skillCategories: [{} as never],
       educationCertificates: [{} as never],
+      ctfs: [{} as never],
     });
     expect(visibleIds(full)).toEqual(sections.map((s) => s.id));
   });
 });
 
+describe("sectionNumbers: Simple skin header numbering", () => {
+  it("numbers the rendered sections in config order and leaves home out", () => {
+    expect(sectionNumbers(content({}))).toEqual({
+      about: "01",
+      contact: "02",
+    });
+  });
+
+  it("numbers ctf only when it has entries, since an empty one is not rendered", () => {
+    expect(sectionNumbers(content({})).ctf).toBeUndefined();
+    expect(sectionNumbers(content({ ctfs: [{} as never] }))).toEqual({
+      about: "01",
+      ctf: "02",
+      contact: "03",
+    });
+  });
+
+  it("closes the gap when a section is hidden", () => {
+    const withProjects = sectionNumbers(content({ projects: [{} as never] }));
+    expect(withProjects).toEqual({
+      about: "01",
+      projects: "02",
+      contact: "03",
+    });
+  });
+
+  it("numbers every section 01..08 when all content is present", () => {
+    const numbers = sectionNumbers(
+      content({
+        projects: [{} as never],
+        experience: [{} as never],
+        education: [{} as never],
+        skillCategories: [{} as never],
+        educationCertificates: [{} as never],
+        ctfs: [{} as never],
+      }),
+    );
+    expect(Object.values(numbers)).toEqual([
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+    ]);
+    expect(numbers.about).toBe("01");
+    expect(numbers.contact).toBe("08");
+    expect(numbers.home).toBeUndefined();
+  });
+});
+
 describe("visibleSections: a hidden section must also disappear from nav and footer", () => {
-  it("keeps ctf out of the nav and footer even though it is always visible", () => {
-    const ctf = visibleSections(content({})).find((s) => s.id === "ctf");
+  it("keeps ctf out of the nav and footer even when it is visible", () => {
+    const ctf = visibleSections(content({ ctfs: [{} as never] })).find((s) => s.id === "ctf");
     expect(ctf).toBeTruthy();
     expect(ctf?.inNav).toBe(false);
     expect(ctf?.inFooter).toBe(false);
@@ -105,6 +171,7 @@ describe("visibleSections: a hidden section must also disappear from nav and foo
         education: [{} as never],
         skillCategories: [{} as never],
         educationCertificates: [{} as never],
+        ctfs: [{} as never],
       }),
     );
     const inNav = visible.filter((s) => s.inNav).map((s) => s.id);
@@ -121,5 +188,44 @@ describe("visibleSections: a hidden section must also disappear from nav and foo
       "contact",
     ]);
     expect(inFooter).toEqual(["home", "about", "projects", "skills", "contact"]);
+  });
+});
+
+describe("terminalSectionNumbers: Terminal skin \"// NN label\" numbering", () => {
+  const all = {
+    projects: [{} as never],
+    experience: [{} as never],
+    education: [{} as never],
+    skillCategories: [{} as never],
+    educationCertificates: [{} as never],
+  };
+
+  it("with CTF hidden, numbers stay consecutive: contact follows certificates", () => {
+    const numbers = terminalSectionNumbers(content(all));
+    expect(numbers).toEqual({
+      home: "01",
+      about: "02",
+      projects: "03",
+      experience: "04",
+      education: "05",
+      skills: "06",
+      certificates: "07",
+      contact: "08",
+    });
+    expect(numbers.ctf).toBeUndefined();
+  });
+
+  it("with every section rendered, follows the config order", () => {
+    const numbers = terminalSectionNumbers(content({ ...all, ctfs: [{} as never] }));
+    sections.forEach((section, index) => {
+      expect(numbers[section.id]).toBe(String(index + 1).padStart(2, "0"));
+    });
+    expect(numbers.ctf).toBe("08");
+    expect(numbers.contact).toBe("09");
+  });
+
+  it("is always a gapless 01..n sequence, whatever is hidden", () => {
+    const numbers = terminalSectionNumbers(content({ projects: [{} as never], skillCategories: [{} as never] }));
+    expect(Object.values(numbers)).toEqual(Object.values(numbers).map((_, i) => String(i + 1).padStart(2, "0")));
   });
 });

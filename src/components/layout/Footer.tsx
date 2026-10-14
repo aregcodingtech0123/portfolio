@@ -22,8 +22,8 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-border bg-surface py-14 minimal:hairline-t minimal:border-border minimal:bg-transparent minimal:py-16">
-      <div className="relative z-10 mx-auto grid min-w-0 max-w-content gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8 minimal:max-w-content-wide minimal:gap-8 minimal:px-5 sm:minimal:px-6">
+    <footer className="relative overflow-hidden border-t border-border bg-surface py-14 minimal:mt-0 minimal:overflow-visible minimal:border-t minimal:border-[color:var(--border)] minimal:bg-transparent minimal:py-0">
+      <div className="relative z-10 mx-auto grid min-w-0 max-w-content gap-10 px-4 sm:px-6 lg:grid-cols-3 lg:px-8 minimal:hidden m-container">
         <div className="lg:col-span-1">
           <p className="font-semibold tracking-tight text-foreground minimal:font-heading minimal:text-xl minimal:font-normal minimal:tracking-tight">
             {siteName}
@@ -67,6 +67,31 @@ export function Footer() {
             © {year} {siteName}. {t("rights")}
           </p>
         </div>
+      </div>
+
+      {/* Simple: compact bar on the page grid. */}
+      <div className="m-foot hidden m-container minimal:block">
+        <div className="m-foot-row">
+          <p className="m-foot-name">{siteName}</p>
+          <ul className="m-foot-links">
+            {links.map(({ id, key }) => (
+              <li key={id}>
+                <SectionLink section={id} className="m-foot-link m-wipe">
+                  {n(key)}
+                </SectionLink>
+              </li>
+            ))}
+          </ul>
+          <div className="m-foot-tools">
+            <LanguageSwitcher />
+            <a href="#home" className="m-foot-top m-wipe">
+              {t("backToTop")}
+            </a>
+          </div>
+        </div>
+        <p className="m-meta m-foot-copy">
+          © {year} {siteName}. {t("rights")}
+        </p>
       </div>
     </footer>
   );

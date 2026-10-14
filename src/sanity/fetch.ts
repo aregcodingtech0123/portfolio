@@ -1,5 +1,6 @@
 import { migrationPortfolio } from "@/data/migration-portfolio";
 import { isSafeExternalHref } from "@/lib/mailto";
+import { sortExperienceByPeriod } from "@/lib/period";
 import { getSanityClient } from "@/sanity/client";
 import { getImageUrl } from "@/sanity/image";
 import { portfolioContentQuery } from "@/sanity/queries";
@@ -64,6 +65,8 @@ const CATEGORY_LABELS: Record<string, LocaleField> = {
   backend: { en: "Backend Development", tr: "Backend Geliştirme" },
   security: { en: "Cybersecurity", tr: "Siber Güvenlik" },
   languages: { en: "Languages & Tools", tr: "Diller ve Araçlar" },
+  "programming-languages": { en: "Programming Languages", tr: "Programlama Dilleri" },
+  databases: { en: "Databases", tr: "Veritabanları" },
 };
 
 /** Canonical English skill names → Turkish display labels for /tr. */
@@ -150,20 +153,33 @@ function toProjectDisplay(p: ProjectSource, locale: string): ProjectDisplay {
 
 type ExperienceSource = Pick<
   SanityExperience,
-  "company" | "role" | "period" | "description" | "detail"
->;
+  "company" | "role" | "period" | "description" | "detail" | "location"
+> & {
+  _id?: string;
+  id?: string;
+};
 
 function mapExperience(
   items: readonly ExperienceSource[] | undefined,
   locale: string,
 ): ExperienceItem[] {
-  return (items ?? []).map((item) => ({
-    company: pickLocale(item.company, locale),
-    role: pickLocale(item.role, locale),
-    period: pickLocale(item.period, locale),
-    description: usableCopy(
-      pickLocale(item.description ?? item.detail, locale),
-    ),
+  return sortExperienceByPeriod(
+    (items ?? []).map((item) => ({
+      id: item.id ?? item._id,
+      company: pickLocale(item.company, locale),
+      role: pickLocale(item.role, locale),
+      period: pickLocale(item.period, locale),
+      description: usableCopy(
+        pickLocale(item.description ?? item.detail, locale),
+      ),
+      location: optionalCopy(pickLocale(item.location, locale)),
+    })),
+  ).map(({ company, role, period, description, location }) => ({
+    company,
+    role,
+    period,
+    description,
+    ...(location ? { location } : {}),
   }));
 }
 
@@ -172,6 +188,7 @@ type EducationSource = {
   institution: LocaleField | string;
   degree: LocaleField | string;
   fieldOfStudy: LocaleField | string;
+  location?: LocaleField | string;
   startDate: string;
   endDate?: string;
   isCurrent?: boolean;
@@ -197,18 +214,23 @@ function mapEducation(
   items: readonly EducationSource[] | undefined,
   locale: string,
 ): EducationDisplay[] {
-  return (items ?? []).map((item) => ({
-    id: item.id,
-    institution: usableCopy(pickLocale(item.institution, locale)),
-    degree: usableCopy(pickLocale(item.degree, locale)),
-    fieldOfStudy: usableCopy(pickLocale(item.fieldOfStudy, locale)),
-    period: formatEducationPeriod(
-      item.startDate,
-      item.endDate,
-      item.isCurrent,
-      locale,
-    ),
-  }));
+  return (items ?? []).map((item) => {
+    const location = optionalCopy(pickLocale(item.location, locale));
+    return {
+      id: item.id,
+      institution: usableCopy(pickLocale(item.institution, locale)),
+      degree: usableCopy(pickLocale(item.degree, locale)),
+      fieldOfStudy: usableCopy(pickLocale(item.fieldOfStudy, locale)),
+      period: formatEducationPeriod(
+        item.startDate,
+        item.endDate,
+        item.isCurrent,
+        locale,
+      ),
+      ...(location ? { location } : {}),
+      ...(item.isCurrent ? { isCurrent: true } : {}),
+    };
+  });
 }
 
 /** Certificates with a legacy plain `name` still display; `title` wins when present. */

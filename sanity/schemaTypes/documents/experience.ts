@@ -22,6 +22,14 @@ export const experience = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "location",
+      title: "Location",
+      type: "localeString",
+      group: "role",
+      description:
+        "City and country, or Remote. Shown next to the company or institution.",
+    }),
+    defineField({
       name: "role",
       title: "Role",
       type: "localeString",
@@ -74,11 +82,12 @@ export const experience = defineType({
       company: "company.en",
       role: "role.en",
       period: "period.en",
+      location: "location.en",
     },
-    prepare({ company, role, period }) {
+    prepare({ company, role, period, location }) {
       return {
         title: company || "Company",
-        subtitle: [role, period].filter(Boolean).join(" · "),
+        subtitle: [role, location, period].filter(Boolean).join(" · "),
         media: CaseIcon,
       };
     },

@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -52,20 +53,22 @@ function projectMatchesQuery(project: ProjectDisplay, value: string): boolean {
 type FilterKey = "all" | ProjectCategory;
 
 type ProjectsProps = {
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
   projects: ProjectDisplay[];
 };
 
 type ProjectsViewProps = ProjectsProps & {
-  activeProject: ProjectDisplay | null;
   onOpen: (project: ProjectDisplay) => void;
-  onClose: () => void;
+  /** The project dialog, driven by ?project= (ProjectModalFromQuery). */
+  modal: ReactNode;
 };
 
 function ProjectsView({
   projects: projectData,
-  activeProject,
+  sectionLabel,
   onOpen,
-  onClose,
+  modal,
 }: ProjectsViewProps) {
   const t = useTranslations("Projects");
   const [query, setQuery] = useState("");
@@ -104,19 +107,19 @@ function ProjectsView({
 
   return (
     <Section id="projects" className="py-20 sm:py-24">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-wide minimal:px-5 sm:minimal:px-6">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-end lg:justify-between minimal:block">
           <div className="min-w-0 max-w-2xl minimal:max-w-none">
             <p className="decor font-mono text-xs tracking-wide text-accent">
-              {t("sectionLabel")}
+              {sectionLabel}
             </p>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
+            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2">
               {t("subtitle")}
             </h2>
           </div>
 
-          <div className="flex w-full min-w-0 flex-col gap-3 sm:max-w-md minimal:mt-8 minimal:max-w-none">
-            <label className="hairline-b flex min-w-0 items-center gap-2 rounded-sm border border-border bg-surface px-3 py-2 focus-within:border-accent minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:focus-within:border-foreground">
+          <div className="flex w-full min-w-0 flex-col gap-3 sm:max-w-md minimal:mt-8 minimal:max-w-none minimal:gap-4 md:minimal:flex-row md:minimal:items-center md:minimal:justify-between">
+            <label className="hairline-b flex min-w-0 items-center gap-2 rounded-sm border border-border bg-surface px-3 py-2 focus-within:border-accent minimal:rounded-[var(--r-sm)] minimal:bg-transparent minimal:px-4 minimal:py-3 md:minimal:w-96 md:minimal:shrink-0 m-search">
               <span className="shrink-0 font-mono text-xs text-accent minimal:hidden">
                 {t("grepPrefix")}
               </span>
@@ -124,13 +127,13 @@ function ProjectsView({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t("searchPlaceholder")}
-                className="min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none placeholder:text-muted minimal:font-body minimal:text-sm"
+                className="min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none placeholder:text-muted minimal:font-body minimal:text-base"
                 type="search"
                 aria-label={t("searchPlaceholder")}
               />
             </label>
 
-            <div className="flex flex-wrap gap-1.5 minimal:gap-x-4 minimal:gap-y-2">
+            <div className="flex flex-wrap gap-1.5 minimal:gap-2">
               {chips.map((c) => {
                 const active = filter === c.id;
                 return (
@@ -138,13 +141,19 @@ function ProjectsView({
                     key={c.id}
                     type="button"
                     onClick={() => setFilter(c.id)}
-                    className={`touch-manipulation rounded-sm border px-2.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 minimal:rounded-none minimal:border-0 minimal:bg-transparent minimal:px-0 minimal:py-0.5 minimal:font-body minimal:text-sm minimal:tracking-normal ${
+                    className={`touch-manipulation rounded-sm border px-2.5 py-1.5 font-mono text-[11px] tracking-wide transition-colors duration-150 minimal:min-h-10 minimal:rounded-full minimal:px-4 minimal:py-1.5 minimal:font-code minimal:text-xs minimal:tracking-normal ${
                       active
-                        ? "border-accent bg-accent text-on-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.22em]"
-                        : "border-border bg-transparent text-muted hover:border-accent hover:text-accent minimal:hover:border-0 minimal:hover:text-foreground"
+                        ? "border-accent bg-accent text-on-accent minimal:border-[color:var(--foreground)] minimal:bg-foreground minimal:text-background"
+                        : "border-border bg-transparent text-muted hover:border-accent hover:text-accent minimal:border-[color:var(--border-strong)] minimal:text-muted minimal:hover:border-[color:var(--foreground)] minimal:hover:text-foreground"
                     }`}
                   >
                     {c.label}
+                    {/* Simple only: the Terminal markup has no pressed state to announce. */}
+                    {active && (
+                      <span className="hidden minimal:block minimal:sr-only">
+                        {` ${t("filterSelected")}`}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -153,11 +162,11 @@ function ProjectsView({
         </div>
 
         {empty && (
-          <div className="mt-10 border border-border px-5 py-4 minimal:border-0 minimal:px-0">
-            <p className="font-mono text-sm text-accent minimal:font-body minimal:font-normal minimal:text-foreground">
+          <div className="mt-10 border border-border px-5 py-4 minimal:mt-[var(--space-group)] minimal:rounded-[var(--r-md)] minimal:border-dashed minimal:border-[color:var(--border-strong)] minimal:p-8">
+            <p className="font-mono text-sm text-accent minimal:font-heading minimal:text-2xl minimal:font-semibold minimal:tracking-tight minimal:text-foreground">
               {t("emptyTitle")}
             </p>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted minimal:text-base">
               {t("emptyBody")}
             </p>
           </div>
@@ -194,93 +203,121 @@ function ProjectsView({
               )}
             </div>
 
-            {/* Minimal: full project card grid */}
-            <div className="mt-12 hidden minimal:block">
+            {/* Minimal: result count, then equal vertical cards (3-up from lg). */}
+            <div className="mt-12 hidden min-w-0 minimal:mt-[var(--space-group)] minimal:block">
+              <p className="m-meta mb-5" aria-live="polite">
+                {t("resultCount", {
+                  shown: filtered.length,
+                  total: projectData.length,
+                })}
+              </p>
               {filtered.length > 0 ? (
-                <div className="grid auto-rows-fr grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-                  {filtered.map((p) => (
-                    <div key={p.id} className="min-h-0 h-full">
-                      <ProjectCard entry={p} onOpen={onOpen} />
+                <div className="m-stagger grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:grid-cols-3">
+                  {filtered.map((p, i) => (
+                    <div key={p.id} className="h-full min-h-0 min-w-0">
+                      <ProjectCard entry={p} onOpen={onOpen} index={i + 1} />
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted">{t("emptyList")}</p>
+                <div className="m-card m-card-empty px-6 py-12 text-center sm:py-16">
+                  <p className="m-eyebrow">{"0 / "}{projectData.length}</p>
+                  <p className="m-h3 mt-3">{t("emptyList")}</p>
+                  <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted">
+                    {t("emptyListHint")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("");
+                      setFilter("all");
+                    }}
+                    className="m-btn m-btn-ghost mt-6"
+                  >
+                    {t("clearFilters")}
+                  </button>
+                </div>
               )}
             </div>
           </>
         )}
       </div>
 
-      <ProjectModal
-        project={activeProject}
-        open={activeProject !== null}
-        onClose={onClose}
-      />
+      {modal}
     </Section>
   );
 }
 
 /**
- * Modal open state is derived from `?project=` — open/close only mutate the URL.
- * That avoids races where local state and searchParams briefly disagree and the
- * modal immediately re-opens (or closes) after a click.
+ * The project dialog, open when the URL has `?project=`.
+ *
+ * Only this component reads useSearchParams. On a statically generated page
+ * that hook renders on the client only, up to the nearest Suspense boundary,
+ * so the boundary sits around the dialog alone (which renders nothing on the
+ * server anyway). It used to wrap the whole section: the server shipped a
+ * fallback copy of every card, and the client then discarded it and rendered
+ * the section again from scratch. Until then the cards ignored clicks: on a
+ * 4x-CPU, Slow 4G phone the first click that opened a dialog came about
+ * 3.7 s after the cards appeared (measured).
+ *
+ * Open state is derived from `?project=` alone; open/close only mutate the
+ * URL. That avoids races where local state and searchParams briefly disagree
+ * and the modal immediately re-opens (or closes) after a click.
  */
-function ProjectsWithQuery({ projects }: ProjectsProps) {
-  const searchParams = useSearchParams();
-  const triggerRef = useRef<HTMLElement | null>(null);
-
-  const queryValue = searchParams.get(PROJECT_QUERY_KEY);
+function ProjectModalFromQuery({
+  projects,
+  onClose,
+}: Pick<ProjectsProps, "projects"> & { onClose: () => void }) {
+  const queryValue = useSearchParams().get(PROJECT_QUERY_KEY);
   const activeProject = useMemo(() => {
     if (!queryValue) return null;
     return projects.find((p) => projectMatchesQuery(p, queryValue)) ?? null;
   }, [projects, queryValue]);
 
-  const openProject = useCallback(
-    (project: ProjectDisplay) => {
-      triggerRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
-      const params = new URLSearchParams(searchParams.toString());
-      params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
-      replaceQuery(params);
-    },
-    [searchParams],
-  );
-
-  const closeProject = useCallback(() => {
-    triggerRef.current?.focus();
-    triggerRef.current = null;
-    const params = new URLSearchParams(searchParams.toString());
-    if (!params.has(PROJECT_QUERY_KEY)) return;
-    params.delete(PROJECT_QUERY_KEY);
-    replaceQuery(params);
-  }, [searchParams]);
-
   return (
-    <ProjectsView
-      projects={projects}
-      activeProject={activeProject}
-      onOpen={openProject}
-      onClose={closeProject}
+    <ProjectModal
+      project={activeProject}
+      open={activeProject !== null}
+      onClose={onClose}
     />
   );
 }
 
-export function Projects(props: ProjectsProps) {
+export function Projects({ projects, sectionLabel }: ProjectsProps) {
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  // The query string is read from the URL itself, not from useSearchParams,
+  // so the cards render (and hydrate) outside the dialog's Suspense boundary.
+  // replaceQuery keeps useSearchParams in sync.
+  const openProject = useCallback((project: ProjectDisplay) => {
+    triggerRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const params = new URLSearchParams(window.location.search);
+    params.set(PROJECT_QUERY_KEY, projectQueryValue(project));
+    replaceQuery(params);
+  }, []);
+
+  const closeProject = useCallback(() => {
+    triggerRef.current?.focus();
+    triggerRef.current = null;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has(PROJECT_QUERY_KEY)) return;
+    params.delete(PROJECT_QUERY_KEY);
+    replaceQuery(params);
+  }, []);
+
   return (
-    <Suspense
-      fallback={
-        <ProjectsView
-          {...props}
-          activeProject={null}
-          onOpen={() => {}}
-          onClose={() => {}}
-        />
+    <ProjectsView
+      projects={projects}
+      sectionLabel={sectionLabel}
+      onOpen={openProject}
+      modal={
+        <Suspense fallback={null}>
+          <ProjectModalFromQuery projects={projects} onClose={closeProject} />
+        </Suspense>
       }
-    >
-      <ProjectsWithQuery {...props} />
-    </Suspense>
+    />
   );
 }

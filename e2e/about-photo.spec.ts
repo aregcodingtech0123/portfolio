@@ -35,7 +35,7 @@ test("terminal: the About photo is optimized, small and never fetched as the raw
 
   await page.goto("/en");
   await scrollThroughPage(page);
-  const photo = page.locator(".profile-duotone img").first();
+  const photo = page.locator("#about img").first();
   await expect(photo).toBeVisible();
   await expect
     .poll(() => photo.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0))
@@ -58,7 +58,7 @@ test("minimal: the hidden About photo is never requested", async ({ page }) => {
   await scrollThroughPage(page);
   await page.waitForTimeout(300);
 
-  const photo = page.locator(".profile-duotone img").first();
+  const photo = page.locator("#about img").first();
   await expect(photo).toBeHidden();
   // The hero portrait's optimized URL and nothing else: the hidden block adds no
   // request (it is lazy, and a display:none image is never near the viewport).

@@ -8,6 +8,8 @@
     "experience": "Deneyim",
     "education": "Eğitim",
     "contact": "İletişim",
+    "ctf": "CTF",
+    "skipToContent": "İçeriğe geç",
     "language": "Dil",
     "mode": "Tema",
     "skin": "Görünüm",
@@ -30,21 +32,28 @@
     "mobileHeading": "Sosyal medya"
   },
   "Hero": {
-    "portraitAlt": "Arda Ege Tunç - Profil Fotoğrafı"
+    "portraitAlt": "Arda Ege Tunç - Profil Fotoğrafı",
+    "scrollCue": "Aşağı kaydır",
+    "roleBadge": "Bilgisayar Mühendisi",
+    "headline": "Yapay zeka sistemleri, otonom ajanlar, full-stack web mimarileri ve siber güvenlik alanlarında kendimi geliştirmeye odaklanıyorum."
   },
   "About": {
     "title": "Hakkımda",
     "locationLabel": "Konum"
   },
   "Skills": {
-    "sectionLabel": "// 06 yetenekler",
+    "sectionLabel": "// {number} yetenekler",
     "subtitle": "Yetenekler",
+    "evidence": "Kanıt",
+    "entriesListed": "<n>{count}</n> kayıt listelendi",
     "categories": {
       "ai": "Yapay Zeka ve Makine Öğrenmesi",
       "frontend": "Frontend Geliştirme",
       "backend": "Backend Geliştirme",
       "security": "Siber Güvenlik",
-      "languages": "Diller ve Araçlar"
+      "languages": "Diller ve Araçlar",
+      "programming-languages": "Programlama Dilleri",
+      "databases": "Veritabanları"
     },
     "levels": {
       "daily": "Günlük",
@@ -58,10 +67,11 @@
     }
   },
   "CTF": {
-    "sectionLabel": "// 08 ctf",
+    "sectionLabel": "// {number} ctf",
     "subtitle": "Skor tablosu",
     "intro": "Capture The Flag pratiğinden genel sonuçlar.",
     "empty": "Henüz genel sonuç yok. Write-up'lar yakında.",
+    "emptyStrip": "Write-up'lar yakında",
     "colEvent": "Etkinlik",
     "colDate": "Tarih",
     "colCategory": "Kategori",
@@ -71,17 +81,19 @@
     "noWriteup": "-"
   },
   "Experience": {
-    "sectionLabel": "// 04 deneyim",
+    "sectionLabel": "// {number} deneyim",
     "subtitle": "Deneyimlerim",
+    "current": "Devam ediyor",
     "emptyBody": "Henüz deneyim kaydı yok. Content Hub'dan Deneyim bölümüne ekleyin."
   },
   "Education": {
-    "sectionLabel": "// 05 eğitim",
+    "sectionLabel": "// {number} eğitim",
     "subtitle": "Eğitim",
+    "current": "Devam ediyor",
     "emptyBody": "Henüz eğitim kaydı yok. Content Hub'dan Eğitim bölümüne ekleyin."
   },
   "Projects": {
-    "sectionLabel": "// 03 projeler",
+    "sectionLabel": "// {number} projeler",
     "subtitle": "Projeler",
     "searchPlaceholder": "Teknoloji veya anahtar kelime…",
     "grepPrefix": "grep",
@@ -93,6 +105,10 @@
     "emptyTitle": "Henüz proje yok",
     "emptyBody": "Bu filtreyle eşleşen genel proje yok. Sorguyu değiştirin veya içerik katmanına kayıt ekleyin.",
     "emptyList": "Eşleşen proje yok.",
+    "emptyListHint": "Başka bir anahtar kelime deneyin veya başka bir kategori seçin.",
+    "clearFilters": "Filtreleri temizle",
+    "filterSelected": "(seçili)",
+    "resultCount": "{total} projeden {shown} tanesi gösteriliyor",
     "fieldProblem": "Problem",
     "fieldApproach": "Yaklaşımım",
     "fieldChallenge": "Zorlandığım yer",
@@ -107,19 +123,22 @@
     "preview": "Önizleme yok"
   },
   "Certificates": {
-    "sectionLabel": "// 07 sertifikalar",
-    "subtitle": "Yeterlilikler ve etkinlik katılımları.",
-    "educationHeading": "// eğitim",
+    "sectionLabel": "// {number} sertifikalar",
+    "subtitle": "Sertifikalar ve Etkinlikler",
+    "certificatesHeading": "// sertifikalar",
     "eventsHeading": "// etkinlikler",
     "colTitle": "Başlık",
     "colIssuer": "Kurum",
-    "colDate": "Tarih"
+    "colDate": "Tarih",
+    "showAll": "Tümünü göster ({count})",
+    "showFewer": "Daha az göster",
+    "undated": "Tarihsiz"
   },
   "Contact": {
-    "sectionLabel": "// 09 iletişim",
+    "sectionLabel": "// {number} iletişim",
     "title": "İletişim",
-    "subtitle": "E-posta veya sosyal medya üzerinden ulaşın, ya da formu kullanın.",
-    "noEmailLine": "Henüz genel bir e-posta paylaşılmadı. Formu veya aşağıdaki sosyal bağlantıları kullanın.",
+    "heading": "Birlikte çalışalım",
+    "subtitle": "Mesaj gönderin, ya da GitHub ve LinkedIn üzerinden ulaşın.",
     "formHeading": "Mesaj Gönder",
     "copy": "Kopyala",
     "copied": "Kopyalandı",
@@ -153,10 +172,8 @@
     "rights": "Tüm hakları saklıdır.",
     "quick": "Gezinme",
     "builtWith": "Next.js, Tailwind CSS ve Framer Motion ile hazırlandı.",
-    "connect": "Bağlan"
-  },
-  "SEO": {
-    "homeDescription": "Arda Ege Tunç'un portföyü: yapay zeka mühendisliği, full-stack geliştirme ve siber güvenlik."
+    "connect": "Bağlan",
+    "backToTop": "Başa dön"
   },
   "Terminal": {
     "welcome1": "Etkileşimli portföy terminali başlatıldı.",

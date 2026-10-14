@@ -41,6 +41,31 @@ type ProjectSeed = {
   featured: boolean;
 };
 
+type ExperienceSeed = {
+  id: string;
+  company: LocaleField;
+  role: LocaleField;
+  period: LocaleField;
+  description: LocaleField;
+  /** City and country, or Remote. Omit until entered in Studio. */
+  location?: LocaleField;
+  order: number;
+};
+
+type EducationSeed = {
+  id: string;
+  institution: LocaleField;
+  degree: LocaleField;
+  fieldOfStudy: LocaleField;
+  /** City and country, or Remote. Omit until entered in Studio. */
+  location?: LocaleField;
+  startDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  description?: LocaleField;
+  order: number;
+};
+
 type SkillSeed = {
   name: string;
   category: SkillCategoryId;
@@ -55,25 +80,36 @@ type SkillSeed = {
   evidenceProjectId?: string;
 };
 
+/** The university's name in each language, as used by the education and experience entries. */
+const ANKARA_SCIENCE_UNIVERSITY: LocaleField = {
+  en: "Ankara Science University",
+  tr: "Ankara Bilim Üniversitesi",
+};
+
 /** Same text in English and Turkish: official certificate names and issuers are not translated yet. */
 function sameInBoth(text: string): LocaleField {
   return { en: text, tr: text };
 }
 
+/** An issuer given as a plain string has no translation yet: same text in both. */
+function issuerField(issuer: string | LocaleField): LocaleField {
+  return typeof issuer === "string" ? sameInBoth(issuer) : issuer;
+}
+
 function cert(
   title: string,
-  issuer: string,
+  issuer: string | LocaleField,
   date?: string,
 ): CertificateSeed {
-  return { title: sameInBoth(title), issuer: sameInBoth(issuer), date };
+  return { title: sameInBoth(title), issuer: issuerField(issuer), date };
 }
 
 function certLocalized(
   title: LocaleField,
-  issuer: string,
+  issuer: string | LocaleField,
   date?: string,
 ): CertificateSeed {
-  return { title, issuer: sameInBoth(issuer), date };
+  return { title, issuer: issuerField(issuer), date };
 }
 
 export const migrationPortfolio = {
@@ -94,8 +130,8 @@ export const migrationPortfolio = {
         tr: "Modern ürünleri şu kesişimde geliştiriyorum:",
       },
       headline: {
-        en: "Focused on continuously developing myself across AI systems, full-stack web architectures, and cybersecurity.",
-        tr: "Yapay zeka sistemleri, full-stack web mimarileri ve siber güvenlik alanında kendimi sürekli geliştirmeye odaklanıyorum.",
+        en: "Focusing on continuous growth in AI systems, autonomous agents, full-stack web architectures, and cybersecurity.",
+        tr: "Yapay zeka sistemleri, otonom ajanlar, full-stack web mimarileri ve siber güvenlik alanlarında kendimi geliştirmeye odaklanıyorum.",
       },
       subline: {
         en: "Recent Computer Engineering graduate continuously advancing skills in generative AI systems, full-stack web development, and cybersecurity.",
@@ -109,9 +145,9 @@ export const migrationPortfolio = {
         security: { en: "Cybersecurity", tr: "Siber Güvenlik" },
       },
       typingRoles: [
-        { en: "AI Engineer", tr: "Yapay Zeka Mühendisi" },
-        { en: "Full Stack Developer", tr: "Full Stack Geliştirici" },
         { en: "Computer Engineer", tr: "Bilgisayar Mühendisi" },
+        { en: "Full Stack Developer", tr: "Full Stack Geliştirici" },
+        { en: "AI Engineer", tr: "Yapay Zeka Mühendisi" },
         { en: "Cybersecurity Enthusiast", tr: "Siber Güvenlik Meraklısı" },
       ],
       profileTagline: {
@@ -248,10 +284,7 @@ export const migrationPortfolio = {
   education: [
     {
       id: "education-asbu-ce",
-      institution: {
-        en: "Ankara Science University",
-        tr: "Ankara Bilim Üniversitesi",
-      },
+      institution: ANKARA_SCIENCE_UNIVERSITY,
       degree: { en: "B.Sc.", tr: "Lisans" },
       fieldOfStudy: {
         en: "Computer Engineering",
@@ -283,22 +316,33 @@ export const migrationPortfolio = {
       },
       order: 1,
     },
-  ],
+  ] satisfies EducationSeed[],
 
   experience: [
     {
-      id: "experience-remax",
-      company: { en: "RE/MAX Wise", tr: "RE/MAX Wise" },
+      id: "experience-software-persona",
+      company: { en: "Software Persona", tr: "Software Persona" },
+      role: { en: "Intern", tr: "Stajyer" },
+      period: { en: "06/2026 – 07/2026", tr: "06/2026 – 07/2026" },
+      description: {
+        en: "Developed a React/Tailwind task-tracking dashboard and a Flutter mobile product-catalog app; also worked with SQL Server and Figma.",
+        tr: "React/Tailwind ile görev takip paneli ve Flutter ile mobil ürün kataloğu uygulaması geliştirdim; ayrıca SQL Server ve Figma ile çalıştım.",
+      },
+      order: 0,
+    },
+    {
+      id: "experience-inspectos",
+      company: { en: "InspectOS", tr: "InspectOS" },
       role: {
         en: "Full Stack Developer Intern",
         tr: "Full Stack Developer Stajyeri",
       },
       period: { en: "08/2025 – 10/2025", tr: "08/2025 – 10/2025" },
       description: {
-        en: "Built internal tooling and web experiences with a focus on reliability and maintainability.",
-        tr: "Güvenilirlik ve sürdürülebilirlik odaklı iç araçlar ve web deneyimleri geliştirdim.",
+        en: "Developed a buyer's agency web platform for the Lisbon property market. Collaborated in a multicultural Agile team and used AI-assisted prompt-engineering workflows during development and optimization.",
+        tr: "Lizbon emlak piyasası için bir alıcı acentesi web platformu geliştirdim. Çok kültürlü bir agile ekipte iş birliği yaptım ve geliştirme ile optimizasyon sırasında AI destekli prompt-engineering iş akışları kullandım.",
       },
-      order: 0,
+      order: 1,
     },
     {
       id: "experience-trt",
@@ -309,29 +353,26 @@ export const migrationPortfolio = {
       },
       period: { en: "03/2025 – 05/2025", tr: "03/2025 – 05/2025" },
       description: {
-        en: "Collaborated on full-stack features with emphasis on performance and clean architecture.",
-        tr: "Performans ve temiz mimari odaklı full-stack özelliklerin geliştirilmesinde rol aldım.",
+        en: "Contributed to the full-stack development and maintenance of the internal management panel. Implemented REST API integrations and UI components to support administrative workflows.",
+        tr: "Dahili yönetim panelinin full-stack geliştirmesine ve bakımına katkıda bulundum; idari iş akışlarını desteklemek için REST API entegrasyonları ve UI bileşenleri uyguladım.",
       },
-      order: 1,
+      order: 2,
     },
     {
       id: "experience-lab",
-      company: {
-        en: "Ankara Science University",
-        tr: "Ankara Bilim Üniversitesi",
-      },
+      company: ANKARA_SCIENCE_UNIVERSITY,
       role: {
         en: "Computer Laboratory Assistant",
         tr: "Bilgisayar Laboratuvarı Asistanı",
       },
       period: { en: "10/2023 – 01/2025", tr: "10/2023 – 01/2025" },
       description: {
-        en: "Supported coursework labs, troubleshooting, and mentoring peers on systems and tooling.",
-        tr: "Ders laboratuvarlarında destek verdim; sorun giderme ile öğrencilere ve çalışma arkadaşlarına mentorluk yaptım.",
+        en: "Supported students in Java and object-oriented programming through practical lab sessions.",
+        tr: "Öğrencilere Java ve nesne yönelimli programlama konularında uygulamalı laboratuvar oturumları aracılığıyla destek verdim.",
       },
-      order: 2,
+      order: 3,
     },
-  ],
+  ] satisfies ExperienceSeed[],
 
   /**
    * Skills carry their own category. `level` and `evidenceProjectId` are only set
@@ -369,14 +410,14 @@ export const migrationPortfolio = {
     cert("Talent Coders Code Genius Certificate", "Talentcoders", "February 2026"),
     cert("Introduction to Generative AI", "BTK Akademi", "February 2026"),
     cert("Advanced Cyber Security in Technologies", "HAVELSAN", "February 2024"),
-    cert("AI Literacy", "Ankara Science University", "May 2024"),
+    cert("AI Literacy", ANKARA_SCIENCE_UNIVERSITY, "May 2024"),
     cert("3D Design and Printing", "KA3D Arge Tasarım", "October 2022"),
     certLocalized(
       {
         en: "Java Lab Assistantship",
         tr: "Java Laboratuvar Asistanlığı",
       },
-      "Ankara Science University",
+      ANKARA_SCIENCE_UNIVERSITY,
     ),
     cert("Internship Completion Certificate", "RE/MAX Wise", "October 2025"),
     cert("Blockchain Training", "1. Vision & Efficiency Summit", "May 2023"),

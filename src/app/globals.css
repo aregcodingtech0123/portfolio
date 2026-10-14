@@ -100,8 +100,20 @@
  * Serif headings, narrow reading column, almost no chrome, generous rhythm.
  */
 [data-skin="minimal"] {
-  --r-sm: 0px;
-  --r-md: 0px;
+  /*
+   * Compact presentation (~85% browser zoom) for the Simple skin only.
+   * `zoom` scales layout, typography, spacing, and position:fixed UI together
+   * (navbar, skip link, portaled modals). A wrapper `transform: scale()` would
+   * misalign those; component class names and token values stay unchanged.
+   */
+  --minimal-ui-scale: 0.85;
+  zoom: var(--minimal-ui-scale);
+
+  /* Small, consistent corners: 6px for controls and chips, 12px for cards and panels.
+   * Only components that read rounded-sm / rounded-md without a minimal:rounded-none
+   * override pick these up; the terminal values stay on :root (2px / 4px). */
+  --r-sm: 6px;
+  --r-md: 12px;
   --chrome: 0;
   --border-w: calc(var(--chrome) * 1px);
   --content-max: 45rem; /* legacy single measure, superseded by the two below */
@@ -112,58 +124,125 @@
   --leading: 1.7;
   --heading-face: var(--font-source-serif), ui-serif, Georgia, serif;
   --mono-face: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Page grid. One container for the navbar, every section and the footer:
+   * --page-max is the content box (1120px), --gutter is the side padding, and
+   * .m-container adds the two together so the box never shrinks on wide screens.
+   * --measure caps running text (.m-measure) without moving its left edge. */
+  --page-max: 70rem;
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 2.5rem);
+  --measure: 68ch;
+
+  /* Vertical rhythm. Space before a section is chosen per section: major
+   * sections get --space-section, sections that continue the previous topic
+   * (education after experience, certificates after skills) get the minor
+   * step. --space-group separates a section header from its content. */
+  --space-section: clamp(4.5rem, 2.5rem + 8vw, 9rem);
+  --space-section-minor: clamp(3rem, 2rem + 4vw, 5.5rem);
+  --space-header: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+  --space-group: clamp(2rem, 1.5rem + 2vw, 3rem);
+  --nav-h: 4.5rem;
 }
 
-/* Minimal palette. Dark is the default for the skin, so it also applies with no mode class. */
+/*
+ * Minimal palette. Strictly neutral greys (R = G = B), no hue, in both modes.
+ * The one exception is --danger, a muted red kept for form errors so an error
+ * is not carried by colour alone (see .m-error) yet is still distinguishable.
+ *
+ * Tonal steps (page, then card, then emphasis area):
+ *   --background < --surface < --surface-strong      (dark: lighter, light: darker)
+ * Borders: --border is the soft divider, --border-strong is near full contrast
+ * for cards, inputs and section top rules.
+ *
+ * Every text token clears WCAG AA 4.5:1 on all three steps in its mode
+ * (measured: foreground >= 13.1, muted >= 6.0, subtle >= 4.9, danger >= 5.2).
+ *
+ * --inv-* hold the opposite mode's values. .band-invert reads them to swap the
+ * whole palette locally. They are never used directly by components.
+ *
+ * Dark is the default for the skin, so it also applies with no mode class.
+ */
 [data-skin="minimal"],
 [data-skin="minimal"].dark {
-  --background: #121211;
-  --surface: #121211;
-  --border: rgba(245, 242, 235, 0.14);
-  --foreground: #f3f0e8;
-  --muted: #9a958a;
-  --subtle: #827e75;
-  --accent: #f3f0e8;
-  --accent-subtle: #c6c4bd;
-  --on-accent: #121211;
-  --danger: #f3f0e8;
-  --warning: #c4a574;
-  --on-media: #f3f0e8;
-  --scrim: rgba(18, 18, 17, 0.72);
+  --background: #111111;
+  --surface: #1b1b1b;
+  --surface-strong: #2a2a2a;
+  --border: rgba(255, 255, 255, 0.14);
+  --border-strong: #e6e6e6;
+  --foreground: #f5f5f5;
+  --muted: #a8a8a8;
+  --subtle: #979797;
+  --accent: #f5f5f5;
+  --accent-subtle: #d0d0d0;
+  --on-accent: #111111;
+  --danger: #e0908a;
+  --warning: #bdbdbd;
+  --on-media: #f5f5f5;
+  --scrim: rgba(0, 0, 0, 0.72);
   --tag: transparent;
-  --tag-foreground: #9a958a;
-  --tier-expert: #f3f0e8;
-  --tier-comfortable: #f3f0e8;
-  --tier-learning: #9a958a;
-  --difficulty-easy: #f3f0e8;
-  --difficulty-medium: #c4a574;
-  --difficulty-hard: #b0aaa0;
-  --difficulty-insane: #f3f0e8;
+  --tag-foreground: #a8a8a8;
+  --tier-expert: #f5f5f5;
+  --tier-comfortable: #f5f5f5;
+  --tier-learning: #a8a8a8;
+  --difficulty-easy: #f5f5f5;
+  --difficulty-medium: #bdbdbd;
+  --difficulty-hard: #b0b0b0;
+  --difficulty-insane: #f5f5f5;
+
+  /* Opposite mode (light) values, for .band-invert. */
+  --inv-background: #fafafa;
+  --inv-surface: #efefef;
+  --inv-surface-strong: #e2e2e2;
+  --inv-border: rgba(0, 0, 0, 0.12);
+  --inv-border-strong: #1a1a1a;
+  --inv-foreground: #111111;
+  --inv-muted: #4d4d4d;
+  --inv-subtle: #5e5e5e;
+  --inv-accent-subtle: #3a3a3a;
+  --inv-danger: #a8312a;
+  --inv-warning: #4d4d4d;
+  --inv-scheme: light;
 }
 
 [data-skin="minimal"].light {
-  --background: #faf8f4;
-  --surface: #faf8f4;
-  --border: rgba(28, 26, 22, 0.12);
-  --foreground: #1c1a16;
-  --muted: #6b665c;
-  --subtle: #757067;
-  --accent: #1c1a16;
-  --accent-subtle: #484642;
-  --on-accent: #faf8f4;
-  --danger: #1c1a16;
-  --warning: #8a5a00;
-  --on-media: #faf8f4;
-  --scrim: rgba(28, 26, 22, 0.45);
+  --background: #fafafa;
+  --surface: #efefef;
+  --surface-strong: #e2e2e2;
+  --border: rgba(0, 0, 0, 0.12);
+  --border-strong: #1a1a1a;
+  --foreground: #111111;
+  --muted: #4d4d4d;
+  --subtle: #5e5e5e;
+  --accent: #111111;
+  --accent-subtle: #3a3a3a;
+  --on-accent: #fafafa;
+  --danger: #a8312a;
+  --warning: #4d4d4d;
+  --on-media: #fafafa;
+  --scrim: rgba(0, 0, 0, 0.45);
   --tag: transparent;
-  --tag-foreground: #6b665c;
-  --tier-expert: #1c1a16;
-  --tier-comfortable: #1c1a16;
-  --tier-learning: #6b665c;
-  --difficulty-easy: #1c1a16;
-  --difficulty-medium: #8a5a00;
-  --difficulty-hard: #4a463e;
-  --difficulty-insane: #1c1a16;
+  --tag-foreground: #4d4d4d;
+  --tier-expert: #111111;
+  --tier-comfortable: #111111;
+  --tier-learning: #4d4d4d;
+  --difficulty-easy: #111111;
+  --difficulty-medium: #4d4d4d;
+  --difficulty-hard: #3a3a3a;
+  --difficulty-insane: #111111;
+
+  /* Opposite mode (dark) values, for .band-invert. */
+  --inv-background: #111111;
+  --inv-surface: #1b1b1b;
+  --inv-surface-strong: #2a2a2a;
+  --inv-border: rgba(255, 255, 255, 0.14);
+  --inv-border-strong: #e6e6e6;
+  --inv-foreground: #f5f5f5;
+  --inv-muted: #a8a8a8;
+  --inv-subtle: #979797;
+  --inv-accent-subtle: #d0d0d0;
+  --inv-danger: #e0908a;
+  --inv-warning: #bdbdbd;
+  --inv-scheme: dark;
 }
 
 /*
@@ -255,6 +334,25 @@
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+  }
+
+  /* Interactive targets: hand cursor in every skin and color mode. */
+  a,
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  .cursor-pointer,
+  [data-clickable="true"] {
+    cursor: pointer !important;
+  }
+
+  button:disabled,
+  input[type="submit"]:disabled,
+  input[type="button"]:disabled,
+  [role="button"][aria-disabled="true"],
+  [data-clickable="true"][aria-disabled="true"] {
+    cursor: not-allowed !important;
   }
 }
 
@@ -349,50 +447,6 @@ html[data-skin="minimal"] .hairline-t {
   }
 }
 
-/* Profile photo duotone: dark = black→accent, light = ink→paper.
- * Minimal skin drops the filter so portraits stay quiet and natural. */
-.profile-duotone {
-  background-color: var(--accent);
-  isolation: isolate;
-}
-
-.profile-duotone img {
-  filter: grayscale(1) contrast(1.12);
-  mix-blend-mode: multiply;
-}
-
-.light .profile-duotone {
-  background-color: var(--background);
-}
-
-.light .profile-duotone img {
-  filter: grayscale(1) contrast(1.2);
-  mix-blend-mode: multiply;
-}
-
-.light .profile-duotone::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--foreground);
-  mix-blend-mode: color;
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-[data-skin="minimal"] .profile-duotone {
-  background-color: transparent;
-}
-
-[data-skin="minimal"] .profile-duotone img {
-  filter: none;
-  mix-blend-mode: normal;
-}
-
-[data-skin="minimal"] .profile-duotone::after {
-  content: none;
-}
-
 /* Non-essential motion is disabled globally for reduced-motion users, in both skins. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -461,4 +515,1456 @@ html[data-skin="minimal"] .hairline-t {
       animation-name: reveal-rise;
     }
   }
+}
+
+/* --- Off-screen sections skip rendering ----------------------------------
+   Every web font that arrives after first paint (Inter, its latin-ext
+   subset, then the skin's heading and label faces) makes the browser lay out
+   the whole document again. On a throttled phone those relayouts were the
+   long tasks that pushed mobile Total Blocking Time over budget (measured with
+   the perf harness: minimal 322 ms median before this rule, 167 ms with it).
+   content-visibility: auto lets the browser skip layout and paint for
+   sections that are off screen; they render normally as they approach the
+   viewport, stay in the accessibility tree and find-in-page, and render with
+   no JavaScript. contain-intrinsic-size reserves an estimated height until a
+   section has rendered once; `auto` then keeps its real height.
+   The hero (#home) is not a <section> and always renders. */
+main > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* ===========================================================================
+ * Minimal toolkit.
+ *
+ * Plain classes, every selector prefixed with [data-skin="minimal"], so they do
+ * nothing in the terminal skin even if a shared element carries them. They are
+ * unlayered on purpose (like .hairline-b and the heading rule above): they beat
+ * Tailwind utilities, so compose them instead of trying to override them with a
+ * utility. Values are literal (no var(--text-*) or var(--font-*)): those
+ * are @theme inline entries and are not emitted as custom properties.
+ * ======================================================================== */
+
+/* --- Type scale (serif display, Inter body, JetBrains Mono labels) -------- */
+
+[data-skin="minimal"] .m-display {
+  font-family: var(--heading-face);
+  font-size: clamp(3rem, 1.5rem + 6.5vw, 6rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+[data-skin="minimal"] .m-h2 {
+  font-family: var(--heading-face);
+  font-size: clamp(2.25rem, 1.25rem + 3.2vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+[data-skin="minimal"] .m-h3 {
+  font-family: var(--heading-face);
+  font-size: clamp(1.375rem, 1.25rem + 0.6vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+/* Same face the font-code utility uses (JetBrains Mono). text-transform follows
+ * the document language, so "i" becomes "İ" under lang="tr", which is correct. */
+[data-skin="minimal"] .m-eyebrow {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+[data-skin="minimal"] .m-meta {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
+/* --- Surfaces and borders (tokens have no Tailwind utility, by design) ----- */
+
+[data-skin="minimal"] .m-bg-surface-strong {
+  background-color: var(--surface-strong);
+}
+
+/* Colour only: pair with Tailwind's border / border-2 for the width. */
+[data-skin="minimal"] .m-border-strong {
+  border-color: var(--border-strong);
+}
+
+/* Section top rule: one hard line at full contrast. */
+[data-skin="minimal"] .m-rule-t {
+  border-top: 1px solid var(--border-strong);
+}
+
+/* --- Elevation: hard offset shadow in the foreground colour ---------------
+ * Tailwind shadow-* utilities are reset in @theme and emit nothing, so depth
+ * is built here. The shadow colour is var(--foreground), which means it also
+ * inverts correctly inside a .band-invert. A parent with overflow: hidden
+ * clips the shadow, so leave room or avoid overflow on the wrapper.
+ *
+ *   .m-lift  a card that is already raised (static).
+ *   .m-pop   flat at rest, lifts on hover and keyboard focus, presses on active.
+ */
+[data-skin="minimal"] .m-lift {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 0 var(--foreground);
+}
+
+[data-skin="minimal"] .m-pop {
+  transform: translate(0, 0);
+  box-shadow: 0 0 0 0 var(--foreground);
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-pop:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0 0 var(--foreground);
+  }
+}
+
+[data-skin="minimal"] .m-pop:focus-visible {
+  transform: translate(-3px, -3px);
+  box-shadow: 6px 6px 0 0 var(--foreground);
+}
+
+/* A card that holds the focusable element (title button, link). */
+[data-skin="minimal"] .m-pop:has(:focus-visible) {
+  transform: translate(-3px, -3px);
+  box-shadow: 6px 6px 0 0 var(--foreground);
+}
+
+[data-skin="minimal"] .m-pop:active {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 0 var(--foreground);
+}
+
+/* Reduced motion: no travel at all. The hard shadow still marks the state. */
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="minimal"] .m-lift,
+  [data-skin="minimal"] .m-pop,
+  [data-skin="minimal"] .m-pop:hover,
+  [data-skin="minimal"] .m-pop:focus-visible,
+  [data-skin="minimal"] .m-pop:has(:focus-visible),
+  [data-skin="minimal"] .m-pop:active {
+    transform: none !important;
+  }
+}
+
+/* --- Inversion ------------------------------------------------------------
+ * Swaps the palette for everything inside the element, in either mode: a
+ * light page gets a dark band and a dark page gets a light band. It reads the
+ * --inv-* values that each mode block publishes. The band paints its own
+ * background and colour, so no extra utilities are needed on it.
+ *
+ * Derived tokens are re-declared here because a custom property that is set
+ * as var(--foreground) is resolved where it is declared, not where it is
+ * read. Do not nest one band in another: --inv-* are not swapped again, so the
+ * inner band would match the outer one instead of reverting.
+ */
+[data-skin="minimal"] .band-invert {
+  --background: var(--inv-background);
+  --surface: var(--inv-surface);
+  --surface-strong: var(--inv-surface-strong);
+  --border: var(--inv-border);
+  --border-strong: var(--inv-border-strong);
+  --foreground: var(--inv-foreground);
+  --muted: var(--inv-muted);
+  --subtle: var(--inv-subtle);
+  --accent-subtle: var(--inv-accent-subtle);
+  --danger: var(--inv-danger);
+  --warning: var(--inv-warning);
+
+  --accent: var(--foreground);
+  --on-accent: var(--background);
+  --tag-foreground: var(--muted);
+  --tier-expert: var(--foreground);
+  --tier-comfortable: var(--foreground);
+  --tier-learning: var(--muted);
+  --difficulty-easy: var(--foreground);
+  --difficulty-medium: var(--warning);
+  --difficulty-hard: var(--accent-subtle);
+  --difficulty-insane: var(--foreground);
+
+  color-scheme: var(--inv-scheme);
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* --- Errors that do not rely on colour ------------------------------------
+ * Muted red (--danger), semibold weight, and a drawn "!" badge in front. The
+ * badge is generated content, so the visible text stays the only thing a
+ * screen reader reads (the alternative-text form, where supported, makes the
+ * badge silent). Put role="alert" on the element as usual.
+ */
+[data-skin="minimal"] .m-error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+[data-skin="minimal"] .m-error::before {
+  content: "!";
+  content: "!" / "";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 1.25em;
+  height: 1.25em;
+  margin-inline-end: 0.5em;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.8em;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 0.08em;
+}
+
+/* --- Page grid -------------------------------------------------------------
+ * The single container of the Simple skin. The navbar, every section, the hero
+ * and the footer all use it, so their left edges are the same line at every
+ * width. Running text does not get its own container: it sits inside this one
+ * and is capped with .m-measure, which keeps the left edge and only limits the
+ * line length. Unlayered, so it wins over the unprefixed max-w-* / px-* utilities
+ * that the terminal skin relies on, which stay on the element untouched.
+ */
+[data-skin="minimal"] .m-container {
+  width: 100%;
+  max-width: calc(var(--page-max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+[data-skin="minimal"] .m-measure {
+  max-width: var(--measure);
+  margin-inline: 0;
+}
+
+/* --- Section rhythm and header ---------------------------------------------
+ * .m-section replaces the old half-gap padding: the space before a section is
+ * --section-gap when the section sets it (minor sections do) and --space-section
+ * otherwise. There is no bottom padding, so the gap is never doubled. The anchor
+ * offset is derived from the same value, so a jump to #projects lands the top
+ * rule just under the navbar instead of leaving the empty gap on screen.
+ */
+[data-skin="minimal"] .m-section {
+  padding-top: var(--section-gap, var(--space-section));
+  padding-bottom: 0;
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem - var(--section-gap, var(--space-section)));
+}
+
+/* Rule and eyebrow row in front of a section heading: 2px at full contrast,
+ * then the mono "01 / About" label. The h2 below uses .m-h2. */
+[data-skin="minimal"] .m-section-mark {
+  border-top: 2px solid var(--border-strong);
+  padding-top: 0.875rem;
+}
+
+/* A statement used as a section heading (the About summary is a full sentence),
+ * so it takes one step down from .m-h2. */
+[data-skin="minimal"] .m-h2-statement {
+  font-size: clamp(1.625rem, 0.9rem + 2.1vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/* --- Navbar links ------------------------------------------------------------
+ * Small mono capitals in the .m-meta family. The current section is carried by
+ * aria-current, not by a class, so the state a screen reader announces and the
+ * state a sighted visitor sees cannot drift apart: full contrast plus a 2px rule.
+ */
+[data-skin="minimal"] .m-navlink {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-block: 0.4rem;
+  padding-inline: 0;
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Below xl the row is tightened so the longest (Turkish) labels still fit beside the controls. */
+@media (max-width: 79.999rem) {
+  [data-skin="minimal"] .m-navlink {
+    letter-spacing: 0.06em;
+  }
+}
+
+[data-skin="minimal"] .m-navlink:hover {
+  color: var(--foreground);
+}
+
+[data-skin="minimal"] .m-navlink[aria-current] {
+  color: var(--foreground);
+  border-bottom-color: var(--foreground);
+}
+
+/* --- Entrance reveal ---------------------------------------------------------
+ * Sections always ship the terminal class (reveal-rise), so server and client
+ * render the same markup. In the minimal skin the same class plays the fade
+ * keyframes instead, chosen by CSS alone: no script decides it, so nothing can
+ * switch animation after hydration. Same gates as the base rules above.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    [data-skin="minimal"] .reveal-rise {
+      animation-name: reveal-fade;
+    }
+  }
+}
+
+/* --- Hero ---------------------------------------------------------------------
+ * Secondary scale for the hero headline: a clear step down from .m-display, still
+ * serif, still regular weight so the name carries the weight contrast.
+ */
+[data-skin="minimal"] .m-lead {
+  font-family: var(--heading-face);
+  font-size: clamp(1.375rem, 1.05rem + 1.4vw, 2rem);
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  text-wrap: pretty;
+}
+
+/* Role pill: borderless, soft fill (pair with .m-meta). */
+[data-skin="minimal"] .m-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.875rem;
+  border: none;
+  border-radius: 9999px;
+  letter-spacing: 0.01em;
+}
+
+[data-skin="minimal"].light .m-pill {
+  background-color: rgb(244 244 245); /* zinc-100 */
+  color: var(--muted);
+}
+
+[data-skin="minimal"].dark .m-pill {
+  background-color: rgb(39 39 42 / 0.6); /* zinc-800/60 */
+  color: var(--muted);
+}
+
+/* --- Buttons -------------------------------------------------------------------
+ * .m-btn is the shared shape; add .m-btn-primary (filled: foreground background,
+ * background text) or .m-btn-ghost (outlined). On hover they swap, so each one
+ * previews the other. Both keep a 2px border so the size never changes, a 48px
+ * minimum height for touch, and a visible focus ring. Colours come from tokens,
+ * so they also invert correctly inside .band-invert.
+ */
+[data-skin="minimal"] .m-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-height: 3rem;
+  padding: 0.6875rem 1.5rem;
+  border: 2px solid var(--foreground);
+  border-radius: var(--r-sm);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+[data-skin="minimal"] .m-btn:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+[data-skin="minimal"] .m-btn:active {
+  transform: translateY(1px);
+}
+
+[data-skin="minimal"] .m-btn-primary {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+
+[data-skin="minimal"] .m-btn-ghost {
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-btn-primary:hover:not(:disabled) {
+    background-color: transparent;
+    color: var(--foreground);
+  }
+
+  [data-skin="minimal"] .m-btn-ghost:hover:not(:disabled) {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+}
+
+[data-skin="minimal"] .m-btn:disabled {
+  cursor: not-allowed;
+  background-color: var(--muted);
+  color: var(--background);
+  border-color: var(--muted);
+  transform: none;
+}
+
+/* --- Scroll cue ------------------------------------------------------------------
+ * A quiet "Scroll" link with a drawn arrow. Colour change on hover, and the arrow
+ * steps down 3px; under reduced motion the step is dropped (colour still changes).
+ */
+[data-skin="minimal"] .m-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+[data-skin="minimal"] .m-cue svg {
+  transition: transform 160ms ease;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-cue:hover {
+    color: var(--foreground);
+  }
+
+  [data-skin="minimal"] .m-cue:hover svg {
+    transform: translateY(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="minimal"] .m-cue:hover svg,
+  [data-skin="minimal"] .m-btn:active {
+    transform: none !important;
+  }
+}
+
+
+/* --- Résumé blocks (About stats and chips, Skills cards and tags) -----------------
+ * All monochrome. Structure comes from 1px strong borders, mono tags, and the
+ * serif for names and values. No hue anywhere.
+ */
+
+/* Fact row: a mono label over a large serif value. The values are phrases
+ * ("React / Next / Python"), not numbers, so this is one step below .m-h2. */
+[data-skin="minimal"] .m-stat-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  [data-skin="minimal"] .m-stat-row {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 479px) {
+  [data-skin="minimal"] .m-stat-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+[data-skin="minimal"] .m-stat {
+  min-width: 0;
+  border-top: 1px solid var(--border-strong);
+  padding-top: 0.875rem;
+}
+
+[data-skin="minimal"] .m-stat-value {
+  margin: 0.5rem 0 0;
+  font-family: var(--heading-face);
+  font-size: clamp(1.375rem, 1.05rem + 1vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+
+/* Chip: outlined mono pill-less box; hover swaps foreground and background. */
+[data-skin="minimal"] .m-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background-color: transparent;
+  color: var(--foreground);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-chip:hover {
+    background-color: var(--foreground);
+    color: var(--background);
+  }
+}
+
+/* Card: a surface step with a strong 1px border. */
+[data-skin="minimal"] .m-card {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background-color: var(--surface);
+}
+
+@media (min-width: 640px) {
+  [data-skin="minimal"] .m-card {
+    padding: 1.75rem;
+  }
+}
+
+/* Open skill group: title and tags on the page, no card fill or border. */
+[data-skin="minimal"] .m-skill-group {
+  min-width: 0;
+}
+
+[data-skin="minimal"] .m-skill-title {
+  margin: 0;
+  font-family: var(--heading-face);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+}
+
+/* Skill tag: borderless zinc pill. The tier is in the accessible name, not dots. */
+[data-skin="minimal"] .m-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.2rem 0.65rem;
+  border: none;
+  border-radius: 9999px;
+  background-color: rgb(244 244 245);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+[data-skin="minimal"].dark .m-tag {
+  background-color: rgb(39 39 42 / 0.5);
+}
+
+[data-skin="minimal"] .m-tag-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Evidence link: a small arrow inside the tag, muted until hovered or focused. */
+[data-skin="minimal"] .m-tag-link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin: -0.1rem -0.2rem -0.1rem 0;
+  padding: 0.1rem 0.2rem;
+  border-radius: 3px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+[data-skin="minimal"] .m-tag-link:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+  color: var(--foreground);
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-tag-link:hover {
+    color: var(--foreground);
+  }
+}
+
+
+/* --- Project cards and filters ----------------------------------------------------
+ * The card is one primary target: the title button's ::after is stretched over the
+ * whole article, and the external Live link sits above it (z-index 2). .m-pop
+ * (above) supplies the hard-shadow lift on hover and keyboard focus.
+ */
+html[data-skin="minimal"] .m-search {
+  border: 1px solid var(--border-strong);
+  transition: border-color 160ms ease;
+}
+
+html[data-skin="minimal"] .m-search:focus-within {
+  border-color: var(--foreground);
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+[data-skin="minimal"] .m-card-empty {
+  border-style: dashed;
+}
+
+[data-skin="minimal"] .m-proj {
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background-color: var(--surface);
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms ease;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-proj:hover {
+    border-color: var(--foreground);
+  }
+}
+
+[data-skin="minimal"] .m-proj:has(:focus-visible) {
+  border-color: var(--foreground);
+}
+
+/* 16:10 frame. The screenshot is contained, not cropped, and inset on a quiet
+   surface so the full UI stays visible. */
+[data-skin="minimal"] .m-proj-media {
+  position: relative;
+  flex: none;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: calc(var(--r-md) - 1px) calc(var(--r-md) - 1px) 0 0;
+  background-color: var(--surface-strong);
+}
+
+[data-skin="minimal"] .m-proj-img {
+  object-fit: contain;
+  object-position: center;
+  box-sizing: border-box;
+  padding: 0.625rem;
+}
+
+[data-skin="minimal"] .m-proj-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.875rem 1rem 1rem;
+}
+
+[data-skin="minimal"] .m-proj-open {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+[data-skin="minimal"] .m-proj-open::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--r-md);
+}
+
+[data-skin="minimal"] .m-proj-open:focus-visible {
+  outline: none;
+}
+
+[data-skin="minimal"] .m-proj-open:focus-visible::after {
+  outline: 2px solid var(--foreground);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-proj:hover .m-proj-open {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+}
+
+[data-skin="minimal"] .m-proj-desc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+[data-skin="minimal"] .m-proj-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin="minimal"] .m-proj-tag {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--foreground);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+[data-skin="minimal"] .m-proj-foot {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+[data-skin="minimal"] .m-proj-live {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  margin-left: -0.25rem;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+[data-skin="minimal"] .m-proj-live:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+[data-skin="minimal"] .m-proj-live:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* The arrow is hidden at rest only where hover exists; on touch it stays visible. */
+[data-skin="minimal"] .m-proj-arrow {
+  flex: none;
+  transition:
+    opacity 160ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-proj-arrow {
+    opacity: 0;
+  }
+
+  [data-skin="minimal"] .m-proj:hover .m-proj-arrow,
+  [data-skin="minimal"] .m-proj:has(:focus-visible) .m-proj-arrow {
+    opacity: 1;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-skin="minimal"] .m-proj-arrow {
+    transform: translateX(-8px);
+  }
+
+  [data-skin="minimal"] .m-proj:hover .m-proj-arrow,
+  [data-skin="minimal"] .m-proj:has(:focus-visible) .m-proj-arrow {
+    transform: translateX(0);
+  }
+}
+
+/* --- Timeline (Experience, Education) -----------------------------------------------
+ * Stacked on mobile with the rule on the left; from md the period sits in a left
+ * column and the rule runs between the columns. A 9px square marks each entry on
+ * the rule, and a soft hairline separates entries. Monochrome throughout.
+ * --tl-when is the width of the period column; the marker position derives from it.
+ */
+[data-skin="minimal"] .m-tl {
+  --tl-when: 11rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin="minimal"] .m-tl-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0.625rem;
+  min-width: 0;
+  padding: 1.75rem 0 1.75rem 1.5rem;
+  border-left: 1px solid var(--border-strong);
+}
+
+[data-skin="minimal"] .m-tl-row + .m-tl-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background-color: var(--border);
+}
+
+[data-skin="minimal"] .m-tl-marker {
+  position: absolute;
+  top: calc(1.75rem + 0.3rem);
+  left: -5px;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  background-color: var(--foreground);
+}
+
+[data-skin="minimal"] .m-tl-when {
+  min-width: 0;
+}
+
+/* Period column: mono, quiet, and (from md) right-aligned toward the node. */
+[data-skin="minimal"] .m-tl-date {
+  margin: 0;
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+[data-skin="minimal"] .m-tl-what {
+  min-width: 0;
+}
+
+[data-skin="minimal"] .m-tl-org {
+  margin: 0.375rem 0 0;
+  color: var(--foreground);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+[data-skin="minimal"] .m-tl-desc {
+  max-width: 62ch;
+  margin: 1rem 0 0;
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* Status marker for ongoing entries: outlined, with a solid dot. */
+[data-skin="minimal"] .m-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.1rem 0.65rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 9999px;
+  color: var(--foreground);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+  [data-skin="minimal"] .m-tl-row {
+    grid-template-columns: var(--tl-when) minmax(0, 1fr);
+    row-gap: 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  /* Sticky within its own row: the period stays in view while a long entry scrolls. */
+  [data-skin="minimal"] .m-tl-when {
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+    align-self: start;
+    padding: 2.25rem 1.25rem 2rem 0;
+    text-align: right;
+  }
+
+  [data-skin="minimal"] .m-tl-date {
+    text-align: right;
+  }
+
+  [data-skin="minimal"] .m-status {
+    justify-content: flex-end;
+  }
+
+  [data-skin="minimal"] .m-tl-what {
+    padding: 2rem 0 2rem 2.25rem;
+    border-left: 1px solid var(--border-strong);
+  }
+
+  [data-skin="minimal"] .m-tl-marker {
+    top: calc(2rem + 0.6rem);
+    left: calc(var(--tl-when) - 4px);
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-skin="minimal"] .m-tl {
+    --tl-when: 13rem;
+  }
+
+  [data-skin="minimal"] .m-tl-what {
+    padding-left: 3rem;
+  }
+}
+
+
+/* --- Certificates, events, scoreboard ------------------------------------------------
+ * Certificate rows: title (medium), issuer (muted), date in the code face on the
+ * right from md. Rows sit under a year label inside a ruled block. Extra rows use
+ * the hidden attribute, so the display rules below are overridden for [hidden].
+ * .m-cert-secondary draws the same markup one step smaller (events).
+ */
+[data-skin="minimal"] .m-cert-groups {
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--border-strong);
+}
+
+[data-skin="minimal"] .m-cert-year {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--border-strong);
+}
+
+[data-skin="minimal"] .m-cert-year[hidden],
+[data-skin="minimal"] .m-cert-row[hidden] {
+  display: none;
+}
+
+[data-skin="minimal"] .m-cert-yearlabel {
+  margin: 0;
+  padding: 0.875rem 0 0;
+  color: var(--foreground);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+[data-skin="minimal"] .m-cert-list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin="minimal"] .m-cert-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.125rem;
+  padding: 0.875rem 0;
+  border-top: 1px solid var(--border);
+}
+
+[data-skin="minimal"] .m-cert-row:first-child {
+  border-top: 0;
+}
+
+[data-skin="minimal"] .m-cert-title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+[data-skin="minimal"] .m-cert-issuer {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+[data-skin="minimal"] .m-cert-date {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 767px) {
+  [data-skin="minimal"] .m-cert-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 1rem;
+  }
+
+  [data-skin="minimal"] .m-cert-title {
+    grid-column: 1 / -1;
+  }
+
+  [data-skin="minimal"] .m-cert-date {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+@media (min-width: 768px) {
+  [data-skin="minimal"] .m-cert-year {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+  }
+
+  [data-skin="minimal"] .m-cert-yearlabel {
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+    align-self: start;
+    text-align: right;
+    padding-right: 0.25rem;
+  }
+
+  [data-skin="minimal"] .m-cert-row {
+    grid-template-columns: minmax(0, 1fr) max-content 8.5rem;
+    align-items: baseline;
+    column-gap: 1.25rem;
+  }
+
+  [data-skin="minimal"] .m-cert-issuer {
+    text-align: right;
+  }
+
+  [data-skin="minimal"] .m-cert-date {
+    margin: 0;
+    text-align: right;
+  }
+}
+
+[data-skin="minimal"] .m-cert-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  margin-top: 1.25rem;
+  padding: 0.35rem 0.95rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 9999px;
+  background-color: transparent;
+  color: var(--muted);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-cert-more:hover {
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+}
+
+[data-skin="minimal"] .m-cert-more:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+[data-skin="minimal"] .m-cert-secondary .m-cert-yearlabel {
+  padding-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+[data-skin="minimal"] .m-cert-secondary .m-cert-row {
+  padding: 0.625rem 0;
+}
+
+[data-skin="minimal"] .m-cert-secondary .m-cert-title {
+  font-size: 0.9375rem;
+}
+
+[data-skin="minimal"] .m-cert-secondary .m-cert-issuer {
+  font-size: 0.875rem;
+}
+
+[data-skin="minimal"] .m-cert-secondary .m-cert-date {
+  font-size: 0.75rem;
+}
+
+/* Empty scoreboard: a quiet hairline note, not a boxed banner. */
+[data-skin="minimal"] .m-section-quiet .m-section-mark-wrap {
+  display: none;
+}
+
+[data-skin="minimal"] .m-strip {
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  padding: 0.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+}
+
+[data-skin="minimal"] .m-strip-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+/* Scoreboard table: strong rule under the header, hairlines between rows, hover fill. */
+[data-skin="minimal"] .m-table-wrap:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+[data-skin="minimal"] .m-table th {
+  padding: 0 1rem 0.75rem 0;
+  border-bottom: 2px solid var(--border-strong);
+  color: var(--muted);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-skin="minimal"] .m-table td {
+  vertical-align: baseline;
+}
+
+[data-skin="minimal"] .m-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 160ms ease;
+}
+
+[data-skin="minimal"] .m-table th:first-child,
+[data-skin="minimal"] .m-table td:first-child {
+  padding-left: 0.75rem;
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-table tbody tr:hover {
+    background-color: var(--surface);
+  }
+}
+
+
+/* --- Contact and footer -----------------------------------------------------------
+ * Contact uses the same palette as the rest of the page (no .band-invert on #contact).
+ */
+[data-skin="minimal"] #contact .m-contact-grid {
+  max-width: none;
+}
+
+[data-skin="minimal"] .m-contact-link {
+  color: var(--foreground);
+  font-family: var(--heading-face);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+[data-skin="minimal"] .m-contact-link:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+[data-skin="minimal"] .m-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: none;
+  border-radius: 9999px;
+  background-color: rgb(244 244 245);
+  color: var(--muted);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+[data-skin="minimal"].dark .m-copy {
+  background-color: rgb(39 39 42 / 0.5);
+}
+
+@media (hover: hover) {
+  [data-skin="minimal"] .m-copy:hover {
+    color: var(--foreground);
+  }
+}
+
+[data-skin="minimal"] .m-copy:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Soft field: zinc-tinted 1px border, rounded-lg, quiet focus. */
+[data-skin="minimal"] .m-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid rgb(228 228 231);
+  border-radius: 0.5rem;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+[data-skin="minimal"].dark .m-field {
+  border-color: rgb(39 39 42);
+}
+
+[data-skin="minimal"] .m-field:focus {
+  border-color: rgb(161 161 170);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(161 161 170 / 0.25);
+}
+
+[data-skin="minimal"].dark .m-field:focus {
+  border-color: rgb(82 82 91);
+  box-shadow: 0 0 0 3px rgb(82 82 91 / 0.35);
+}
+
+[data-skin="minimal"] .m-field::placeholder {
+  color: var(--subtle);
+}
+
+[data-skin="minimal"] textarea.m-field {
+  min-height: 8rem;
+}
+
+[data-skin="minimal"] .m-notice {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background-color: var(--surface);
+  font-size: 1rem;
+}
+
+[data-skin="minimal"] .m-success {
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--foreground);
+  border-radius: var(--r-sm);
+  background-color: var(--foreground);
+  color: var(--background);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Compact footer bar. */
+[data-skin="minimal"] .m-foot {
+  padding-top: 1.25rem;
+  padding-bottom: 1.5rem;
+}
+
+[data-skin="minimal"] .m-foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
+[data-skin="minimal"] .m-foot-name {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--heading-face);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+[data-skin="minimal"] .m-foot-links {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-skin="minimal"] .m-foot-link {
+  color: var(--muted);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+[data-skin="minimal"] .m-foot-link:hover,
+[data-skin="minimal"] .m-foot-link:focus-visible {
+  color: var(--foreground);
+}
+
+[data-skin="minimal"] .m-foot-link:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+[data-skin="minimal"] .m-foot-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-left: auto;
+}
+
+[data-skin="minimal"] .m-foot-top {
+  color: var(--foreground);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+[data-skin="minimal"] .m-foot-top:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+
+[data-skin="minimal"] .m-foot-copy {
+  margin: 0.75rem 0 0;
+}
+
+
+/* --- Motion -----------------------------------------------------------------------
+ * Restrained, and only when the visitor has not asked for reduced motion.
+ * Colour changes (button inversion, chip inversion) stay: they are not travel,
+ * and the global reduced-motion rule already collapses their transition to nothing.
+ * What is gated here is movement: an underline that wipes in, and list rows that
+ * fade in, staggered, as they enter the viewport.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  [data-skin="minimal"] .m-wipe {
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size 220ms ease;
+  }
+
+  @media (hover: hover) {
+    [data-skin="minimal"] .m-wipe:hover,
+    [data-skin="minimal"] .m-wipe:focus-visible {
+      background-size: 100% 1px;
+    }
+  }
+
+  /* No hover (touch): the line is just there. A wipe that never runs would
+   * leave the link with no underline at all. */
+  @media (hover: none) {
+    [data-skin="minimal"] .m-wipe {
+      background-size: 100% 1px;
+    }
+  }
+
+  /* List rows fade in as they enter, each a little after the one before.
+   * The hidden start is inside this query only, same rule as .reveal-rise:
+   * reduced motion, and browsers without scroll-driven animation, show the
+   * list immediately. Rows past the fourth share one delay so a long list
+   * does not keep fading in. */
+  @supports (animation-timeline: view()) {
+    [data-skin="minimal"] .m-stagger > :not([hidden]) {
+      opacity: 0;
+      animation: reveal-fade 0.6s both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 14%;
+    }
+
+    [data-skin="minimal"] .m-stagger > :nth-child(2) {
+      animation-range: entry 2% cover 16%;
+    }
+
+    [data-skin="minimal"] .m-stagger > :nth-child(3) {
+      animation-range: entry 4% cover 18%;
+    }
+
+    [data-skin="minimal"] .m-stagger > :nth-child(4) {
+      animation-range: entry 6% cover 20%;
+    }
+
+    [data-skin="minimal"] .m-stagger > :nth-child(n + 5) {
+      animation-range: entry 8% cover 22%;
+    }
+  }
+}
+
+/* essay-link removes its outline on focus. Put one back, in the inverted
+ * contact band as well as on the page: --foreground is the band's own ink. */
+[data-skin="minimal"] .essay-link:focus-visible,
+[data-skin="minimal"] .m-wipe:focus-visible,
+[data-skin="minimal"] .m-field:focus-visible,
+[data-skin="minimal"] .m-btn:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
 }

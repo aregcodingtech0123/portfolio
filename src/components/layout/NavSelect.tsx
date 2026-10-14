@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
 
@@ -13,6 +14,16 @@ export type NavSelectOption<T extends string> = {
   value: T;
   label: string;
   icon?: ReactNode;
+};
+
+/** Props NavSelect gives an option rendered as a link (see `renderOptionLink`). */
+export type NavSelectOptionLinkProps = {
+  role: "option";
+  "aria-selected": boolean;
+  "aria-disabled"?: true;
+  className: string;
+  onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => void;
+  children: ReactNode;
 };
 
 type NavSelectProps<T extends string> = {
@@ -34,6 +45,12 @@ type NavSelectProps<T extends string> = {
    */
   labelFromXl?: boolean;
   className?: string;
+  /**
+   * Render each option as a real link (an `<a href>` crawlers and "open in
+   * new tab" can follow) instead of a button. A plain click still goes
+   * through `onChange`; a modified or middle click follows the href.
+   */
+  renderOptionLink?: (value: T, props: NavSelectOptionLinkProps) => ReactNode;
 };
 
 /**
@@ -48,6 +65,7 @@ export function NavSelect<T extends string>({
   showLabel = true,
   labelFromXl = false,
   className = "",
+  renderOptionLink,
 }: NavSelectProps<T>) {
   const listId = useId();
   const labelId = `${listId}-label`;
@@ -115,14 +133,14 @@ export function NavSelect<T extends string>({
   const widthClass = !showLabel
     ? "min-w-0"
     : labelFromXl
-      ? "min-w-0 xl:w-[6rem]"
+      ? "min-w-0 xl:w-[6rem] xl:minimal:w-auto"
       : "w-[5.75rem] xl:w-[6rem]";
   const labelVisual =
     "truncate text-[9px] font-medium tracking-wider text-subtle xl:text-[10px] minimal:font-body minimal:tracking-[0.12em]";
   const labelClass = !showLabel
     ? "sr-only"
     : labelFromXl
-      ? "sr-only xl:not-sr-only xl:truncate xl:text-[10px] xl:font-medium xl:tracking-wider xl:text-subtle xl:minimal:font-body xl:minimal:tracking-[0.12em]"
+      ? "sr-only xl:not-sr-only xl:truncate xl:text-[10px] xl:font-medium xl:tracking-wider xl:text-subtle xl:minimal:font-body xl:minimal:tracking-[0.12em] xl:minimal:sr-only"
       : labelVisual;
 
   return (
@@ -161,7 +179,7 @@ export function NavSelect<T extends string>({
           "hover:border-accent hover:text-accent",
           "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
           "disabled:cursor-not-allowed disabled:opacity-60",
-          "minimal:h-8 minimal:rounded-none minimal:border-border minimal:bg-transparent minimal:font-body minimal:text-xs minimal:font-normal minimal:normal-case minimal:tracking-normal minimal:text-foreground",
+          "minimal:h-8 lg:minimal:h-7 minimal:rounded-none minimal:border-border minimal:bg-transparent minimal:font-body minimal:text-xs lg:minimal:text-[11px] minimal:font-normal minimal:normal-case minimal:tracking-normal minimal:text-foreground",
           "minimal:hover:border-foreground minimal:hover:text-foreground",
           "minimal:focus-visible:outline-foreground",
         ].join(" ")}
@@ -195,27 +213,49 @@ export function NavSelect<T extends string>({
         >
           {options.map((option) => {
             const active = option.value === value;
+            const optionClass = [
+              "flex w-full touch-manipulation items-center gap-2 px-2.5 py-1.5 text-left",
+              "font-mono text-[10px] font-medium tracking-wide",
+              "transition-colors duration-150",
+              active
+                ? "bg-accent/15 text-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.18em]"
+                : "text-muted hover:bg-border/40 hover:text-foreground minimal:hover:bg-transparent",
+              "minimal:font-body minimal:text-xs minimal:font-normal minimal:normal-case minimal:tracking-normal",
+            ].join(" ");
+            const content = (
+              <>
+                {option.icon}
+                <span>{option.label}</span>
+              </>
+            );
             return (
               <li key={option.value} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  disabled={disabled}
-                  onClick={() => commit(option.value)}
-                  className={[
-                    "flex w-full touch-manipulation items-center gap-2 px-2.5 py-1.5 text-left",
-                    "font-mono text-[10px] font-medium tracking-wide",
-                    "transition-colors duration-150",
-                    active
-                      ? "bg-accent/15 text-accent minimal:bg-transparent minimal:text-foreground minimal:underline minimal:underline-offset-[0.18em]"
-                      : "text-muted hover:bg-border/40 hover:text-foreground minimal:hover:bg-transparent",
-                    "minimal:font-body minimal:text-xs minimal:font-normal minimal:normal-case minimal:tracking-normal",
-                  ].join(" ")}
-                >
-                  {option.icon}
-                  <span>{option.label}</span>
-                </button>
+                {renderOptionLink ? (
+                  renderOptionLink(option.value, {
+                    role: "option",
+                    "aria-selected": active,
+                    ...(disabled ? { "aria-disabled": true as const } : {}),
+                    className: optionClass,
+                    onClick: (event) => {
+                      // Modified and middle clicks open the link itself.
+                      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+                      event.preventDefault();
+                      if (!disabled) commit(option.value);
+                    },
+                    children: content,
+                  })
+                ) : (
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    disabled={disabled}
+                    onClick={() => commit(option.value)}
+                    className={optionClass}
+                  >
+                    {content}
+                  </button>
+                )}
               </li>
             );
           })}

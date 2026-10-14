@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Tag } from "@/components/ui/Tag";
 import type { ProjectDisplay } from "@/sanity/fetch";
@@ -15,25 +15,26 @@ const categoryKey = {
 } as const satisfies Record<ProjectCategory, string>;
 
 const PREVIEW_FRAME =
-  "relative aspect-[16/10] w-full cursor-pointer overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
+  "relative aspect-[16/10] w-full cursor-pointer overflow-hidden bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
 
 const PREVIEW_IMAGE =
-  "object-contain object-top";
+  "box-border object-contain object-center p-2.5";
 
 type ProjectCardProps = {
   entry: ProjectDisplay;
   onOpen: (project: ProjectDisplay) => void;
+  /** Simple skin only: 1-based position, shown as 01. */
+  index?: number;
 };
 
 /**
  * Terminal + Minimal cards share the same interaction model:
  * title (and image) open the details modal; the Live link opens externally only.
  */
-export function ProjectCard({ entry, onOpen }: ProjectCardProps) {
+export function ProjectCard({ entry, onOpen, index }: ProjectCardProps) {
   const t = useTranslations("Projects");
   const categoryLabel = t(categoryKey[entry.category]);
   const hasLive = Boolean(entry.liveUrl);
-  const techs = entry.technologies.slice(0, 3);
 
   const openDetails = () => onOpen(entry);
 
@@ -123,48 +124,71 @@ export function ProjectCard({ entry, onOpen }: ProjectCardProps) {
         </div>
       </article>
 
-      {/* Minimal card */}
-      <article className="group relative hidden h-full w-full flex-col border border-border bg-transparent transition-[border-color] duration-200 hover:border-foreground minimal:flex">
-        <button
-          type="button"
-          onClick={openDetails}
-          aria-label={`${t("openDetails")}: ${entry.title}`}
-          className={PREVIEW_FRAME}
-        >
+      {/* Simple card: one primary target (the title button, stretched over the
+          whole card), plus the external Live link above it. */}
+      <article className="m-proj m-pop group relative hidden h-full w-full minimal:flex">
+        <div className="m-proj-media">
           {entry.imageUrl ? (
             <Image
               src={entry.imageUrl}
-              alt={entry.imageAlt || entry.title}
+              alt={entry.imageAlt ?? ""}
               fill
-              className={PREVIEW_IMAGE}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
+              className="m-proj-img"
+              sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 33vw"
             />
           ) : (
-            <span className="absolute inset-0 flex items-center justify-center text-xs text-muted">
+            <span className="m-meta absolute inset-0 flex items-center justify-center">
               {t("preview")}
             </span>
           )}
-        </button>
+        </div>
 
-        <div className="flex flex-1 flex-col gap-2 px-4 pt-4 pb-5">
-          <h3 className="min-w-0">
+        <div className="m-proj-body">
+          <p className="m-eyebrow flex items-center justify-between gap-3">
+            <span aria-hidden>{String(index ?? 0).padStart(2, "0")}</span>
+            <span>{categoryLabel}</span>
+          </p>
+          <h3 className="m-h3 m-proj-title min-w-0 break-words">
             <button
               type="button"
               onClick={openDetails}
-              className="cursor-pointer text-left font-heading text-lg font-normal tracking-tight break-words text-foreground underline-offset-[0.22em] transition-[color,text-decoration-color,opacity] duration-200 hover:underline hover:decoration-foreground/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:text-xl"
+              aria-label={`${t("openDetails")}: ${entry.title}`}
+              className="m-proj-open"
             >
               {entry.title}
             </button>
           </h3>
-          <p className="line-clamp-2 text-sm leading-relaxed text-muted">
-            {entry.description}
-          </p>
-          {techs.length > 0 && (
-            <p className="pt-1 text-xs leading-relaxed text-muted">
-              {techs.join(" · ")}
-            </p>
+          <p className="m-proj-desc line-clamp-2">{entry.description}</p>
+          {entry.technologies.length > 0 && (
+            <ul className="m-proj-tags">
+              {entry.technologies.slice(0, 4).map((tech) => (
+                <li key={tech} className="m-proj-tag">
+                  {tech}
+                </li>
+              ))}
+              {entry.technologies.length > 4 && (
+                <li className="m-meta" aria-hidden>
+                  +{entry.technologies.length - 4}
+                </li>
+              )}
+            </ul>
           )}
-          <div className="mt-auto flex items-center pt-3">{renderLiveLink()}</div>
+          <div className="m-proj-foot">
+            {hasLive ? (
+              <a
+                href={entry.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${t("demo")}: ${entry.title}`}
+                className="m-proj-live m-wipe"
+              >
+                <span aria-hidden>{t("demo")}</span>
+                <ArrowUpRight aria-hidden className="m-proj-arrow" size={16} strokeWidth={2} />
+              </a>
+            ) : (
+              <span className="m-meta">{t("noLive")}</span>
+            )}
+          </div>
         </div>
       </article>
     </>

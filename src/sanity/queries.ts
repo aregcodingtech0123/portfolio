@@ -69,6 +69,7 @@ export const portfolioContentQuery = groq`{
   "experience": *[_type == "experience"] | order(order asc, company.en asc) {
     _id,
     company,
+    location,
     role,
     period,
     "description": coalesce(description, detail),
@@ -81,6 +82,7 @@ export const portfolioContentQuery = groq`{
   ) {
     _id,
     institution,
+    location,
     degree,
     fieldOfStudy,
     startDate,

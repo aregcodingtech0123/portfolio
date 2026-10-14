@@ -64,7 +64,7 @@ async function renderContact(opts: ConfigOptions) {
   const Contact = await loadContact(opts);
   render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <Contact />
+      <Contact sectionLabel="// 09 contact" />
     </NextIntlClientProvider>,
   );
 }

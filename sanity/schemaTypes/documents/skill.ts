@@ -33,6 +33,8 @@ export const skill = defineType({
           { title: "Backend Development", value: "backend" },
           { title: "Cybersecurity", value: "security" },
           { title: "Languages & Tools", value: "languages" },
+          { title: "Programming Languages", value: "programming-languages" },
+          { title: "Databases", value: "databases" },
         ],
         layout: "dropdown",
       },

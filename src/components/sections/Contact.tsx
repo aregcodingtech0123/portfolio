@@ -67,6 +67,22 @@ async function readOutcome(res: Response): Promise<ContactOutcome> {
 
 type CopyKey = "email" | "github" | "linkedin" | null;
 
+/** Host + path for display: decode percent-escapes, drop the protocol and trailing slash. */
+function displaySocialUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.host.replace(/^www\./, "");
+    const path = decodeURIComponent(parsed.pathname).replace(/\/$/, "");
+    return `${host}${path}`;
+  } catch {
+    try {
+      return decodeURIComponent(url.replace(/^https?:\/\//, "").replace(/\/$/, ""));
+    } catch {
+      return url.replace(/^https?:\/\//, "");
+    }
+  }
+}
+
 function CopyableLine({
   label,
   value,
@@ -118,35 +134,39 @@ function CopyableLine({
         </div>
       </div>
 
-      <div className="hidden items-baseline gap-x-3 gap-y-1 py-1.5 minimal:flex">
-        {href ? (
-          <a
-            href={href}
-            target={href.startsWith("mailto:") ? undefined : "_blank"}
-            rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
-            className="essay-link min-w-0 break-all text-base text-foreground"
+      <div className="hidden min-w-0 py-3 minimal:block">
+        <p className="m-meta">{label}</p>
+        <div className="mt-2 flex min-w-0 items-center gap-3">
+          {href ? (
+            <a
+              href={href}
+              target={href.startsWith("mailto:") ? undefined : "_blank"}
+              rel={
+                href.startsWith("mailto:") ? undefined : "noopener noreferrer"
+              }
+              className="m-contact-link m-wipe min-w-0 flex-1 truncate"
+            >
+              {value}
+            </a>
+          ) : (
+            <span className="m-contact-link min-w-0 flex-1 truncate">{value}</span>
+          )}
+          <button
+            type="button"
+            onClick={onCopy}
+            className="m-copy shrink-0"
+            aria-label={`${copyLabel}: ${value}`}
           >
-            {value}
-          </a>
-        ) : (
-          <span className="min-w-0 break-all text-base text-foreground">
-            {value}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={onCopy}
-          className="shrink-0 text-sm text-muted underline decoration-transparent underline-offset-[0.22em] transition-colors hover:text-foreground hover:decoration-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          aria-label={`${copyLabel}: ${value}`}
-        >
-          {copied ? copiedLabel : copyLabel}
-        </button>
+            {copied ? copiedLabel : copyLabel}
+          </button>
+        </div>
       </div>
     </>
   );
 }
 
-export function Contact() {
+/** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+export function Contact({ sectionLabel }: { sectionLabel: string }) {
   const t = useTranslations("Contact");
   const locale = useLocale();
   const { mode } = useTheme();
@@ -329,7 +349,7 @@ export function Contact() {
       )}
       <CopyableLine
         label="github"
-        value={github.replace(/^https?:\/\//, "")}
+        value={displaySocialUrl(github)}
         href={github}
         copied={copied === "github"}
         copyLabel={t("copy")}
@@ -338,7 +358,7 @@ export function Contact() {
       />
       <CopyableLine
         label="linkedin"
-        value={linkedin.replace(/^https?:\/\//, "")}
+        value={displaySocialUrl(linkedin)}
         href={linkedin}
         copied={copied === "linkedin"}
         copyLabel={t("copy")}
@@ -355,7 +375,7 @@ export function Contact() {
               {contact.location}
             </span>
           </div>
-          <p className="hidden text-base text-muted minimal:block">
+          <p className="m-meta mt-4 hidden minimal:block">
             {contact.location}
           </p>
         </>
@@ -364,35 +384,36 @@ export function Contact() {
   );
 
   const fieldClass =
-    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-subtle focus:border-accent focus:ring-1 focus:ring-accent/40 minimal:rounded-none minimal:border-0 minimal:border-b minimal:border-border minimal:bg-transparent minimal:px-0 minimal:py-2.5 minimal:font-body minimal:text-base minimal:focus:border-foreground minimal:focus:ring-0";
+    "w-full rounded-sm border border-border bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-subtle focus:border-accent focus:ring-1 focus:ring-accent/40 m-field";
 
   const labelClass =
-    "font-mono text-[11px] tracking-wide text-muted minimal:font-body minimal:text-sm";
+    "font-mono text-[11px] tracking-wide text-muted m-meta";
 
   const turnstileTheme =
     mode === "light" ? "light" : mode === "dark" ? "dark" : "auto";
 
   return (
-    <Section id="contact" className="py-16 sm:py-28">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-prose minimal:px-5 sm:minimal:px-6">
+    <Section
+      id="contact"
+      className="py-16 sm:py-28 minimal:mb-[var(--space-group)] minimal:pb-[var(--space-section)]"
+    >
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight break-words text-foreground sm:text-4xl minimal:hidden">
             {t("title")}
           </h2>
-          <p className="mt-3 max-w-md text-left text-sm leading-relaxed break-words text-muted minimal:mt-5 minimal:max-w-none minimal:text-base">
+          <h2 className="m-h2 hidden min-w-0 hyphens-manual minimal:block">
+            {t("heading")}
+          </h2>
+          <p className="mt-3 max-w-md text-left text-sm leading-relaxed break-words text-muted minimal:mt-5 minimal:max-w-xl minimal:text-lg m-lead">
             {t("subtitle")}
           </p>
-          {!hasEmail && (
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted minimal:max-w-none minimal:text-base">
-              {t("noEmailLine")}
-            </p>
-          )}
         </div>
 
-        <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-12 minimal:block">
+        <div className="m-contact-grid mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-start minimal:mt-[var(--space-group)] lg:minimal:gap-16">
           <div className="min-w-0 overflow-hidden rounded-md border border-border bg-surface minimal:overflow-visible minimal:rounded-none minimal:border-0 minimal:bg-transparent">
             <div className="decor flex items-center gap-1.5 border-b border-border px-3 py-2">
               <span className="h-2 w-2 rounded-sm bg-danger" aria-hidden />
@@ -413,19 +434,19 @@ export function Contact() {
           <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className="min-w-0 border border-border bg-surface p-5 sm:p-6 minimal:mt-12 minimal:border-0 minimal:bg-transparent minimal:p-0"
+            className="min-w-0 border border-border bg-surface p-5 sm:p-6 minimal:mt-0 minimal:border-0 minimal:bg-transparent minimal:p-0"
             noValidate
           >
             <p className="decor font-mono text-[11px] tracking-wide text-muted">
               <span>{"// "}</span>
               {t("formHeading")}
             </p>
-            <p className="hidden font-heading text-xl font-normal tracking-tight text-foreground minimal:block">
+            <p className="m-h3 hidden tracking-tight text-foreground minimal:block">
               {t("formHeading")}
             </p>
 
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 minimal:mt-5 minimal:gap-5">
-              <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 minimal:mt-8 minimal:gap-6">
+              <label className="flex flex-col gap-1.5 text-sm minimal:gap-2">
                 <span className={labelClass}>{t("name")}</span>
                 <input
                   name="name"
@@ -442,12 +463,12 @@ export function Contact() {
                   className={fieldClass}
                 />
                 {errors.name && (
-                  <span className="font-mono text-xs text-danger minimal:font-body">
+                  <span className="font-mono text-xs text-danger m-error">
                     {errors.name}
                   </span>
                 )}
               </label>
-              <label className="flex flex-col gap-1.5 text-sm minimal:gap-1">
+              <label className="flex flex-col gap-1.5 text-sm minimal:gap-2">
                 <span className={labelClass}>{t("email")}</span>
                 <input
                   name="email"
@@ -464,14 +485,14 @@ export function Contact() {
                   className={fieldClass}
                 />
                 {errors.email && (
-                  <span className="font-mono text-xs text-danger minimal:font-body">
+                  <span className="font-mono text-xs text-danger m-error">
                     {errors.email}
                   </span>
                 )}
               </label>
             </div>
 
-            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
+            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-6 minimal:gap-2">
               <span className={labelClass}>{t("subject")}</span>
               <input
                 name="subject"
@@ -487,13 +508,13 @@ export function Contact() {
                 className={fieldClass}
               />
               {errors.subject && (
-                <span className="font-mono text-xs text-danger minimal:font-body">
+                <span className="font-mono text-xs text-danger m-error">
                   {errors.subject}
                 </span>
               )}
             </label>
 
-            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-5 minimal:gap-1">
+            <label className="mt-4 flex flex-col gap-1.5 text-sm minimal:mt-6 minimal:gap-2">
               <span className={labelClass}>{t("message")}</span>
               <textarea
                 name="message"
@@ -509,7 +530,7 @@ export function Contact() {
                 className={`${fieldClass} resize-y`}
               />
               {errors.message && (
-                <span className="font-mono text-xs text-danger minimal:font-body">
+                <span className="font-mono text-xs text-danger m-error">
                   {errors.message}
                 </span>
               )}
@@ -537,7 +558,7 @@ export function Contact() {
             </div>
 
             {turnstileConfigured ? (
-              <div className="mt-5 overflow-x-auto">
+              <div className="mt-5 overflow-x-auto minimal:mt-8">
                 <Turnstile
                   ref={turnstileRef}
                   siteKey={turnstileSiteKey}
@@ -579,7 +600,7 @@ export function Contact() {
             {unavailable && (
               <div
                 role={notice === "unavailable" ? "alert" : undefined}
-                className="mt-5 border border-border bg-background/60 p-4 text-sm leading-relaxed text-foreground minimal:border-0 minimal:border-l-2 minimal:border-border minimal:bg-transparent minimal:py-1 minimal:pl-4 minimal:pr-0 minimal:text-base"
+                className="mt-5 border border-border bg-background/60 p-4 text-sm leading-relaxed text-foreground m-notice"
               >
                 <p>{t("unavailable")}</p>
                 <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
@@ -604,7 +625,7 @@ export function Contact() {
               </div>
             )}
 
-            <div className="mt-6 flex flex-wrap items-center gap-4 minimal:mt-6 minimal:pt-1">
+            <div className="mt-6 flex flex-wrap items-center gap-4 minimal:mt-8 minimal:flex-col minimal:items-stretch sm:minimal:flex-row sm:minimal:items-center">
               <button
                 type="submit"
                 disabled={!canSubmit}
@@ -622,7 +643,7 @@ export function Contact() {
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="essay-link hidden text-base text-foreground disabled:opacity-50 minimal:inline"
+                className="m-btn m-btn-primary hidden min-w-[12rem] disabled:cursor-not-allowed minimal:inline-flex"
               >
                 {status === "loading" ? (
                   <span className="inline-flex items-center gap-2">
@@ -634,17 +655,14 @@ export function Contact() {
                 )}
               </button>
               {status === "success" && (
-                <span
-                  role="status"
-                  className="font-mono text-xs text-accent minimal:font-body minimal:text-sm minimal:text-muted"
-                >
+                <span role="status" className="font-mono text-xs text-accent m-success">
                   {t("success")}
                 </span>
               )}
               {status === "error" && notice && notice !== "unavailable" && (
                 <span
                   role="alert"
-                  className="font-mono text-xs text-danger minimal:font-body minimal:text-sm"
+                  className="font-mono text-xs text-danger m-error"
                 >
                   {noticeText(notice)}
                 </span>

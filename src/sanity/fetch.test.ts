@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { migrationPortfolio } from "@/data/migration-portfolio";
-import type { SanityCtf, SanityProject, SanitySiteSettings } from "@/sanity/types";
+import type {
+  SanityCtf,
+  SanityEducation,
+  SanityExperience,
+  SanityProject,
+  SanitySiteSettings,
+  SanitySkill,
+} from "@/sanity/types";
 
 // client.fetch is mocked at this boundary on every test: no network call is
 // ever made, and the "which payload comes back" question is fully controlled
@@ -67,6 +74,41 @@ function sanityCtf(overrides: Partial<SanityCtf> = {}): SanityCtf {
   };
 }
 
+function sanitySkill(
+  overrides: Partial<SanitySkill> & Pick<SanitySkill, "_id" | "name" | "category">,
+): SanitySkill {
+  return {
+    categoryOrder: 0,
+    order: 0,
+    ...overrides,
+  };
+}
+
+function sanityExperience(
+  overrides: Partial<SanityExperience> & Pick<SanityExperience, "_id" | "company">,
+): SanityExperience {
+  return {
+    role: { en: "Engineer", tr: "Mühendis" },
+    period: { en: "01/2020 \u2013 02/2020", tr: "01/2020 \u2013 02/2020" },
+    description: { en: "Work.", tr: "İş." },
+    order: 0,
+    ...overrides,
+  };
+}
+
+function sanityEducation(
+  overrides: Partial<SanityEducation> & Pick<SanityEducation, "_id" | "institution">,
+): SanityEducation {
+  return {
+    degree: { en: "B.Sc.", tr: "Lisans" },
+    fieldOfStudy: { en: "Computer Engineering", tr: "Bilgisayar Mühendisliği" },
+    startDate: "2021",
+    endDate: "2025",
+    order: 0,
+    ...overrides,
+  };
+}
+
 beforeEach(() => {
   vi.resetModules();
   fetchMock.mockReset();
@@ -123,6 +165,49 @@ describe("getPortfolioContent branch matrix", () => {
     expect(result.skillCategories.length).toBeGreaterThan(0);
   });
 
+  it("sorts Sanity experience by period, newest and ongoing first, ignoring document order", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        experience: [
+          sanityExperience({
+            _id: "lab",
+            company: { en: "Lab", tr: "Lab" },
+            period: { en: "10/2023 \u2013 01/2025", tr: "10/2023 \u2013 01/2025" },
+            order: 0,
+          }),
+          sanityExperience({
+            _id: "current",
+            company: { en: "Current Co", tr: "Current Co" },
+            period: { en: "08/2025 \u2013 Present", tr: "08/2025 \u2013 Günümüz" },
+            order: 1,
+          }),
+          sanityExperience({
+            _id: "remax",
+            company: { en: "RE/MAX", tr: "RE/MAX" },
+            period: { en: "08/2025 \u2013 10/2025", tr: "08/2025 \u2013 10/2025" },
+            order: 2,
+          }),
+        ],
+      },
+    });
+
+    const en = await getPortfolioContent("en");
+    expect(en.experience.map((item) => item.company)).toEqual([
+      "Current Co",
+      "RE/MAX",
+      "Lab",
+    ]);
+
+    const tr = await getPortfolioContent("tr");
+    expect(tr.experience.map((item) => item.company)).toEqual([
+      "Current Co",
+      "RE/MAX",
+      "Lab",
+    ]);
+    expect(tr.experience[0]?.period).toContain("Günümüz");
+  });
+
   it("never borrows migration data for CTFs, unlike every other field", async () => {
     const { getPortfolioContent } = await loadFetch({
       configured: true,
@@ -174,6 +259,85 @@ describe("getPortfolioContent branch matrix", () => {
     );
 
     warnSpy.mockRestore();
+  });
+
+  it("groups new skill categories after the existing ones, in both locales, and skips empty categories", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        skills: [
+          sanitySkill({
+            _id: "db",
+            name: "PostgreSQL",
+            category: "databases",
+            categoryOrder: 6,
+          }),
+          sanitySkill({
+            _id: "pl",
+            name: "Rust",
+            category: "programming-languages",
+            categoryOrder: 5,
+          }),
+          sanitySkill({
+            _id: "ai",
+            name: "LangChain",
+            category: "ai",
+            categoryOrder: 0,
+          }),
+          sanitySkill({
+            _id: "blank",
+            name: "Ghost",
+            category: "   ",
+            categoryOrder: 1,
+          }),
+          sanitySkill({
+            _id: "unknown",
+            name: "Custom Tool",
+            category: "custom-lab",
+            categoryOrder: 9,
+          }),
+        ],
+      },
+    });
+
+    const en = await getPortfolioContent("en");
+    expect(en.skillCategories.map((cat) => cat.id)).toEqual([
+      "ai",
+      "programming-languages",
+      "databases",
+      "custom-lab",
+    ]);
+    expect(en.skillCategories.map((cat) => cat.label)).toEqual([
+      "AI & Machine Learning",
+      "Programming Languages",
+      "Databases",
+      "custom-lab",
+    ]);
+    expect(en.skillCategories.map((cat) => cat.skills.map((skill) => skill.name))).toEqual([
+      ["LangChain"],
+      ["Rust"],
+      ["PostgreSQL"],
+      ["Custom Tool"],
+    ]);
+    expect(en.skillCategories.some((cat) => cat.id === "frontend")).toBe(false);
+    expect(en.skillCategories.some((cat) => cat.id === "security")).toBe(false);
+    expect(en.skillCategories.some((cat) => cat.skills.some((skill) => skill.name === "Ghost"))).toBe(
+      false,
+    );
+
+    const tr = await getPortfolioContent("tr");
+    expect(tr.skillCategories.map((cat) => cat.id)).toEqual([
+      "ai",
+      "programming-languages",
+      "databases",
+      "custom-lab",
+    ]);
+    expect(tr.skillCategories.map((cat) => cat.label)).toEqual([
+      "Yapay Zeka ve Makine Öğrenmesi",
+      "Programlama Dilleri",
+      "Veritabanları",
+      "custom-lab",
+    ]);
   });
 });
 
@@ -295,5 +459,137 @@ describe("external links from Sanity are only passed through when they are http(
 
     expect(social.github).toBe(migrationPortfolio.siteSettings.githubUrl);
     expect(social.linkedin).toBe("https://www.linkedin.com/in/someone");
+  });
+});
+
+describe("experience and education location mapping", () => {
+  it("does not attach location on fallback items that never stored one", async () => {
+    const { getPortfolioContent } = await loadFetch({ configured: false });
+    const result = await getPortfolioContent("en");
+    expect(result.experience.length).toBeGreaterThan(0);
+    expect(result.education.length).toBeGreaterThan(0);
+    for (const item of result.experience) {
+      expect(item).not.toHaveProperty("location");
+    }
+    for (const item of result.education) {
+      expect(item).not.toHaveProperty("location");
+    }
+  });
+
+  it("resolves location per locale when both en and tr are set", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        experience: [
+          sanityExperience({
+            _id: "with-location",
+            company: { en: "Acme", tr: "Acme" },
+            location: { en: "Lisbon, Portugal", tr: "Lizbon, Portekiz" },
+          }),
+        ],
+        education: [
+          sanityEducation({
+            _id: "edu-with-location",
+            institution: { en: "Ankara Science University", tr: "Ankara Bilim Üniversitesi" },
+            location: { en: "Ankara, Turkey", tr: "Ankara, Türkiye" },
+          }),
+        ],
+      },
+    });
+
+    const en = await getPortfolioContent("en");
+    expect(en.experience[0]?.location).toBe("Lisbon, Portugal");
+    expect(en.education[0]?.location).toBe("Ankara, Turkey");
+
+    const tr = await getPortfolioContent("tr");
+    expect(tr.experience[0]?.location).toBe("Lizbon, Portekiz");
+    expect(tr.education[0]?.location).toBe("Ankara, Türkiye");
+  });
+
+  it("falls back to English when the active locale value is missing", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        experience: [
+          sanityExperience({
+            _id: "en-only",
+            company: { en: "Acme", tr: "Acme" },
+            location: { en: "Remote" },
+          }),
+        ],
+        education: [
+          sanityEducation({
+            _id: "edu-en-only",
+            institution: { en: "Ankara Science University", tr: "Ankara Bilim Üniversitesi" },
+            location: { en: "Ankara, Turkey" },
+          }),
+        ],
+      },
+    });
+
+    const tr = await getPortfolioContent("tr");
+    expect(tr.experience[0]?.location).toBe("Remote");
+    expect(tr.education[0]?.location).toBe("Ankara, Turkey");
+  });
+
+  it("treats blank or whitespace location as missing", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        experience: [
+          sanityExperience({
+            _id: "blank",
+            company: { en: "Acme", tr: "Acme" },
+            location: { en: "   ", tr: "\t" },
+          }),
+        ],
+        education: [
+          sanityEducation({
+            _id: "edu-blank",
+            institution: { en: "Ankara Science University", tr: "Ankara Bilim Üniversitesi" },
+            location: { en: " ", tr: "" },
+          }),
+        ],
+      },
+    });
+
+    const en = await getPortfolioContent("en");
+    expect(en.experience[0]).not.toHaveProperty("location");
+    expect(en.education[0]).not.toHaveProperty("location");
+  });
+
+  it("omits location when the field is absent, matching items that never had it", async () => {
+    const { getPortfolioContent } = await loadFetch({
+      configured: true,
+      payload: {
+        experience: [
+          sanityExperience({
+            _id: "no-location",
+            company: { en: "Acme", tr: "Acme" },
+          }),
+        ],
+        education: [
+          sanityEducation({
+            _id: "edu-no-location",
+            institution: { en: "Ankara Science University", tr: "Ankara Bilim Üniversitesi" },
+          }),
+        ],
+      },
+    });
+
+    const en = await getPortfolioContent("en");
+    expect(en.experience[0]).toEqual({
+      company: "Acme",
+      role: "Engineer",
+      period: "01/2020 \u2013 02/2020",
+      description: "Work.",
+    });
+    expect(en.education[0]).toEqual({
+      id: "edu-no-location",
+      institution: "Ankara Science University",
+      degree: "B.Sc.",
+      fieldOfStudy: "Computer Engineering",
+      period: "2021 \u2013 2025",
+    });
   });
 });

@@ -26,6 +26,10 @@ import {
   slugifyId,
 } from "../src/data/migration-portfolio";
 
+function optionalLocation(item: { location?: { en?: string; tr?: string } }) {
+  return item.location ? { location: item.location } : {};
+}
+
 // Next.js loads .env and .env.local automatically; standalone tsx does not.
 // .env.seed comes first (dotenv never overrides a value that is already set),
 // and Next.js never reads it, so the write token can live there alone.
@@ -107,6 +111,7 @@ async function seed() {
       role: e.role,
       period: e.period,
       description: e.description,
+      ...optionalLocation(e),
       order: e.order,
     });
   }
@@ -120,6 +125,7 @@ async function seed() {
       institution: e.institution,
       degree: e.degree,
       fieldOfStudy: e.fieldOfStudy,
+      ...optionalLocation(e),
       startDate: e.startDate,
       ...(e.endDate ? { endDate: e.endDate } : {}),
       isCurrent: Boolean(e.isCurrent),

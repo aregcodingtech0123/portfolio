@@ -2,24 +2,33 @@
 
 import { useTranslations } from "next-intl";
 import { Section } from "@/components/ui/Section";
+import { SimpleTimelineRow } from "@/components/ui/SimpleTimeline";
+import { isOpenEndedPeriod } from "@/lib/period";
 import type { ExperienceItem } from "@/types/content";
 
-export function Experience({ items }: { items: ExperienceItem[] }) {
+export function Experience({
+  items,
+  sectionLabel,
+}: {
+  items: ExperienceItem[];
+  /** The Terminal skin label, e.g. "// 03 projects", numbered and translated by the page. */
+  sectionLabel: string;
+}) {
   const t = useTranslations("Experience");
 
   return (
     <Section id="experience" className="py-16 sm:py-24">
-      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 minimal:max-w-content-prose minimal:px-5 sm:minimal:px-6">
+      <div className="mx-auto min-w-0 max-w-content px-4 sm:px-6 lg:px-8 m-container">
         <div className="min-w-0 max-w-2xl minimal:max-w-none">
           <p className="decor font-mono text-xs tracking-wide text-accent">
-            {t("sectionLabel")}
+            {sectionLabel}
           </p>
-          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 minimal:text-3xl minimal:font-normal">
+          <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl minimal:mt-0 m-h2 m-h2-statement">
             {t("subtitle")}
           </h2>
         </div>
 
-        <div className="relative mx-auto mt-14 min-w-0 max-w-3xl minimal:mt-12 minimal:max-w-none">
+        <div className="relative mx-auto mt-14 min-w-0 max-w-3xl minimal:mt-[var(--space-group)] minimal:max-w-none">
           {items.length === 0 ? (
             <p className="font-mono text-sm text-muted minimal:font-body minimal:text-base">
               {t("emptyBody")}
@@ -50,6 +59,11 @@ export function Experience({ items }: { items: ExperienceItem[] }) {
                           {item.role}
                           <span className="text-muted"> @ </span>
                           {item.company}
+                          {item.location ? (
+                            <span className="font-normal text-muted">
+                              {` · ${item.location}`}
+                            </span>
+                          ) : null}
                         </h3>
                         {item.description && (
                           <p className="mt-3 text-sm leading-relaxed break-words text-muted">
@@ -62,25 +76,19 @@ export function Experience({ items }: { items: ExperienceItem[] }) {
                 </ol>
               </div>
 
-              {/* Minimal: chronological prose list */}
-              <ol className="hidden minimal:block">
+              {/* Minimal: two-column timeline */}
+              <ol className="m-tl m-stagger hidden minimal:block">
                 {items.map((item) => (
-                  <li
+                  <SimpleTimelineRow
                     key={`${item.company}-${item.period}-${item.role}`}
-                    className="hairline-b min-w-0 border-b border-border py-8 first:pt-0 last:border-b-0 last:pb-0"
-                  >
-                    <h3 className="font-heading text-xl font-normal tracking-tight break-words text-foreground sm:text-2xl">
-                      {item.role}
-                      <span className="text-muted">, </span>
-                      {item.company}
-                    </h3>
-                    <p className="mt-1.5 text-sm text-muted">{item.period}</p>
-                    {item.description && (
-                      <p className="mt-4 text-base leading-relaxed text-foreground">
-                        {item.description}
-                      </p>
-                    )}
-                  </li>
+                    period={item.period}
+                    current={isOpenEndedPeriod(item.period)}
+                    currentLabel={t("current")}
+                    title={item.role}
+                    org={item.company}
+                    location={item.location}
+                    description={item.description}
+                  />
                 ))}
               </ol>
             </>

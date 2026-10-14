@@ -73,4 +73,12 @@ export const i18nDynamicAllowlist = [
     key: "Skills.categories.languages",
     reason: "Same CATEGORY_PATH `in`-guard link as Skills.categories.ai.",
   },
+  {
+    key: "Skills.categories.programming-languages",
+    reason: "Same CATEGORY_PATH `in`-guard link as Skills.categories.ai.",
+  },
+  {
+    key: "Skills.categories.databases",
+    reason: "Same CATEGORY_PATH `in`-guard link as Skills.categories.ai.",
+  },
 ];

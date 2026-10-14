@@ -8,6 +8,8 @@
     "experience": "Experience",
     "education": "Education",
     "contact": "Contact",
+    "ctf": "CTF",
+    "skipToContent": "Skip to content",
     "language": "Language",
     "mode": "Mode",
     "skin": "Skin",
@@ -30,21 +32,28 @@
     "mobileHeading": "Social"
   },
   "Hero": {
-    "portraitAlt": "Arda Ege Tunç - Profile Photo"
+    "portraitAlt": "Arda Ege Tunç - Profile Photo",
+    "scrollCue": "Scroll down",
+    "roleBadge": "Computer Engineer",
+    "headline": "Focusing on continuous growth in AI systems, autonomous agents, full-stack web architectures, and cybersecurity."
   },
   "About": {
     "title": "About Me",
     "locationLabel": "Location"
   },
   "Skills": {
-    "sectionLabel": "// 06 skills",
+    "sectionLabel": "// {number} skills",
     "subtitle": "Skills",
+    "evidence": "Evidence",
+    "entriesListed": "<n>{count}</n> {count, plural, one {entry} other {entries}} listed",
     "categories": {
       "ai": "AI & Machine Learning",
       "frontend": "Frontend Development",
       "backend": "Backend Development",
       "security": "Cybersecurity",
-      "languages": "Languages & Tools"
+      "languages": "Languages & Tools",
+      "programming-languages": "Programming Languages",
+      "databases": "Databases"
     },
     "levels": {
       "daily": "Daily",
@@ -58,10 +67,11 @@
     }
   },
   "CTF": {
-    "sectionLabel": "// 08 ctf",
+    "sectionLabel": "// {number} ctf",
     "subtitle": "Scoreboard",
     "intro": "Public results from Capture The Flag practice.",
     "empty": "No public results yet. Write-ups coming.",
+    "emptyStrip": "Write-ups coming soon",
     "colEvent": "Event",
     "colDate": "Date",
     "colCategory": "Category",
@@ -71,17 +81,19 @@
     "noWriteup": "-"
   },
   "Experience": {
-    "sectionLabel": "// 04 experience",
+    "sectionLabel": "// {number} experience",
     "subtitle": "Roles that shaped how I build and break systems.",
+    "current": "Current",
     "emptyBody": "No experience entries yet. Add roles in Content Hub under Experience."
   },
   "Education": {
-    "sectionLabel": "// 05 education",
+    "sectionLabel": "// {number} education",
     "subtitle": "Academic background and programs of study.",
+    "current": "In progress",
     "emptyBody": "No education entries yet. Add programs in Content Hub under Education."
   },
   "Projects": {
-    "sectionLabel": "// 03 projects",
+    "sectionLabel": "// {number} projects",
     "subtitle": "Projects",
     "searchPlaceholder": "Technology or keyword…",
     "grepPrefix": "grep",
@@ -93,6 +105,10 @@
     "emptyTitle": "No projects yet",
     "emptyBody": "No public projects match this filter. Adjust the query or add entries to the content layer.",
     "emptyList": "No matching projects.",
+    "emptyListHint": "Try a different keyword, or pick another category.",
+    "clearFilters": "Clear filters",
+    "filterSelected": "(selected)",
+    "resultCount": "Showing {shown} of {total, plural, one {# project} other {# projects}}",
     "fieldProblem": "Problem",
     "fieldApproach": "Approach",
     "fieldChallenge": "Challenge",
@@ -107,19 +123,22 @@
     "preview": "No preview"
   },
   "Certificates": {
-    "sectionLabel": "// 07 certificates",
-    "subtitle": "Credentials and event participation.",
-    "educationHeading": "// education",
+    "sectionLabel": "// {number} certificates",
+    "subtitle": "Certificates & Events",
+    "certificatesHeading": "// certificates",
     "eventsHeading": "// events",
     "colTitle": "Title",
     "colIssuer": "Issuer",
-    "colDate": "Date"
+    "colDate": "Date",
+    "showAll": "Show all ({count})",
+    "showFewer": "Show fewer",
+    "undated": "Undated"
   },
   "Contact": {
-    "sectionLabel": "// 09 contact",
+    "sectionLabel": "// {number} contact",
     "title": "Contact",
-    "subtitle": "Reach out by mail or social, or use the form.",
-    "noEmailLine": "No public email is listed yet. Use the form or the social links below.",
+    "heading": "Let's work together",
+    "subtitle": "Send a message, or find me on GitHub and LinkedIn.",
     "formHeading": "Send a message",
     "copy": "Copy",
     "copied": "Copied",
@@ -153,10 +172,8 @@
     "rights": "All rights reserved.",
     "quick": "Navigate",
     "builtWith": "Crafted with Next.js, Tailwind CSS, and Framer Motion.",
-    "connect": "Connect"
-  },
-  "SEO": {
-    "homeDescription": "Portfolio of Arda Ege Tunç: AI engineering, full-stack development, and cybersecurity."
+    "connect": "Connect",
+    "backToTop": "Back to top"
   },
   "Terminal": {
     "welcome1": "Interactive portfolio terminal initialized.",
