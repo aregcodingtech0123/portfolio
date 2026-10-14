@@ -65,3 +65,39 @@ for (const skin of ["terminal", "minimal"] as const satisfies Skin[]) {
     expect(await page.evaluate(() => (window as unknown as { __portraitShifts: number }).__portraitShifts)).toBe(0);
   });
 }
+
+// On a phone the caption ("AI Engineering · Full Stack · Cybersecurity") is
+// wider than the photo. It used to set the figure's width, so when the mono
+// web font replaced its fallback (whose metrics differ wherever Arial is
+// missing: Linux, Android) the figure's box changed width and its edge moved:
+// a layout shift of the whole figure, mobile CLS 0.0121 on Linux. Neither the
+// figure nor the photo may depend on the caption's font.
+for (const locale of ["en", "tr"] as const) {
+  test(`terminal, phone width (${locale}): the caption's font metrics cannot move the figure or the photo`, async ({ page }) => {
+    await seedTheme(page, { skin: "terminal" });
+    // No entrance animation: the reveal moves the photo for ~0.5s, which
+    // would be measured as movement that has nothing to do with the caption.
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 412, height: 823 });
+    await page.goto(`/${locale}`);
+    await page.evaluate(() => document.fonts.ready);
+
+    const figure = page.locator("#home figure").first();
+    const photo = figure.locator("> div").first();
+    const figureBefore = (await figure.boundingBox())!;
+    const before = (await photo.boundingBox())!;
+    // A very different face and size: far bigger than any fallback swap.
+    await page.addStyleTag({
+      content: "#home figcaption { font-family: serif !important; font-size: 15px !important; letter-spacing: 0.2em !important; }",
+    });
+    const after = (await photo.boundingBox())!;
+    const figureAfter = (await figure.boundingBox())!;
+
+    // The figure's box does not follow the caption, and neither does the photo.
+    expect(figureAfter.x).toBe(figureBefore.x);
+    expect(figureAfter.width).toBe(figureBefore.width);
+    expect(after.x).toBe(before.x);
+    expect(after.y).toBe(before.y);
+    expect(after.width).toBe(before.width);
+  });
+}

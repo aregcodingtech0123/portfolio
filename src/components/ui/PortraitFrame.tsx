@@ -29,9 +29,18 @@ export function PortraitFrame({ src, className = "" }: PortraitFrameProps) {
   const t = useTranslations("Hero");
   const { hero } = useSiteContent();
 
+  /*
+   * Below md the figure fills its column. Sized to its content, it took the
+   * width of the caption (wider than the photo on a phone), so when the mono
+   * web font replaced its fallback (whose metrics differ wherever Arial is
+   * missing: Linux, Android) the figure changed width and its edge moved, a
+   * layout shift of the whole figure (mobile CLS 0.0121 on Linux). Filling the
+   * column gives it a box no font can change; the figure paints nothing
+   * itself, and the photo and caption stay centred, wrapping as before.
+   */
   return (
     <figure
-      className={`flex flex-col items-center gap-3 ${className}`.trim()}
+      className={`flex flex-col items-center gap-3 max-md:w-full ${className}`.trim()}
     >
       <PortraitSlot key={src} src={src} alt={t("portraitAlt")} />
       <figcaption className="decor font-mono text-[11px] tracking-wide text-muted minimal:hidden">
