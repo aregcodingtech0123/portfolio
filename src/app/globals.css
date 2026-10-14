@@ -23,6 +23,56 @@
 @custom-variant terminal (&:where([data-skin="terminal"], [data-skin="terminal"] *));
 @custom-variant minimal (&:where([data-skin="minimal"], [data-skin="minimal"] *));
 
+/* --- Metric-matched fallbacks for Linux ------------------------------------
+   next/font generates "<family> Fallback" faces on local(Arial) or
+   local(Times New Roman), with overrides that make the fallback take the web
+   font's space, so the swap moves nothing. Linux has neither font: text first
+   rendered in a much wider default (DejaVu on the CI runner) and re-wrapped
+   when the web font arrived; the minimal hero subline lost a line, mobile CLS
+   0.0104. These twins sit right after each family in the stacks below, so
+   where Arial exists (Windows, macOS) next/font's fallback still wins and
+   nothing changes. Sans and serif: next/font's exact overrides on Liberation
+   Sans/Serif (Arimo/Tinos on ChromeOS), metric-compatible clones of Arial and
+   Times New Roman. Mono: Liberation Mono (Cousine), whose 0.6em advance equals
+   JetBrains Mono's, with JetBrains' vertical metrics (ascent 1.02, descent
+   0.30); an Arial-based mono fallback widens UPPERCASE labels until buttons
+   wrap. Each twin ends on the metric-identical original (Arial, Times New
+   Roman, Courier New) so it also loads on Windows and macOS: a face that
+   cannot load makes document.fonts.load() reject. e2e/font-fallbacks.spec.ts
+   pins these values to next/font's. */
+@font-face {
+  font-family: "Inter Fallback Linux";
+  src: local("Liberation Sans"), local("Arimo"), local("Arial");
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+  size-adjust: 107.12%;
+}
+@font-face {
+  font-family: "JetBrains Mono Fallback Linux";
+  src: local("Liberation Mono"), local("Cousine"), local("Courier New");
+  ascent-override: 102%;
+  descent-override: 30%;
+  line-gap-override: 0%;
+  size-adjust: 100%;
+}
+@font-face {
+  font-family: "Bricolage Grotesque Fallback Linux";
+  src: local("Liberation Sans"), local("Arimo"), local("Arial");
+  ascent-override: 88.21%;
+  descent-override: 25.61%;
+  line-gap-override: 0%;
+  size-adjust: 105.43%;
+}
+@font-face {
+  font-family: "Source Serif 4 Fallback Linux";
+  src: local("Liberation Serif"), local("Tinos"), local("Times New Roman");
+  ascent-override: 87.87%;
+  descent-override: 28.41%;
+  line-gap-override: 0%;
+  size-adjust: 117.91%;
+}
+
 :root,
 .dark {
   color-scheme: dark;
@@ -91,8 +141,8 @@
   --content-wide: var(--content-max);
   --rhythm: 1;
   --leading: 1.5;
-  --heading-face: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
-  --mono-face: var(--font-jetbrains), ui-monospace, monospace;
+  --heading-face: var(--font-bricolage), "Bricolage Grotesque Fallback Linux", ui-sans-serif, system-ui, sans-serif;
+  --mono-face: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
 }
 
 /*
@@ -122,8 +172,8 @@
   --content-wide: 1080px;
   --rhythm: 1.35;
   --leading: 1.7;
-  --heading-face: var(--font-source-serif), ui-serif, Georgia, serif;
-  --mono-face: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --heading-face: var(--font-source-serif), "Source Serif 4 Fallback Linux", ui-serif, Georgia, serif;
+  --mono-face: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
 
   /* Page grid. One container for the navbar, every section and the footer:
    * --page-max is the content box (1120px), --gutter is the side padding, and
@@ -296,10 +346,10 @@
   --container-content-wide: var(--content-wide);
 
   --font-heading: var(--heading-face);
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-body);
   --font-mono: var(--mono-face);
-  --font-code: var(--font-jetbrains), ui-monospace, monospace;
+  --font-code: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
 }
 
 @layer base {
@@ -576,7 +626,7 @@ main > section {
 /* Same face the font-code utility uses (JetBrains Mono). text-transform follows
  * the document language, so "i" becomes "İ" under lang="tr", which is correct. */
 [data-skin="minimal"] .m-eyebrow {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
@@ -586,7 +636,7 @@ main > section {
 }
 
 [data-skin="minimal"] .m-meta {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   line-height: 1.5;
   letter-spacing: 0.01em;
@@ -789,7 +839,7 @@ main > section {
  * state a sighted visitor sees cannot drift apart: full contrast plus a 2px rule.
  */
 [data-skin="minimal"] .m-navlink {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1.4;
@@ -885,7 +935,7 @@ main > section {
   padding: 0.6875rem 1.5rem;
   border: 2px solid var(--foreground);
   border-radius: var(--r-sm);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   line-height: 1.2;
@@ -1025,7 +1075,7 @@ main > section {
   border-radius: var(--r-sm);
   background-color: transparent;
   color: var(--foreground);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   line-height: 1.3;
   overflow-wrap: anywhere;
@@ -1082,7 +1132,7 @@ main > section {
   border-radius: 9999px;
   background-color: rgb(244 244 245);
   color: var(--foreground);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   font-size: 0.75rem;
   line-height: 1.4;
 }
@@ -1251,7 +1301,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   border: 1px solid var(--border-strong);
   border-radius: var(--r-sm);
   color: var(--foreground);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.75rem;
   line-height: 1.4;
 }
@@ -1369,7 +1419,7 @@ html[data-skin="minimal"] .m-search:focus-within {
 /* Period column: mono, quiet, and (from md) right-aligned toward the node. */
 [data-skin="minimal"] .m-tl-date {
   margin: 0;
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.75rem;
   line-height: 1.45;
   letter-spacing: 0.02em;
@@ -1406,7 +1456,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   border: 1px solid var(--border-strong);
   border-radius: 9999px;
   color: var(--foreground);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   line-height: 1.6;
@@ -1486,7 +1536,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   margin: 0;
   padding: 0.875rem 0 0;
   color: var(--foreground);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1529,7 +1579,7 @@ html[data-skin="minimal"] .m-search:focus-within {
 [data-skin="minimal"] .m-cert-date {
   margin: 0.25rem 0 0;
   color: var(--muted);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
@@ -1592,7 +1642,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   border-radius: 9999px;
   background-color: transparent;
   color: var(--muted);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   font-size: 0.8125rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -1668,7 +1718,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   padding: 0 1rem 0.75rem 0;
   border-bottom: 2px solid var(--border-strong);
   color: var(--muted);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -1730,7 +1780,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   border-radius: 9999px;
   background-color: rgb(244 244 245);
   color: var(--muted);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -1765,7 +1815,7 @@ html[data-skin="minimal"] .m-search:focus-within {
   border-radius: 0.5rem;
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter Fallback Linux", ui-sans-serif, system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.4;
   outline: none;
@@ -1852,7 +1902,7 @@ html[data-skin="minimal"] .m-search:focus-within {
 
 [data-skin="minimal"] .m-foot-link {
   color: var(--muted);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
   text-decoration: none;
@@ -1879,7 +1929,7 @@ html[data-skin="minimal"] .m-search:focus-within {
 
 [data-skin="minimal"] .m-foot-top {
   color: var(--foreground);
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-jetbrains), "JetBrains Mono Fallback Linux", ui-monospace, monospace;
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
   text-decoration: underline;
